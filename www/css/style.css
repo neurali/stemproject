@@ -7,7 +7,8 @@
     min-height:200px;
 }
 .tool{
-    width: 240px;
+    width: 100%;
+    text-align: left;
 }
 canvas{
     cursor: none;
@@ -72,4 +73,7 @@ input[type="color"]::-webkit-color-swatch {
 }
 .small-modal{
     max-width: 30%;
+}
+.space-left{
+    margin-left: 5%;
 }

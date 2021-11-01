@@ -7,7 +7,7 @@ var Stemcanvas = /** @class */ (function () {
         this.previousSelectedTool = "DRAW";
         this.cursonOnCanvas = false;
         this.fillShapeSelected = false;
-        this.drawsize = 3;
+        this.drawsize = 4;
         this.halfdrawsize = 1.5; //we will pre compute half the draw size at a time when it doesnt need to be quick
         this.SelectedColour = "black";
         this.selectionPoints = new Array(5);
@@ -1264,8 +1264,8 @@ var Stemcanvas = /** @class */ (function () {
         this.cursType.src = "media/type.png";
     };
     //assets and constants below
-    Stemcanvas.canvaswidth = 1024;
-    Stemcanvas.canvasheight = 680;
+    Stemcanvas.canvaswidth = 1500;
+    Stemcanvas.canvasheight = 1000;
     return Stemcanvas;
 }());
 var Point = /** @class */ (function () {

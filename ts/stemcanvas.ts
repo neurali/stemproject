@@ -21,7 +21,7 @@ class Stemcanvas{
     previousSelectedTool:string = "DRAW";
     cursonOnCanvas: boolean = false;
     fillShapeSelected: boolean = false;
-    drawsize: number = 3;
+    drawsize: number = 4;
     halfdrawsize: number = 1.5; //we will pre compute half the draw size at a time when it doesnt need to be quick
     SelectedColour: string = "black";   
     selectedDrawnObject:StemDrawnObject; //this holds the object that is currently selected    
@@ -1677,8 +1677,8 @@ class Stemcanvas{
     }
 
     //assets and constants below
-    static canvaswidth: number = 1024;
-    static canvasheight: number = 680;
+    static canvaswidth: number = 1500;
+    static canvasheight: number = 1000;
 
     cursPointer:any;
     cursMove:any;
