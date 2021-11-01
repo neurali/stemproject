@@ -1,0 +1,75 @@
+.customcontainer{
+    width:90%;
+    margin-left: 48px;
+    margin-right: 48px;
+}
+.placeholder200{
+    min-height:200px;
+}
+.tool{
+    width: 240px;
+}
+canvas{
+    cursor: none;
+}
+.toolwidthonly{
+    width: 240px;
+}
+.widebutton{
+    width:200px;
+}
+.dynamicinputdropdown{
+    background-color: white    ;
+    /* background-color: #e0f2f1    ; */
+    width:240px;       
+    
+}
+.dynamiccontrolscontainer{
+    width:240px;
+}
+.dynamicinputstyle{
+    margin:0px !important;
+    height: 48px;
+}
+.dropdownshelf{
+    height: 2px;
+    width: 240px;
+    background-color: #00251a;
+}
+.nomargin{
+    margin: 0px !important;
+}
+.nopadding{
+    padding:0px !important;
+}
+
+/* colour picker hack */
+input[type="color"] {
+	-webkit-appearance: none;
+	border: none;
+	width: 100px;
+	height: 40px;
+    margin-left: 5px;
+    margin-top: 5px;
+   
+   
+}
+input[type="color"]::-webkit-color-swatch-wrapper {
+	padding: 0;
+}
+input[type="color"]::-webkit-color-swatch {
+	border: none;
+}
+.switch{
+    height: 48px;
+}
+
+.dynamcihider{
+    /* do not use */
+}
+.material-icons{
+    pointer-events: none !important;
+}
+.small-modal{
+    max-width: 30%;
+}
