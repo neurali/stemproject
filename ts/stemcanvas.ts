@@ -424,6 +424,7 @@ class Stemcanvas{
             // var xc = (this.currentStroke.points[i].x + this.currentStroke.points[i+1].x) / 2;
             //     var yc = (this.currentStroke.points[i].y + this.currentStroke.points[i+1].y) / 2;
             this.ccontext.stroke();
+            //test
         }
         else
         {
