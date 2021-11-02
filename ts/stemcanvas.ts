@@ -261,7 +261,7 @@ class Stemcanvas{
         let textinput = document.getElementById("tbxInput") as HTMLInputElement;
         //todo, need to stop this if actually clicking inside the modal box
         let modelbackground = document.getElementById("text-input-modal")
-        
+
         modelbackground.addEventListener('click',(e)=>{
             //cancel the text input
             // modelbackground.classList.add("hide");
@@ -314,61 +314,61 @@ class Stemcanvas{
     }
     wireUpDrawingControls(){       
         //size updates
-        let draw_size = document.getElementById("draw_size") as HTMLInputElement;
-        draw_size.addEventListener("change", (e: InputEvent) => {
-            document.getElementById("draw_size_label").innerText = "Pen Width: " + draw_size.value;
-            this.drawsize = + draw_size.value;
-            this.halfdrawsize = this.drawsize / 2; //calc this now to be quicker later on (save 1 op)
-        })
-        let textsize = document.getElementById("text_size") as HTMLInputElement;
-        textsize.addEventListener("change", (e: InputEvent) => {
-            document.getElementById("text_size_label").innerText = "Text Size: " + textsize.value;
-            this.drawsize = + textsize.value;
-            this.halfdrawsize = this.drawsize / 2; //calc this now to be quicker later on (save 1 op)
-        })
-        let rectanglesize = document.getElementById("rectangle_size") as HTMLInputElement;
-        rectanglesize.addEventListener("change", (e: InputEvent) => {
-            document.getElementById("rectangle_size_label").innerText = "Size: " + rectanglesize.value;
-            this.drawsize = + rectanglesize.value;
-            this.halfdrawsize = this.drawsize / 2; //calc this now to be quicker later on (save 1 op)
-        })
-        let circlesize = document.getElementById("circle_size") as HTMLInputElement;
-        circlesize.addEventListener("change", (e: InputEvent) => {
-            document.getElementById("circle_size_label").innerText = "Size: " + circlesize.value;
-            this.drawsize = + circlesize.value;
-            this.halfdrawsize = this.drawsize / 2; //calc this now to be quicker later on (save 1 op)
-        })
+        // let draw_size = document.getElementById("draw_size") as HTMLInputElement;
+        // draw_size.addEventListener("change", (e: InputEvent) => {
+        //     document.getElementById("draw_size_label").innerText = "Pen Width: " + draw_size.value;
+        //     this.drawsize = + draw_size.value;
+        //     this.halfdrawsize = this.drawsize / 2; //calc this now to be quicker later on (save 1 op)
+        // })
+        // let textsize = document.getElementById("text_size") as HTMLInputElement;
+        // textsize.addEventListener("change", (e: InputEvent) => {
+        //     document.getElementById("text_size_label").innerText = "Text Size: " + textsize.value;
+        //     this.drawsize = + textsize.value;
+        //     this.halfdrawsize = this.drawsize / 2; //calc this now to be quicker later on (save 1 op)
+        // })
+        // let rectanglesize = document.getElementById("rectangle_size") as HTMLInputElement;
+        // rectanglesize.addEventListener("change", (e: InputEvent) => {
+        //     document.getElementById("rectangle_size_label").innerText = "Size: " + rectanglesize.value;
+        //     this.drawsize = + rectanglesize.value;
+        //     this.halfdrawsize = this.drawsize / 2; //calc this now to be quicker later on (save 1 op)
+        // })
+        // let circlesize = document.getElementById("circle_size") as HTMLInputElement;
+        // circlesize.addEventListener("change", (e: InputEvent) => {
+        //     document.getElementById("circle_size_label").innerText = "Size: " + circlesize.value;
+        //     this.drawsize = + circlesize.value;
+        //     this.halfdrawsize = this.drawsize / 2; //calc this now to be quicker later on (save 1 op)
+        // })
 
         //text updates
-        let textinput = document.getElementById("text_input") as HTMLInputElement;
-        textinput.addEventListener("input",(e: InputEvent)=>{
-            let text = textinput.value;
-            this.textEntered = text;
-        })
+        // let textinput = document.getElementById("text_input") as HTMLInputElement;
+        // textinput.addEventListener("input",(e: InputEvent)=>{
+        //     let text = textinput.value;
+        //     this.textEntered = text;
+        // })
 
         //colourpickers
         
-        let textcolour = document.getElementById("text_colour") as HTMLInputElement;
-        textcolour.addEventListener("change",(e: InputEvent)=>{
+        // let textcolour = document.getElementById("text_colour") as HTMLInputElement;
+        // textcolour.addEventListener("change",(e: InputEvent)=>{
             
-            this.SelectedColour = textcolour.value;
-        })
-        let drawcolour = document.getElementById("draw_colour") as HTMLInputElement;
-        drawcolour.addEventListener("change",(e: InputEvent)=>{
+        //     this.SelectedColour = textcolour.value;
+        // })
+        // let drawcolour = document.getElementById("draw_colour") as HTMLInputElement;
+        // drawcolour.addEventListener("change",(e: InputEvent)=>{
             
-            this.SelectedColour = drawcolour.value;           
+        //     this.SelectedColour = drawcolour.value;           
             
-        })
-        let rectanglecolour = document.getElementById("rectangle_colour") as HTMLInputElement;
-        rectanglecolour.addEventListener("change",(e: InputEvent)=>{
+        // })
+        // let rectanglecolour = document.getElementById("rectangle_colour") as HTMLInputElement;
+        // rectanglecolour.addEventListener("change",(e: InputEvent)=>{
             
-            this.SelectedColour = rectanglecolour.value;
-        })
-        let circlecolour = document.getElementById("circle_colour") as HTMLInputElement;
-        circlecolour.addEventListener("change",(e: InputEvent)=>{
+        //     this.SelectedColour = rectanglecolour.value;
+        // })
+        // let circlecolour = document.getElementById("circle_colour") as HTMLInputElement;
+        // circlecolour.addEventListener("change",(e: InputEvent)=>{
             
-            this.SelectedColour = circlecolour.value;
-        })
+        //     this.SelectedColour = circlecolour.value;
+        // })
 
 
         //SELECT CONTROLS //DRAW SELECTED

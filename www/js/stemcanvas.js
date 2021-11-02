@@ -230,55 +230,54 @@ var Stemcanvas = /** @class */ (function () {
         this.rendercanvascontent();
     };
     Stemcanvas.prototype.wireUpDrawingControls = function () {
-        var _this = this;
         //size updates
-        var draw_size = document.getElementById("draw_size");
-        draw_size.addEventListener("change", function (e) {
-            document.getElementById("draw_size_label").innerText = "Pen Width: " + draw_size.value;
-            _this.drawsize = +draw_size.value;
-            _this.halfdrawsize = _this.drawsize / 2; //calc this now to be quicker later on (save 1 op)
-        });
-        var textsize = document.getElementById("text_size");
-        textsize.addEventListener("change", function (e) {
-            document.getElementById("text_size_label").innerText = "Text Size: " + textsize.value;
-            _this.drawsize = +textsize.value;
-            _this.halfdrawsize = _this.drawsize / 2; //calc this now to be quicker later on (save 1 op)
-        });
-        var rectanglesize = document.getElementById("rectangle_size");
-        rectanglesize.addEventListener("change", function (e) {
-            document.getElementById("rectangle_size_label").innerText = "Size: " + rectanglesize.value;
-            _this.drawsize = +rectanglesize.value;
-            _this.halfdrawsize = _this.drawsize / 2; //calc this now to be quicker later on (save 1 op)
-        });
-        var circlesize = document.getElementById("circle_size");
-        circlesize.addEventListener("change", function (e) {
-            document.getElementById("circle_size_label").innerText = "Size: " + circlesize.value;
-            _this.drawsize = +circlesize.value;
-            _this.halfdrawsize = _this.drawsize / 2; //calc this now to be quicker later on (save 1 op)
-        });
+        // let draw_size = document.getElementById("draw_size") as HTMLInputElement;
+        // draw_size.addEventListener("change", (e: InputEvent) => {
+        //     document.getElementById("draw_size_label").innerText = "Pen Width: " + draw_size.value;
+        //     this.drawsize = + draw_size.value;
+        //     this.halfdrawsize = this.drawsize / 2; //calc this now to be quicker later on (save 1 op)
+        // })
+        // let textsize = document.getElementById("text_size") as HTMLInputElement;
+        // textsize.addEventListener("change", (e: InputEvent) => {
+        //     document.getElementById("text_size_label").innerText = "Text Size: " + textsize.value;
+        //     this.drawsize = + textsize.value;
+        //     this.halfdrawsize = this.drawsize / 2; //calc this now to be quicker later on (save 1 op)
+        // })
+        // let rectanglesize = document.getElementById("rectangle_size") as HTMLInputElement;
+        // rectanglesize.addEventListener("change", (e: InputEvent) => {
+        //     document.getElementById("rectangle_size_label").innerText = "Size: " + rectanglesize.value;
+        //     this.drawsize = + rectanglesize.value;
+        //     this.halfdrawsize = this.drawsize / 2; //calc this now to be quicker later on (save 1 op)
+        // })
+        // let circlesize = document.getElementById("circle_size") as HTMLInputElement;
+        // circlesize.addEventListener("change", (e: InputEvent) => {
+        //     document.getElementById("circle_size_label").innerText = "Size: " + circlesize.value;
+        //     this.drawsize = + circlesize.value;
+        //     this.halfdrawsize = this.drawsize / 2; //calc this now to be quicker later on (save 1 op)
+        // })
         //text updates
-        var textinput = document.getElementById("text_input");
-        textinput.addEventListener("input", function (e) {
-            var text = textinput.value;
-            _this.textEntered = text;
-        });
+        // let textinput = document.getElementById("text_input") as HTMLInputElement;
+        // textinput.addEventListener("input",(e: InputEvent)=>{
+        //     let text = textinput.value;
+        //     this.textEntered = text;
+        // })
         //colourpickers
-        var textcolour = document.getElementById("text_colour");
-        textcolour.addEventListener("change", function (e) {
-            _this.SelectedColour = textcolour.value;
-        });
-        var drawcolour = document.getElementById("draw_colour");
-        drawcolour.addEventListener("change", function (e) {
-            _this.SelectedColour = drawcolour.value;
-        });
-        var rectanglecolour = document.getElementById("rectangle_colour");
-        rectanglecolour.addEventListener("change", function (e) {
-            _this.SelectedColour = rectanglecolour.value;
-        });
-        var circlecolour = document.getElementById("circle_colour");
-        circlecolour.addEventListener("change", function (e) {
-            _this.SelectedColour = circlecolour.value;
-        });
+        // let textcolour = document.getElementById("text_colour") as HTMLInputElement;
+        // textcolour.addEventListener("change",(e: InputEvent)=>{
+        //     this.SelectedColour = textcolour.value;
+        // })
+        // let drawcolour = document.getElementById("draw_colour") as HTMLInputElement;
+        // drawcolour.addEventListener("change",(e: InputEvent)=>{
+        //     this.SelectedColour = drawcolour.value;           
+        // })
+        // let rectanglecolour = document.getElementById("rectangle_colour") as HTMLInputElement;
+        // rectanglecolour.addEventListener("change",(e: InputEvent)=>{
+        //     this.SelectedColour = rectanglecolour.value;
+        // })
+        // let circlecolour = document.getElementById("circle_colour") as HTMLInputElement;
+        // circlecolour.addEventListener("change",(e: InputEvent)=>{
+        //     this.SelectedColour = circlecolour.value;
+        // })
         //SELECT CONTROLS //DRAW SELECTED
         // let selectdrawsize = document.getElementById("select_draw_size") as HTMLInputElement;
         // selectdrawsize.addEventListener("change", (e: InputEvent) => {
