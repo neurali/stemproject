@@ -186,6 +186,36 @@ var Stemcanvas = /** @class */ (function () {
             _this.pendetails.scrollx = scrollX;
             _this.pendetails.scrolly = scrollY;
         });
+        //text input modal stuff
+        var btnAddText = document.getElementById("btnAddText");
+        var btnCancel = document.getElementById("btnCancel");
+        var textinputbox = document.getElementById("text-input-box");
+        var textinput = document.getElementById("tbxInput");
+        //todo, need to stop this if actually clicking inside the modal box
+        var modelbackground = document.getElementById("text-input-modal");
+        modelbackground.addEventListener('click', function (e) {
+            //cancel the text input
+            // modelbackground.classList.add("hide");
+            // textinput.value = "";
+        });
+        btnCancel.addEventListener("click", function (e) {
+            modelbackground.classList.add("hide");
+            textinput.value = "";
+        });
+        btnAddText.addEventListener("click", function (e) {
+            console.log("add: " + textinput.value);
+        });
+        //         <div id="text-input-modal" class="hide">
+        //     <div id="text-input-box" class="card darken-1">
+        //       <div class="card-content">
+        //         <input type="text" value="test" class="white"/>        
+        //       </div>
+        //       <div class="card-action black-text">
+        //         <a href="#" id="btnAddText">Add / Update</a>
+        //         <a href="#" id="btnCancel">Cancel</a>
+        //       </div>
+        //     </div>
+        //   </div>
     };
     Stemcanvas.prototype.SelectedChangeUpdate = function () {
         //this updates the currently selected object        
@@ -250,20 +280,20 @@ var Stemcanvas = /** @class */ (function () {
             _this.SelectedColour = circlecolour.value;
         });
         //SELECT CONTROLS //DRAW SELECTED
-        var selectdrawsize = document.getElementById("select_draw_size");
-        selectdrawsize.addEventListener("change", function (e) {
-            document.getElementById("select_draw_size_label").innerText = "Pen Width: " + selectdrawsize.value;
-            _this.drawsize = +selectdrawsize.value;
-            _this.halfdrawsize = _this.drawsize / 2; //calc this now to be quicker later on (save 1 op)
-            _this.SelectedChangeUpdate();
-            _this.UpdateBackgroundRender();
-        });
-        var selectdrawcolour = document.getElementById("select_draw_colour");
-        selectdrawcolour.addEventListener("change", function (e) {
-            _this.SelectedColour = selectdrawcolour.value;
-            _this.SelectedChangeUpdate();
-            _this.UpdateBackgroundRender();
-        });
+        // let selectdrawsize = document.getElementById("select_draw_size") as HTMLInputElement;
+        // selectdrawsize.addEventListener("change", (e: InputEvent) => {
+        //     document.getElementById("select_draw_size_label").innerText = "Pen Width: " + selectdrawsize.value;
+        //     this.drawsize = +selectdrawsize.value;
+        //     this.halfdrawsize = this.drawsize / 2; //calc this now to be quicker later on (save 1 op)
+        //     this.SelectedChangeUpdate();
+        //     this.UpdateBackgroundRender();
+        // })
+        // let selectdrawcolour = document.getElementById("select_draw_colour") as HTMLInputElement;
+        // selectdrawcolour.addEventListener("change",(e: InputEvent)=>{
+        //     this.SelectedColour = selectdrawcolour.value;
+        //     this.SelectedChangeUpdate();
+        //     this.UpdateBackgroundRender();
+        // })
     };
     Stemcanvas.prototype.UpdateCurrentStrokeDataDynamics = function () {
         //this function gets called when user lefts off after drawing a stroke
@@ -840,40 +870,50 @@ var Stemcanvas = /** @class */ (function () {
             this.drawing.push(this.currentStrokeData);
         }
         else if (this.selectedTool == "TEXT") {
-            ////FROM PREVIEW
-            // this.ccontext.moveTo(x - 8,y + 15);                 //bottomleft      
-            // this.ccontext.lineTo(x + textwidth + 8,y + 15 );    //bottom right
-            // this.ccontext.lineTo(x + textwidth + 8,y - 30 );    //top right
-            // this.ccontext.lineTo(x - 8, y - 30);                //top left
-            // this.ccontext.lineTo(x -8, y+15);                   //bottom left again 
-            //
-            console.log("building text object from drawing array");
-            this.isEnteringText = false;
-            this.currentText.text = this.textEntered;
-            this.currentText.points = this.currentStrokeData.points;
-            this.currentText.strokewidth = this.drawsize.toString();
-            this.currentText.strokecolour = this.SelectedColour;
-            this.currentText.isFilled = this.currentStrokeData.isFilled;
-            //now calculate the boundingbox based on selected settings:
-            var boundingbox = new StemstrokeBox();
-            var lastpoint = this.currentText.points[this.currentText.points.length - 1];
-            var textsize = this.drawsize * 2;
-            this.ccontext.font = textsize + "px Arial";
-            var textwidth = this.ccontext.measureText(this.textEntered).width;
-            this.ccontext.lineWidth = 1.5;
-            var minx = lastpoint.x - 8;
-            var miny = lastpoint.y - 30;
-            var maxx = lastpoint.x + textwidth + 8;
-            var maxy = lastpoint.y + 15;
-            boundingbox.maxX = maxx;
-            boundingbox.maxY = maxy;
-            boundingbox.originx = minx;
-            boundingbox.originy = miny;
-            //now assign the bounding box to the stroke object          
-            this.currentText.cachedBoundingBox = boundingbox;
-            //stash in drawing array
-            this.drawing.push(this.currentText);
-            //draw a rectangle on the canvas where the user clicked, then listen to keystrokes until they click out. If the font size is changed, then that will also update.
+            //show text entry pop over 
+            var customcontainer = document.getElementById("canvas-scroll-container");
+            // let popupdiv = document.createElement()
+            var textinputdiv = document.getElementById("text-input-modal");
+            textinputdiv.classList.remove("hide");
+            var canvasposition = this.canvas.getBoundingClientRect();
+            var inputbox = document.getElementById("text-input-box");
+            inputbox.style.left = (this.pendetails.X + 5).toString() + "px";
+            inputbox.style.top = (canvasposition.top + this.pendetails.Y - 45).toString() + "px";
+            //now position the textbox based on cursor position
+            // ////FROM PREVIEW
+            // // this.ccontext.moveTo(x - 8,y + 15);                 //bottomleft      
+            // // this.ccontext.lineTo(x + textwidth + 8,y + 15 );    //bottom right
+            // // this.ccontext.lineTo(x + textwidth + 8,y - 30 );    //top right
+            // // this.ccontext.lineTo(x - 8, y - 30);                //top left
+            // // this.ccontext.lineTo(x -8, y+15);                   //bottom left again 
+            // //
+            // console.log("building text object from drawing array");        
+            // this.isEnteringText = false;            
+            // this.currentText.text = this.textEntered;
+            // this.currentText.points = this.currentStrokeData.points;
+            // this.currentText.strokewidth = this.drawsize.toString();
+            // this.currentText.strokecolour = this.SelectedColour;
+            // this.currentText.isFilled = this.currentStrokeData.isFilled; 
+            // //now calculate the boundingbox based on selected settings:
+            // let boundingbox = new StemstrokeBox();
+            // let lastpoint = this.currentText.points[this.currentText.points.length - 1];
+            // let textsize = this.drawsize * 2;
+            // this.ccontext.font = `${textsize}px Arial`;
+            // let textwidth = this.ccontext.measureText(this.textEntered).width;
+            // this.ccontext.lineWidth = 1.5;
+            // let minx = lastpoint.x - 8;
+            // let miny = lastpoint.y - 30;
+            // let maxx = lastpoint.x + textwidth + 8;            
+            // let maxy = lastpoint.y + 15;     
+            // boundingbox.maxX = maxx;
+            // boundingbox.maxY = maxy;
+            // boundingbox.originx = minx;
+            // boundingbox.originy = miny;                     
+            // //now assign the bounding box to the stroke object          
+            // this.currentText.cachedBoundingBox = boundingbox;             
+            // //stash in drawing array
+            // this.drawing.push(this.currentText);
+            // //draw a rectangle on the canvas where the user clicked, then listen to keystrokes until they click out. If the font size is changed, then that will also update.
         }
         else if (this.selectedTool == "RECTANGLE") {
             if (this.currentRectangle != null) {

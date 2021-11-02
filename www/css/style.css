@@ -76,3 +76,24 @@ input[type="color"]::-webkit-color-swatch {
 .space-left{
     margin-left: 5%;
 }
+#text-input-modal{
+    position: fixed; /* Stay in place */
+    z-index: 1; /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgb(255, 255, 255); /* Fallback color */
+    background-color: rgba(47, 47, 53, 0.644); /* Black w/ opacity */
+}
+#text-input-box{
+    background-color: white;    
+    position: relative;
+    top:0px;
+    left:0px;
+    width: 25%;
+}
+#cardAddText{
+    padding-bottom: 0px;    
+}
