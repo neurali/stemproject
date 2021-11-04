@@ -64,9 +64,6 @@ input[type="color"]::-webkit-color-swatch {
     height: 48px;
 }
 
-.dynamcihider{
-    /* do not use */
-}
 .material-icons{
     pointer-events: none !important;
 }
@@ -96,4 +93,23 @@ input[type="color"]::-webkit-color-swatch {
 }
 #cardAddText{
     padding-bottom: 0px;    
+}
+.full-width{
+    width: 100%;
+}
+.style-border{
+    margin-top: 1vw;
+    border: solid #004d40  2px;
+    border-radius: 2px;    
+    -webkit-box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 3px 1px -2px rgba(0, 0, 0, 0.12), 0 1px 5px 0 rgba(0, 0, 0, 0.2);
+    box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 3px 1px -2px rgba(0, 0, 0, 0.12), 0 1px 5px 0 rgba(0, 0, 0, 0.2);
+    
+}
+.justify{
+    text-align: justify;
+    margin:2px;
+}
+.padding-left{
+     padding-left: 10px;
+ 
 }

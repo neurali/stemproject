@@ -1,6 +1,4 @@
 var Stemcanvas = /** @class */ (function () {
-    ////////////////
-    //self = this;       
     function Stemcanvas(canvasid) {
         this.pendetails = new Stempen();
         this.selectedTool = "DRAW"; //page loads with draw selected    
@@ -18,6 +16,22 @@ var Stemcanvas = /** @class */ (function () {
         this.isEnteringText = false;
         this.textEntered = "";
         this.multiselectionMinimumLength = 10; //the minimum lenght to select objects inside bounds
+        //session info for file download:
+        //session start time clock
+        this.starttimeclock = "";
+        //session start time performance
+        this.starttimeperf = "";
+        //session end time clock
+        this.endtimeclock = "";
+        //load the session details:   
+        this.participant = sessionStorage.getItem("token");
+        var sessioninfo = document.getElementById("sessioninfo");
+        var attTasknumber = sessioninfo.attributes.getNamedItem("data-tasknumber");
+        this.task = attTasknumber.value;
+        document.getElementById("lblParticipant").innerText = "Participant: " + this.participant;
+        if (this.task == "q6") {
+            document.getElementById("btnNext").classList.add("hide");
+        }
         this.loadAssets();
         this.id = canvasid;
         if (window.Worker) {
@@ -43,7 +57,7 @@ var Stemcanvas = /** @class */ (function () {
         //control events
         //begin canvas loop
         requestAnimationFrame(this.rendercanvascontent.bind(this));
-        startTimer();
+        this.startTimer();
     }
     Stemcanvas.prototype.DeleteSelectedObject = function () {
     };
@@ -68,10 +82,11 @@ var Stemcanvas = /** @class */ (function () {
                 if (_this.selectedTool == _this.previousSelectedTool) {
                     return;
                 }
-                var alldroptownInputs = document.getElementsByClassName("dynamic");
-                for (var d = 0; d < alldroptownInputs.length; d++) {
-                    alldroptownInputs[d].remove();
-                }
+                // let alldroptownInputs = document.getElementsByClassName("dynamic");
+                // for(let d = 0; d < alldroptownInputs.length; d++)
+                // {
+                //     alldroptownInputs[d].remove();
+                // }              
                 _this.selectedDrawnObject = null;
                 //unset all the tools (buttons, not the dynamic controls underneath them)
                 for (var y = 0; y < tools.length; y++) {
@@ -90,32 +105,27 @@ var Stemcanvas = /** @class */ (function () {
                 }
                 //reinit text sentinel
                 _this.isEnteringText = false;
+                var drawsize = document.getElementById("ctlDrawSize");
+                var lbldrawsize = document.getElementById("drawing-size");
                 if (_this.selectedTool == "TEXT") {
-                    //unhide the controls
-                    document.getElementById("InputTextBox").classList.remove("hide");
-                    document.getElementById("InputColourBox").classList.remove("hide");
-                    document.getElementById("InputTextSize").classList.remove("hide");
-                    document.getElementById("TextFill").classList.remove("hide");
                     _this.isEnteringText = true;
+                    _this.drawsize = 8;
+                    drawsize.setAttribute("min", "8");
+                    lbldrawsize.innerText = "Size: 8";
                 }
                 else if (_this.selectedTool == "SELECT") {
-                    document.getElementById("SelectPlaceholder").classList.remove("hide");
-                    //this is handled in elsewhere once the app knows which object is selected
                 }
                 else if (_this.selectedTool == "DRAW") {
-                    document.getElementById("InputDrawSize").classList.remove("hide");
-                    document.getElementById("InputDrawColour").classList.remove("hide");
                     _this.currentStrokeData = null;
                 }
                 else if (_this.selectedTool == "RECTANGLE") {
-                    document.getElementById("InputRectangleWidth").classList.remove("hide");
-                    document.getElementById("InputRectangleColour").classList.remove("hide"); //
-                    document.getElementById("InputRectangleFill").classList.remove("hide");
                 }
                 else if (_this.selectedTool == "CIRCLE") {
-                    document.getElementById("InputCircleWidth").classList.remove("hide");
-                    document.getElementById("InputCircleColour").classList.remove("hide"); //
-                    document.getElementById("InputCircleFill").classList.remove("hide");
+                }
+                if (_this.selectedTool == "TEXT") {
+                }
+                else {
+                    drawsize.setAttribute("min", "1");
                 }
             });
         }
@@ -170,13 +180,63 @@ var Stemcanvas = /** @class */ (function () {
         });
         //save button
         document.getElementById("btnSave").addEventListener("click", function () {
+            var participantTask = _this.participant + " - " + _this.task;
+            //download canvas, 
             _this.selectedDrawnObject = null;
             _this.rendercanvascontent();
             var image = _this.canvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
             var anchor = document.createElement('a');
-            anchor.setAttribute('download', 'Canvas.png');
+            anchor.setAttribute('download', "Canvas - " + _this.participant + " - " + _this.task + ".png");
             anchor.setAttribute('href', image);
             anchor.click();
+            //drawing data json, 
+            //Export JSON BUTTON (REMOVE FOR PROD)
+            var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(_this.drawing));
+            anchor = document.createElement('a');
+            anchor.setAttribute("href", dataStr);
+            anchor.setAttribute("download", participantTask + " - drawingdata.json");
+            anchor.click();
+            //and session information
+            var session = new Sessioninfo();
+            session.start = _this.starttimeclock;
+            session.end = new Date().toLocaleString();
+            session.startperf = _this.starttimeperf;
+            var sessionoutputstring = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(session));
+            anchor = document.createElement('a');
+            anchor.setAttribute("href", sessionoutputstring);
+            anchor.setAttribute("download", participantTask + " - sessioninfo.json");
+            anchor.click();
+        });
+        document.getElementById("btnNext").addEventListener("click", function () {
+            var participantTask = _this.participant + " - " + _this.task;
+            //download canvas, 
+            _this.selectedDrawnObject = null;
+            _this.rendercanvascontent();
+            var image = _this.canvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
+            var anchor = document.createElement('a');
+            anchor.setAttribute('download', "Canvas - " + _this.participant + " - " + _this.task + ".png");
+            anchor.setAttribute('href', image);
+            anchor.click();
+            //drawing data json, 
+            //Export JSON BUTTON (REMOVE FOR PROD)
+            var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(_this.drawing));
+            anchor = document.createElement('a');
+            anchor.setAttribute("href", dataStr);
+            anchor.setAttribute("download", participantTask + " - drawingdata.json");
+            anchor.click();
+            //and session information
+            var session = new Sessioninfo();
+            session.start = _this.starttimeclock;
+            session.end = new Date().toLocaleString();
+            session.startperf = _this.starttimeperf;
+            var sessionoutputstring = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(session));
+            anchor = document.createElement('a');
+            anchor.setAttribute("href", sessionoutputstring);
+            anchor.setAttribute("download", participantTask + " - sessioninfo.json");
+            anchor.click();
+            var currentquestionarray = _this.task.split('q');
+            var currentquestion = parseInt(currentquestionarray[1]);
+            location.href = "q" + (currentquestion + 1) + ".html";
         });
         //handle scrollbars
         var scrollcontainer = document.getElementById("canvas-scroll-container");
@@ -203,19 +263,28 @@ var Stemcanvas = /** @class */ (function () {
             textinput.value = "";
         });
         btnAddText.addEventListener("click", function (e) {
-            console.log("add: " + textinput.value);
+            //add text object to drawing:
+            if (textinput.value.length > 0) {
+                var newtext = new StemText();
+                var location_1 = new Stempoint(_this.pendetails.X, _this.pendetails.Y);
+                newtext.points.push(location_1);
+                newtext.text = textinput.value;
+                newtext.strokecolour = _this.SelectedColour;
+                newtext.strokewidth = _this.drawsize.toString();
+                newtext.isFilled = true;
+                var textsize = (parseInt(newtext.strokewidth)) * 2;
+                _this.ccontext.font = textsize + "px Arial";
+                var width = _this.ccontext.measureText(newtext.text);
+                newtext.cachedBoundingBox = new StemstrokeBox();
+                newtext.cachedBoundingBox.originx = newtext.points[0].x - 8;
+                newtext.cachedBoundingBox.originy = newtext.points[0].y - 30;
+                newtext.cachedBoundingBox.maxX = newtext.cachedBoundingBox.originx + width.width + 8;
+                newtext.cachedBoundingBox.maxY = newtext.points[0].y + 15;
+                _this.drawing.push(newtext);
+                modelbackground.classList.add("hide");
+                _this.UpdateBackgroundRender();
+            }
         });
-        //         <div id="text-input-modal" class="hide">
-        //     <div id="text-input-box" class="card darken-1">
-        //       <div class="card-content">
-        //         <input type="text" value="test" class="white"/>        
-        //       </div>
-        //       <div class="card-action black-text">
-        //         <a href="#" id="btnAddText">Add / Update</a>
-        //         <a href="#" id="btnCancel">Cancel</a>
-        //       </div>
-        //     </div>
-        //   </div>
     };
     Stemcanvas.prototype.SelectedChangeUpdate = function () {
         //this updates the currently selected object        
@@ -223,53 +292,33 @@ var Stemcanvas = /** @class */ (function () {
          {
             //this shouldnt happen
         }
-        this.selectedDrawnObject.strokecolour = this.SelectedColour;
-        this.selectedDrawnObject.strokewidth = this.drawsize.toString();
-        this.selectedDrawnObject.isFilled = this.fillShapeSelected;
-        //what about text? todo
-        this.rendercanvascontent();
+        else {
+            this.selectedDrawnObject.strokecolour = this.SelectedColour;
+            this.selectedDrawnObject.strokewidth = this.drawsize.toString();
+            this.selectedDrawnObject.isFilled = this.fillShapeSelected;
+            //what about text? todo
+            this.rendercanvascontent();
+        }
     };
     Stemcanvas.prototype.wireUpDrawingControls = function () {
-        //size updates
-        // let draw_size = document.getElementById("draw_size") as HTMLInputElement;
-        // draw_size.addEventListener("change", (e: InputEvent) => {
-        //     document.getElementById("draw_size_label").innerText = "Pen Width: " + draw_size.value;
-        //     this.drawsize = + draw_size.value;
-        //     this.halfdrawsize = this.drawsize / 2; //calc this now to be quicker later on (save 1 op)
-        // })
-        // let textsize = document.getElementById("text_size") as HTMLInputElement;
-        // textsize.addEventListener("change", (e: InputEvent) => {
-        //     document.getElementById("text_size_label").innerText = "Text Size: " + textsize.value;
-        //     this.drawsize = + textsize.value;
-        //     this.halfdrawsize = this.drawsize / 2; //calc this now to be quicker later on (save 1 op)
-        // })
-        // let rectanglesize = document.getElementById("rectangle_size") as HTMLInputElement;
-        // rectanglesize.addEventListener("change", (e: InputEvent) => {
-        //     document.getElementById("rectangle_size_label").innerText = "Size: " + rectanglesize.value;
-        //     this.drawsize = + rectanglesize.value;
-        //     this.halfdrawsize = this.drawsize / 2; //calc this now to be quicker later on (save 1 op)
-        // })
-        // let circlesize = document.getElementById("circle_size") as HTMLInputElement;
-        // circlesize.addEventListener("change", (e: InputEvent) => {
-        //     document.getElementById("circle_size_label").innerText = "Size: " + circlesize.value;
-        //     this.drawsize = + circlesize.value;
-        //     this.halfdrawsize = this.drawsize / 2; //calc this now to be quicker later on (save 1 op)
-        // })
-        //text updates
-        // let textinput = document.getElementById("text_input") as HTMLInputElement;
-        // textinput.addEventListener("input",(e: InputEvent)=>{
-        //     let text = textinput.value;
-        //     this.textEntered = text;
-        // })
-        //colourpickers
-        // let textcolour = document.getElementById("text_colour") as HTMLInputElement;
-        // textcolour.addEventListener("change",(e: InputEvent)=>{
-        //     this.SelectedColour = textcolour.value;
-        // })
-        // let drawcolour = document.getElementById("draw_colour") as HTMLInputElement;
-        // drawcolour.addEventListener("change",(e: InputEvent)=>{
-        //     this.SelectedColour = drawcolour.value;           
-        // })
+        var _this = this;
+        //GLOBAL SIZE CONTROL
+        var lbl_draw_size = document.getElementById("drawing-size");
+        var draw_size = document.getElementById("ctlDrawSize");
+        draw_size.addEventListener("change", function (e) {
+            _this.drawsize = +draw_size.value;
+            _this.halfdrawsize = _this.drawsize / 2; //calc this now to be quicker later on (save 1 op)
+            lbl_draw_size.innerText = "Size: " + _this.drawsize;
+            _this.SelectedChangeUpdate();
+            _this.UpdateBackgroundRender();
+        });
+        //colourpickers        
+        var draw_colour = document.getElementById("ctlInputColour");
+        draw_colour.addEventListener("change", function (e) {
+            _this.SelectedColour = draw_colour.value;
+            _this.SelectedChangeUpdate();
+            _this.UpdateBackgroundRender();
+        });
         // let rectanglecolour = document.getElementById("rectangle_colour") as HTMLInputElement;
         // rectanglecolour.addEventListener("change",(e: InputEvent)=>{
         //     this.SelectedColour = rectanglecolour.value;
@@ -540,15 +589,6 @@ var Stemcanvas = /** @class */ (function () {
             var radius = Math.sqrt((newwidth * newwidth) + (newheight * newheight));
             this.ccontext.beginPath();
             this.ccontext.arc(firstpoint.x, firstpoint.y, radius, 0, 20);
-            // for(let i = 0; i < this.selectedDrawnObject.points.length; i++)
-            // {     
-            //     if(this.hoveredSelectionPoint == "P")
-            //     {
-            //         let currentpoint = this.selectedDrawnObject.points[i];
-            //         let transformedpoint = this.TransformPoint(currentpoint.x - (firstpoint.x),currentpoint.y - (firstpoint.y),circlexfactor,0,0,circleyfactor,0,0);
-            //         this.ccontext.lineTo(transformedpoint.x + (firstpoint.x),transformedpoint.y + (firstpoint.y));
-            //     }               
-            // }  
             this.ccontext.stroke();
             this.ccontext.closePath();
         }
@@ -667,7 +707,6 @@ var Stemcanvas = /** @class */ (function () {
                 this.ccontext.drawImage(this.cursPointer, x, y, 18, 18);
             }
             if (this.pendetails.penDown && this.hoveredSelectionPoint == "") {
-                console.log(this.currentStrokeData.length());
                 if (this.currentStrokeData.length() > this.multiselectionMinimumLength) {
                     var first = this.currentStrokeData.points[0];
                     var last = this.currentStrokeData.points[this.currentStrokeData.points.length - 1];
@@ -876,43 +915,8 @@ var Stemcanvas = /** @class */ (function () {
             textinputdiv.classList.remove("hide");
             var canvasposition = this.canvas.getBoundingClientRect();
             var inputbox = document.getElementById("text-input-box");
-            inputbox.style.left = (this.pendetails.X + 5).toString() + "px";
+            inputbox.style.left = (this.pendetails.X + 5 - this.pendetails.scrollx).toString() + "px";
             inputbox.style.top = (canvasposition.top + this.pendetails.Y - 45).toString() + "px";
-            //now position the textbox based on cursor position
-            // ////FROM PREVIEW
-            // // this.ccontext.moveTo(x - 8,y + 15);                 //bottomleft      
-            // // this.ccontext.lineTo(x + textwidth + 8,y + 15 );    //bottom right
-            // // this.ccontext.lineTo(x + textwidth + 8,y - 30 );    //top right
-            // // this.ccontext.lineTo(x - 8, y - 30);                //top left
-            // // this.ccontext.lineTo(x -8, y+15);                   //bottom left again 
-            // //
-            // console.log("building text object from drawing array");        
-            // this.isEnteringText = false;            
-            // this.currentText.text = this.textEntered;
-            // this.currentText.points = this.currentStrokeData.points;
-            // this.currentText.strokewidth = this.drawsize.toString();
-            // this.currentText.strokecolour = this.SelectedColour;
-            // this.currentText.isFilled = this.currentStrokeData.isFilled; 
-            // //now calculate the boundingbox based on selected settings:
-            // let boundingbox = new StemstrokeBox();
-            // let lastpoint = this.currentText.points[this.currentText.points.length - 1];
-            // let textsize = this.drawsize * 2;
-            // this.ccontext.font = `${textsize}px Arial`;
-            // let textwidth = this.ccontext.measureText(this.textEntered).width;
-            // this.ccontext.lineWidth = 1.5;
-            // let minx = lastpoint.x - 8;
-            // let miny = lastpoint.y - 30;
-            // let maxx = lastpoint.x + textwidth + 8;            
-            // let maxy = lastpoint.y + 15;     
-            // boundingbox.maxX = maxx;
-            // boundingbox.maxY = maxy;
-            // boundingbox.originx = minx;
-            // boundingbox.originy = miny;                     
-            // //now assign the bounding box to the stroke object          
-            // this.currentText.cachedBoundingBox = boundingbox;             
-            // //stash in drawing array
-            // this.drawing.push(this.currentText);
-            // //draw a rectangle on the canvas where the user clicked, then listen to keystrokes until they click out. If the font size is changed, then that will also update.
         }
         else if (this.selectedTool == "RECTANGLE") {
             if (this.currentRectangle != null) {
@@ -1179,7 +1183,6 @@ var Stemcanvas = /** @class */ (function () {
     };
     Stemcanvas.prototype.SelectDrawnObjectAtPoint = function (x, y) {
         var boxintersected = new Array();
-        console.log("selecting object at objec tpoint");
         this.drawing.forEach(function (el) {
             el.UpdateBoundingBox("SelectDrawnObjectAtPoint");
             //find all strokes           
@@ -1223,7 +1226,6 @@ var Stemcanvas = /** @class */ (function () {
                 }
             }
             else if (el.objecttype == "TEXT") {
-                console.log('checking text');
                 var text = el;
                 var distance = 99999999999;
                 if (text.cachedBoundingBox.DoesIntersect(x, y)) {
@@ -1240,9 +1242,6 @@ var Stemcanvas = /** @class */ (function () {
          {
             var selected = boxintersected[indexofClosest];
             this.selectedDrawnObject = selected;
-            //selected object is now defined, lets set the selection points for use in oncursormove
-            //let box = this.selectedDrawnObject.getBoundingBox()      
-            //now update the 'tools' controls
             this.updateDrawingTools();
         }
         else {
@@ -1250,7 +1249,6 @@ var Stemcanvas = /** @class */ (function () {
         }
     };
     Stemcanvas.prototype.SelectDrawnObjectsInsideBounds = function (box) {
-        console.log("selecting multiple elements");
         var selected = new Array;
         this.drawing.forEach(function (s) {
             var first = s.points[0];
@@ -1274,13 +1272,21 @@ var Stemcanvas = /** @class */ (function () {
         this.selectedMultiDrawnObjects = temp;
     };
     Stemcanvas.prototype.updateDrawingTools = function () {
-        //get the currently seletected object type, We'll use that to determine which tools to show under the select 'tab'
-        var selectedObjectType = this.selectedDrawnObject.objecttype;
-        //check for drawing, text, rectangle, circle
-        if (selectedObjectType == "DRAW") {
-            document.getElementById("SelectDrawColour").classList.remove("hide");
-            document.getElementById("SelectDrawSize").classList.remove("hide");
+        var size = this.selectedDrawnObject.strokewidth; //get the size of the selected object
+        console.log("size " + size);
+        var sizeslider = document.getElementById("ctlDrawSize"); //the global size slider       
+        var sizelabel = document.getElementById("drawing-size");
+        sizelabel.innerText = "Size: " + size;
+        var colourpicker = document.getElementById("ctlInputColour");
+        colourpicker.value = this.selectedDrawnObject.strokecolour;
+        if (this.selectedDrawnObject.objecttype == "TEXT") {
+            //set minimum to 8            
+            sizeslider.setAttribute("min", "8");
         }
+        else {
+            sizeslider.setAttribute("min", "1");
+        }
+        sizeslider.value = size;
     };
     Stemcanvas.prototype.loadAssets = function () {
         this.cursPointer = new Image();
@@ -1303,6 +1309,22 @@ var Stemcanvas = /** @class */ (function () {
         this.cursDraw.src = "media/draw.png";
         this.cursType.src = "media/type.png";
     };
+    Stemcanvas.prototype.startTimer = function () {
+        console.log("start timer");
+        var timertext = document.getElementById("questiontimer");
+        var startsynctime = performance.now();
+        var startClockTime = new Date().getTime();
+        this.starttimeclock = new Date().toLocaleString();
+        this.starttimeperf = startsynctime.toString();
+        var x = setInterval(function () {
+            var currentTime = new Date().getTime();
+            var distance = currentTime - startClockTime;
+            var hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            var seconds = Math.floor((distance % (1000 * 60)) / 1000);
+            timertext.innerText = hours + "h  " + minutes + "m  " + seconds + "s";
+        }, 2000);
+    };
     //assets and constants below
     Stemcanvas.canvaswidth = 1500;
     Stemcanvas.canvasheight = 1000;
@@ -1315,17 +1337,4 @@ var Point = /** @class */ (function () {
     }
     return Point;
 }());
-function startTimer() {
-    var timertext = document.getElementById("questiontimer");
-    var startsynctime = performance.now();
-    var startClockTime = new Date().getTime();
-    var x = setInterval(function () {
-        var currentTime = new Date().getTime();
-        var distance = currentTime - startClockTime;
-        var hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-        var seconds = Math.floor((distance % (1000 * 60)) / 1000);
-        timertext.innerText = hours + "h  " + minutes + "m  " + seconds + "s";
-    }, 2000);
-}
 //# sourceMappingURL=stemcanvas.js.map

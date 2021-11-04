@@ -60,7 +60,6 @@ class StemDrawnObject {
         }
          else if(this.objecttype == "RECTANGLE")
          {
-             console.log("looking at selecting a rectangle");
             let first = this.points[0];
             let last = this.points[this.points.length - 1];
          
@@ -113,7 +112,6 @@ class StemDrawnObject {
         }
         else if(this.objecttype == "TEXT")
         {    
-            console.log("text bounding boxes need canvas operations to update, look elsewhere see 1150 stemcanvas.ts");            
         }        
     }
 
@@ -176,7 +174,6 @@ class StemRectangle extends StemShape {
         }
         else
         {       
-            console.log("stop");           
             let height = 9999999;
             let width = 99999999;
             

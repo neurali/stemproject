@@ -84,7 +84,7 @@ onmessage = function (e) {
             bcontext.closePath();
         }
         else if (s.objecttype == "TEXT") {
-            var finalpoint = s.points[s.points.length - 1];
+            var finalpoint = s.points[s.points.length - 1]; //text objects should only have a single point now
             var textobject = s;
             var textsize = (parseInt(s.strokewidth)) * 2;
             bcontext.font = textsize + "px Arial";

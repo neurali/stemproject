@@ -123,7 +123,7 @@ onmessage = (e)=>{
         }  
         else if (s.objecttype == "TEXT")   
         {   
-            let finalpoint = s.points[s.points.length -1];
+            let finalpoint = s.points[s.points.length -1]; //text objects should only have a single point now
             let textobject = s as StemText;
         
             let textsize = (parseInt(s.strokewidth)) * 2;
