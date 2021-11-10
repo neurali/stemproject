@@ -40,4 +40,15 @@ class MultiSelectContainer
         this.maxy = tmaxy
     }
 
+    public doesIntersect(x,y){
+
+        if(x > this.minx && x < this.maxx)
+        {
+            if(y > this.miny && y < this.maxy)
+            {
+                return true;
+            }
+        }
+    }
+
 }

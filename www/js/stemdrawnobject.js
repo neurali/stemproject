@@ -137,6 +137,15 @@ var StemShape = /** @class */ (function (_super) {
     }
     return StemShape;
 }(StemDrawnObject));
+var StemLine = /** @class */ (function (_super) {
+    __extends(StemLine, _super);
+    function StemLine() {
+        var _this = _super !== null && _super.apply(this, arguments) || this;
+        _this.objecttype = "LINE";
+        return _this;
+    }
+    return StemLine;
+}(StemShape));
 var StemRectangle = /** @class */ (function (_super) {
     __extends(StemRectangle, _super);
     function StemRectangle() {

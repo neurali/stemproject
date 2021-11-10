@@ -25,6 +25,13 @@ var MultiSelectContainer = /** @class */ (function () {
         this.miny = tminy;
         this.maxy = tmaxy;
     }
+    MultiSelectContainer.prototype.doesIntersect = function (x, y) {
+        if (x > this.minx && x < this.maxx) {
+            if (y > this.miny && y < this.maxy) {
+                return true;
+            }
+        }
+    };
     return MultiSelectContainer;
 }());
 //# sourceMappingURL=multiselectcontainer.js.map

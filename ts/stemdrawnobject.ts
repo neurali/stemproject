@@ -151,6 +151,10 @@ class StemShape extends StemDrawnObject {
 
 }
 
+class StemLine extends StemShape{
+    objecttype = "LINE";
+}
+
 class StemRectangle extends StemShape {
     objecttype = "RECTANGLE";
     

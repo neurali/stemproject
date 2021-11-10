@@ -39,8 +39,17 @@ canvas{
 .nomargin{
     margin: 0px !important;
 }
+.nomargintop{
+    margin-top: 0px !important;
+}
+.nomarginbot{
+    margin-bottom: 0px;
+}
 .nopadding{
     padding:0px !important;
+}
+.nopaddingtop{
+    padding-top:0px !important;
 }
 
 /* colour picker hack */
@@ -68,7 +77,8 @@ input[type="color"]::-webkit-color-swatch {
     pointer-events: none !important;
 }
 .small-modal{
-    max-width: 30%;
+    max-width: 20%;
+    left:-50%;
 }
 .space-left{
     margin-left: 5%;
@@ -112,4 +122,26 @@ input[type="color"]::-webkit-color-swatch {
 .padding-left{
      padding-left: 10px;
  
+}
+.question-text-fix{
+
+    padding-left: 20px ;
+    padding: 0px 0px 0px 20px;
+}
+.no-flex{
+    display: block;
+}
+.flex{
+    display:flex;
+}
+.canvas-container{
+    /* max-height: 600px; */
+    max-height: 200px;
+    max-width: 100%;
+    overflow: scroll;
+}
+.qpad{
+    padding-left: 10px;
+    padding-right: 80px;
+    padding-top: 10px;
 }

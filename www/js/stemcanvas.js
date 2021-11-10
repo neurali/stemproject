@@ -1,5 +1,6 @@
 var Stemcanvas = /** @class */ (function () {
     function Stemcanvas(canvasid) {
+        var _this = this;
         this.pendetails = new Stempen();
         this.selectedTool = "DRAW"; //page loads with draw selected    
         this.previousSelectedTool = "DRAW";
@@ -25,12 +26,21 @@ var Stemcanvas = /** @class */ (function () {
         this.endtimeclock = "";
         //load the session details:   
         this.participant = sessionStorage.getItem("token");
+        this.taskset = sessionStorage.getItem("taskset");
+        this.devicetype = sessionStorage.getItem("devicetype");
         var sessioninfo = document.getElementById("sessioninfo");
         var attTasknumber = sessioninfo.attributes.getNamedItem("data-tasknumber");
         this.task = attTasknumber.value;
         document.getElementById("lblParticipant").innerText = "Participant: " + this.participant;
-        if (this.task == "q6") {
-            document.getElementById("btnNext").classList.add("hide");
+        if (this.taskset == "a") {
+            if (this.task == "q3") {
+                document.getElementById("btnNext").classList.add("hide");
+            }
+        }
+        else if (this.taskset == "b") {
+            if (this.task == "q6") {
+                document.getElementById("btnNext").classList.add("hide");
+            }
         }
         this.loadAssets();
         this.id = canvasid;
@@ -53,8 +63,31 @@ var Stemcanvas = /** @class */ (function () {
         this.canvas.addEventListener("pointerdown", this.PointerDownEvent.bind(this));
         this.canvas.addEventListener("pointerup", this.PointerUpEvent.bind(this));
         this.canvas.addEventListener("pointerleave", this.PointerLeaveEvent.bind(this));
+        //catch all uncaught errors
+        window.addEventListener('error', function (e) {
+            console.log("error");
+            //now reset so user can continue drawing: 
+            _this.selectedDrawnObject = null;
+            _this.selectedMultiDrawnObjects = null;
+            _this.ismovingobject = false;
+            _this.isresizingobject = false;
+            _this.isEnteringText = false;
+            _this.hoveredSelectionPoint = "";
+            return true;
+        });
         this.wireUpControls();
         //control events
+        //screen tidyup:
+        var canvascontainer = document.getElementById("canvas-scroll-container");
+        var viewheight = window.innerHeight;
+        console.log("viewheight = " + viewheight);
+        var top = canvascontainer.offsetTop;
+        console.log("top point of canvas container = " + top);
+        var maxheight = viewheight - top;
+        console.log("difference = " + maxheight);
+        canvascontainer.style.maxHeight = maxheight - 15 + "px";
+        // console.log(heightchange);
+        // canvascontainer.style.maxHeight = (heightchange).toString()+"px";
         //begin canvas loop
         requestAnimationFrame(this.rendercanvascontent.bind(this));
         this.startTimer();
@@ -88,6 +121,7 @@ var Stemcanvas = /** @class */ (function () {
                 //     alldroptownInputs[d].remove();
                 // }              
                 _this.selectedDrawnObject = null;
+                _this.selectedMultiDrawnObjects = null;
                 //unset all the tools (buttons, not the dynamic controls underneath them)
                 for (var y = 0; y < tools.length; y++) {
                     tools[y].classList.remove("teal");
@@ -156,9 +190,10 @@ var Stemcanvas = /** @class */ (function () {
             if (_this.drawing.length > 0) {
                 _this.redoStack.push(_this.drawing[_this.drawing.length - 1]);
                 _this.drawing.pop();
-                _this.UpdateBackgroundRender();
                 _this.selectedDrawnObject = null;
                 _this.selectedMultiDrawnObjects = null;
+                _this.UpdateBackgroundRender();
+                _this.rendercanvascontent();
             }
         });
         document.getElementById("btnRedo").addEventListener("click", function () {
@@ -169,24 +204,27 @@ var Stemcanvas = /** @class */ (function () {
             }
         });
         document.getElementById("btnConfirmClear").addEventListener("click", function () {
-            _this.rendercanvascontent();
             //clears complete drawing ,, but why are the rectangles still showing during render current stroke?
+            _this.selectedDrawnObject = null;
+            _this.selectedMultiDrawnObjects = null;
             _this.drawing = [];
+            _this.currentStrokeData = null;
+            _this.rendercanvascontent();
             _this.UpdateBackgroundRender();
-            //reselect the draw tool
+            //todo reselect the draw tool
             // //id = btnDrawTool
             // let btnDrawTool = document.getElementById("btnDrawTool") as HTMLElement;
             // btnDrawTool.click();
         });
         //save button
         document.getElementById("btnSave").addEventListener("click", function () {
-            var participantTask = _this.participant + " - " + _this.task;
+            var participantDeviceTask = _this.participant + " - " + _this.devicetype + " - " + _this.task;
             //download canvas, 
             _this.selectedDrawnObject = null;
             _this.rendercanvascontent();
             var image = _this.canvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
             var anchor = document.createElement('a');
-            anchor.setAttribute('download', "Canvas - " + _this.participant + " - " + _this.task + ".png");
+            anchor.setAttribute('download', "canvas - .png");
             anchor.setAttribute('href', image);
             anchor.click();
             //drawing data json, 
@@ -194,27 +232,56 @@ var Stemcanvas = /** @class */ (function () {
             var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(_this.drawing));
             anchor = document.createElement('a');
             anchor.setAttribute("href", dataStr);
-            anchor.setAttribute("download", participantTask + " - drawingdata.json");
+            anchor.setAttribute("download", participantDeviceTask + " - drawingdata.json");
             anchor.click();
             //and session information
             var session = new Sessioninfo();
             session.start = _this.starttimeclock;
             session.end = new Date().toLocaleString();
             session.startperf = _this.starttimeperf;
+            session.devicetype = _this.devicetype;
+            session.task = _this.task;
+            session.participanttoken = _this.participant;
             var sessionoutputstring = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(session));
             anchor = document.createElement('a');
             anchor.setAttribute("href", sessionoutputstring);
-            anchor.setAttribute("download", participantTask + " - sessioninfo.json");
+            anchor.setAttribute("download", participantDeviceTask + " - sessioninfo.json");
             anchor.click();
         });
         document.getElementById("btnNext").addEventListener("click", function () {
-            var participantTask = _this.participant + " - " + _this.task;
+            // let participantTask = `${this.participant} - ${this.task}`;
+            // //download canvas, 
+            // this.selectedDrawnObject = null;
+            // this.rendercanvascontent();
+            // let image = this.canvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
+            // var anchor = document.createElement('a');
+            // anchor.setAttribute('download', `Canvas - ${this.participant} - ${this.task}.png`);
+            // anchor.setAttribute('href', image);
+            // anchor.click();
+            // //drawing data json, 
+            // var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(this.drawing));
+            // anchor = document.createElement('a');
+            // anchor.setAttribute("href", dataStr);
+            // anchor.setAttribute("download", `${participantTask} - drawingdata.json`);
+            // anchor.click();
+            // //and session information
+            // let session = new Sessioninfo();
+            // session.start = this.starttimeclock
+            // session.end = new Date().toLocaleString();
+            // session.startperf = this.starttimeperf;
+            // let sessionoutputstring = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(session));
+            // anchor = document.createElement('a');
+            // anchor.setAttribute("href", sessionoutputstring);
+            // anchor.setAttribute("download", `${participantTask} - sessioninfo.json`);
+            // anchor.click();
+            var participantDeviceTask = _this.participant + " - " + _this.devicetype + " - " + _this.task;
+            console.log(participantDeviceTask);
             //download canvas, 
             _this.selectedDrawnObject = null;
             _this.rendercanvascontent();
             var image = _this.canvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
             var anchor = document.createElement('a');
-            anchor.setAttribute('download', "Canvas - " + _this.participant + " - " + _this.task + ".png");
+            anchor.setAttribute('download', participantDeviceTask + ".png");
             anchor.setAttribute('href', image);
             anchor.click();
             //drawing data json, 
@@ -222,17 +289,20 @@ var Stemcanvas = /** @class */ (function () {
             var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(_this.drawing));
             anchor = document.createElement('a');
             anchor.setAttribute("href", dataStr);
-            anchor.setAttribute("download", participantTask + " - drawingdata.json");
+            anchor.setAttribute("download", participantDeviceTask + " - drawingdata.json");
             anchor.click();
             //and session information
             var session = new Sessioninfo();
             session.start = _this.starttimeclock;
             session.end = new Date().toLocaleString();
             session.startperf = _this.starttimeperf;
+            session.devicetype = _this.devicetype;
+            session.task = _this.task;
+            session.participanttoken = _this.participant;
             var sessionoutputstring = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(session));
             anchor = document.createElement('a');
             anchor.setAttribute("href", sessionoutputstring);
-            anchor.setAttribute("download", participantTask + " - sessioninfo.json");
+            anchor.setAttribute("download", participantDeviceTask + " - sessioninfo.json");
             anchor.click();
             var currentquestionarray = _this.task.split('q');
             var currentquestion = parseInt(currentquestionarray[1]);
@@ -357,7 +427,7 @@ var Stemcanvas = /** @class */ (function () {
         this.updateCurrentStroke(); //updates the current stroke data, does not draw -bug why though?
         this.renderClearCanvas(); //resets canvas  
         this.renderDrawingHistory(); //draws the buffer (everything that has been drawn)    
-        this.renderSelectionControls(); //draws dotted bounding box around selected object and interaction points
+        this.renderSelectionControls(); //draws dotted bounding box around selected objecta and interaction points
         this.renderInterface();
         if (this.cursonOnCanvas) {
         }
@@ -394,7 +464,10 @@ var Stemcanvas = /** @class */ (function () {
         if (this.selectedDrawnObject.objecttype == "DRAW") {
             //ORIGIN DISTANCE
             this.ccontext.beginPath();
+            this.ccontext.strokeStyle = this.selectedDrawnObject.strokecolour;
+            this.ccontext.lineWidth = parseInt(this.selectedDrawnObject.strokewidth);
             var strokeorigin = this.selectedDrawnObject.points[0];
+            this.ccontext.moveTo(this.selectedDrawnObject.points[0].x + xvector, this.selectedDrawnObject.points[0].y + yvector);
             for (var i = 1; i < this.selectedDrawnObject.points.length; i++) {
                 this.ccontext.lineTo(this.selectedDrawnObject.points[i].x + xvector, this.selectedDrawnObject.points[i].y + yvector);
             }
@@ -429,12 +502,6 @@ var Stemcanvas = /** @class */ (function () {
                 this.ccontext.closePath();
                 this.ccontext.beginPath();
                 var temprect_1 = new StemRectangle();
-                // this.selectedDrawnObject.points.forEach(element => {
-                //     let translatedpoint = element;
-                //     translatedpoint.x += xvector;
-                //     translatedpoint.y += yvector;
-                //     temprect.points.push(translatedpoint);
-                // });
                 this.selectedDrawnObject.points.forEach(function (p) {
                     var point = new Stempoint(p.x + xvector, p.y + yvector);
                     temprect_1.points.push(point);
@@ -451,155 +518,181 @@ var Stemcanvas = /** @class */ (function () {
                 this.ccontext.stroke();
                 this.ccontext.closePath();
             }
+            else if (this.selectedDrawnObject.objecttype == "TEXT") {
+                var textobj = this.selectedDrawnObject;
+                this.ccontext.closePath();
+                this.ccontext.beginPath();
+                this.ccontext.font = parseInt(textobj.strokewidth) * 2 + "px Arial";
+                this.ccontext.fillText(textobj.text, this.selectedDrawnObject.points[0].x + xvector, this.selectedDrawnObject.points[0].y + yvector);
+                this.ccontext.stroke();
+                this.ccontext.closePath();
+            }
         }
         this.ccontext.closePath();
     };
-    // //draw the points moved based on vector (temporarily)
-    // //draw the object being moved
+    Stemcanvas.prototype.renderMultiObjectMovePreview = function () {
+        //todo
+    };
     Stemcanvas.prototype.renderObjectResizePreview = function () {
-        this.selectedDrawnObject.UpdateBoundingBox("renderObjectResizePreview");
-        var strokebox = this.selectedDrawnObject.getCachedBoundingBox();
-        var strokewidth = (strokebox.maxX - strokebox.originx);
-        var strokeheight = (strokebox.maxY - strokebox.originy);
-        var first = this.currentStrokeData.points[0];
-        var last = this.currentStrokeData.points[this.currentStrokeData.points.length - 1];
-        var resizewidth = ((last.x) - (first.x));
-        var resizeheight = ((last.y) - (first.y));
-        if (this.hoveredSelectionPoint == "NE") {
-            resizeheight = resizeheight * -1;
-        }
-        if (this.hoveredSelectionPoint == "SW") {
-            resizewidth = resizewidth * -1;
-        }
-        if (this.hoveredSelectionPoint == "NW") {
-            resizewidth = resizewidth * -1;
-            resizeheight = resizeheight * -1;
-        }
-        var xfactor = 1 + (resizewidth / strokewidth); //remove padding
-        var yfactor = 1 + (resizeheight / strokeheight);
-        if (this.selectedDrawnObject.objecttype == "DRAW") {
-            //get the resize factor
-            if (this.currentStrokeData == null) {
-                return;
-            }
+        if (this.selectedDrawnObject != null) {
             this.selectedDrawnObject.UpdateBoundingBox("renderObjectResizePreview");
-            this.ccontext.beginPath();
-            for (var i = 0; i < this.selectedDrawnObject.points.length; i++) {
+            var strokebox = this.selectedDrawnObject.getCachedBoundingBox();
+            var strokewidth = (strokebox.maxX - strokebox.originx);
+            var strokeheight = (strokebox.maxY - strokebox.originy);
+            var first = this.currentStrokeData.points[0];
+            var last = this.currentStrokeData.points[this.currentStrokeData.points.length - 1];
+            var resizewidth = ((last.x) - (first.x));
+            var resizeheight = ((last.y) - (first.y));
+            if (this.hoveredSelectionPoint == "NE") {
+                resizeheight = resizeheight * -1;
+            }
+            if (this.hoveredSelectionPoint == "SW") {
+                resizewidth = resizewidth * -1;
+            }
+            if (this.hoveredSelectionPoint == "NW") {
+                resizewidth = resizewidth * -1;
+                resizeheight = resizeheight * -1;
+            }
+            var xfactor = 1 + (resizewidth / strokewidth); //remove padding
+            var yfactor = 1 + (resizeheight / strokeheight);
+            if (this.selectedDrawnObject.objecttype == "DRAW") {
+                //get the resize factor
+                if (this.currentStrokeData == null) {
+                    return;
+                }
+                this.selectedDrawnObject.UpdateBoundingBox("renderObjectResizePreview");
+                this.ccontext.beginPath();
+                this.ccontext.strokeStyle = this.selectedDrawnObject.strokecolour;
+                this.ccontext.lineWidth = parseInt(this.selectedDrawnObject.strokewidth);
+                for (var i = 0; i < this.selectedDrawnObject.points.length; i++) {
+                    if (this.hoveredSelectionPoint == "NE") {
+                        var currentpoint = this.selectedDrawnObject.points[i];
+                        var transformedpoint = this.TransformPoint(currentpoint.x - (strokebox.originx), currentpoint.y - (strokebox.maxY), xfactor, 0, 0, yfactor, 0, 0);
+                        this.ccontext.lineTo(transformedpoint.x + (strokebox.originx), transformedpoint.y + (strokebox.maxY));
+                    }
+                    else if (this.hoveredSelectionPoint == "SE") {
+                        var currentpoint = this.selectedDrawnObject.points[i];
+                        var transformedpoint = this.TransformPoint(currentpoint.x - (strokebox.originx), currentpoint.y - (strokebox.originy), xfactor, 0, 0, yfactor, 0, 0);
+                        this.ccontext.lineTo(transformedpoint.x + (strokebox.originx), transformedpoint.y + (strokebox.originy));
+                    }
+                    else if (this.hoveredSelectionPoint == "SW") {
+                        var currentpoint = this.selectedDrawnObject.points[i];
+                        var transformedpoint = this.TransformPoint(currentpoint.x - (strokebox.maxX), currentpoint.y - (strokebox.originy), xfactor, 0, 0, yfactor, 0, 0);
+                        this.ccontext.lineTo(transformedpoint.x + (strokebox.maxX), transformedpoint.y + (strokebox.originy));
+                    }
+                    else if (this.hoveredSelectionPoint == "NW") {
+                        var currentpoint = this.selectedDrawnObject.points[i];
+                        var transformedpoint = this.TransformPoint(currentpoint.x - (strokebox.maxX), currentpoint.y - (strokebox.maxY), xfactor, 0, 0, yfactor, 0, 0);
+                        this.ccontext.lineTo(transformedpoint.x + (strokebox.maxX), transformedpoint.y + (strokebox.maxY));
+                    }
+                }
+                this.ccontext.stroke();
+                this.ccontext.closePath();
+            }
+            else if (this.selectedDrawnObject.objecttype == "RECTANGLE") {
+                this.selectedDrawnObject.UpdateBoundingBox("blah");
+                var box = this.selectedDrawnObject.getCachedBoundingBox();
+                var minx = box.originx;
+                var maxx = box.maxX;
+                var miny = box.originy;
+                var maxy = box.maxY;
                 if (this.hoveredSelectionPoint == "NE") {
-                    var currentpoint = this.selectedDrawnObject.points[i];
-                    var transformedpoint = this.TransformPoint(currentpoint.x - (strokebox.originx), currentpoint.y - (strokebox.maxY), xfactor, 0, 0, yfactor, 0, 0);
-                    this.ccontext.lineTo(transformedpoint.x + (strokebox.originx), transformedpoint.y + (strokebox.maxY));
+                    var transmin = this.TransformPoint((minx - strokebox.originx), (miny - strokebox.maxY), xfactor, 0, 0, yfactor, minx, maxy);
+                    var transmax = this.TransformPoint((maxx - strokebox.originx), (maxy - strokebox.maxY), xfactor, 0, 0, yfactor, minx, maxy);
+                    this.ccontext.closePath();
+                    this.ccontext.beginPath();
+                    this.ccontext.moveTo(transmin.x, transmin.y); //start top left
+                    this.ccontext.lineTo(transmax.x, transmin.y); //line to top right
+                    this.ccontext.lineTo(transmax.x, transmax.y); //line to bottom right
+                    this.ccontext.lineTo(transmin.x, transmax.y); //line to bottom left
+                    this.ccontext.lineTo(transmin.x, transmin.y); //line back to top left
+                    this.ccontext.stroke();
+                    this.ccontext.closePath();
                 }
                 else if (this.hoveredSelectionPoint == "SE") {
-                    var currentpoint = this.selectedDrawnObject.points[i];
-                    var transformedpoint = this.TransformPoint(currentpoint.x - (strokebox.originx), currentpoint.y - (strokebox.originy), xfactor, 0, 0, yfactor, 0, 0);
-                    this.ccontext.lineTo(transformedpoint.x + (strokebox.originx), transformedpoint.y + (strokebox.originy));
+                    var transmin = this.TransformPoint((minx - strokebox.originx), (miny - strokebox.originy), xfactor, 0, 0, yfactor, minx, miny);
+                    var transmax = this.TransformPoint((maxx - strokebox.originx), (maxy - strokebox.originy), xfactor, 0, 0, yfactor, minx, miny);
+                    this.ccontext.closePath();
+                    this.ccontext.beginPath();
+                    this.ccontext.moveTo(transmin.x, transmin.y); //start top left
+                    this.ccontext.lineTo(transmax.x, transmin.y); //line to top right
+                    this.ccontext.lineTo(transmax.x, transmax.y); //line to bottom right
+                    this.ccontext.lineTo(transmin.x, transmax.y); //line to bottom left
+                    this.ccontext.lineTo(transmin.x, transmin.y); //line back to top left
+                    this.ccontext.stroke();
+                    this.ccontext.closePath();
                 }
                 else if (this.hoveredSelectionPoint == "SW") {
-                    var currentpoint = this.selectedDrawnObject.points[i];
-                    var transformedpoint = this.TransformPoint(currentpoint.x - (strokebox.maxX), currentpoint.y - (strokebox.originy), xfactor, 0, 0, yfactor, 0, 0);
-                    this.ccontext.lineTo(transformedpoint.x + (strokebox.maxX), transformedpoint.y + (strokebox.originy));
+                    var transmin = this.TransformPoint((minx - strokebox.maxX), (miny - strokebox.originy), xfactor, 0, 0, yfactor, maxx, miny);
+                    var transmax = this.TransformPoint((maxx - strokebox.maxX), (maxy - strokebox.originy), xfactor, 0, 0, yfactor, maxx, miny);
+                    this.ccontext.closePath();
+                    this.ccontext.beginPath();
+                    this.ccontext.moveTo(transmin.x, transmin.y); //start top left
+                    this.ccontext.lineTo(transmax.x, transmin.y); //line to top right
+                    this.ccontext.lineTo(transmax.x, transmax.y); //line to bottom right
+                    this.ccontext.lineTo(transmin.x, transmax.y); //line to bottom left
+                    this.ccontext.lineTo(transmin.x, transmin.y); //line back to top left
+                    this.ccontext.stroke();
+                    this.ccontext.closePath();
                 }
                 else if (this.hoveredSelectionPoint == "NW") {
-                    var currentpoint = this.selectedDrawnObject.points[i];
-                    var transformedpoint = this.TransformPoint(currentpoint.x - (strokebox.maxX), currentpoint.y - (strokebox.maxY), xfactor, 0, 0, yfactor, 0, 0);
-                    this.ccontext.lineTo(transformedpoint.x + (strokebox.maxX), transformedpoint.y + (strokebox.maxY));
+                    var transmin = this.TransformPoint((minx - strokebox.maxX), (miny - strokebox.maxY), xfactor, 0, 0, yfactor, maxx, maxy);
+                    var transmax = this.TransformPoint((maxx - strokebox.maxX), (maxy - strokebox.maxY), xfactor, 0, 0, yfactor, maxx, maxy);
+                    this.ccontext.closePath();
+                    this.ccontext.beginPath();
+                    this.ccontext.moveTo(transmin.x, transmin.y); //start top left
+                    this.ccontext.lineTo(transmax.x, transmin.y); //line to top right
+                    this.ccontext.lineTo(transmax.x, transmax.y); //line to bottom right
+                    this.ccontext.lineTo(transmin.x, transmax.y); //line to bottom left
+                    this.ccontext.lineTo(transmin.x, transmin.y); //line back to top left
+                    this.ccontext.stroke();
+                    this.ccontext.closePath();
                 }
             }
-            this.ccontext.stroke();
-            this.ccontext.closePath();
-        }
-        else if (this.selectedDrawnObject.objecttype == "RECTANGLE") {
-            this.selectedDrawnObject.UpdateBoundingBox("blah");
-            var box = this.selectedDrawnObject.getCachedBoundingBox();
-            var minx = box.originx;
-            var maxx = box.maxX;
-            var miny = box.originy;
-            var maxy = box.maxY;
-            if (this.hoveredSelectionPoint == "NE") {
-                var transmin = this.TransformPoint((minx - strokebox.originx), (miny - strokebox.maxY), xfactor, 0, 0, yfactor, minx, maxy);
-                var transmax = this.TransformPoint((maxx - strokebox.originx), (maxy - strokebox.maxY), xfactor, 0, 0, yfactor, minx, maxy);
-                this.ccontext.closePath();
+            else if (this.selectedDrawnObject.objecttype == "CIRCLE") {
+                var firstpoint = this.selectedDrawnObject.points[0];
+                var lastpoint = this.selectedDrawnObject.points[this.selectedDrawnObject.points.length - 1];
+                strokewidth = Math.abs(firstpoint.x - lastpoint.x);
+                strokeheight = Math.abs(firstpoint.y - lastpoint.y);
+                if (this.hoveredSelectionPoint == "P") {
+                    resizeheight = resizeheight * -1; //invert y                
+                }
+                var circlexfactor = 1 + (resizewidth / strokewidth); //remove padding
+                var circleyfactor = 1 + (resizeheight / strokeheight);
                 this.ccontext.beginPath();
-                this.ccontext.moveTo(transmin.x, transmin.y); //start top left
-                this.ccontext.lineTo(transmax.x, transmin.y); //line to top right
-                this.ccontext.lineTo(transmax.x, transmax.y); //line to bottom right
-                this.ccontext.lineTo(transmin.x, transmax.y); //line to bottom left
-                this.ccontext.lineTo(transmin.x, transmin.y); //line back to top left
+                var newfinal = this.TransformPoint(lastpoint.x - (firstpoint.x), lastpoint.y - (firstpoint.y), circlexfactor, 0, 0, circleyfactor, 0, 0);
+                newfinal.x = newfinal.x + firstpoint.x;
+                newfinal.y = newfinal.y + firstpoint.y;
+                var newwidth = Math.abs(newfinal.x - firstpoint.x);
+                var newheight = Math.abs(newfinal.y - firstpoint.y);
+                //now get the length using pythag
+                var radius = Math.sqrt((newwidth * newwidth) + (newheight * newheight));
+                this.ccontext.beginPath();
+                this.ccontext.arc(firstpoint.x, firstpoint.y, radius, 0, 20);
                 this.ccontext.stroke();
                 this.ccontext.closePath();
             }
-            else if (this.hoveredSelectionPoint == "SE") {
-                var transmin = this.TransformPoint((minx - strokebox.originx), (miny - strokebox.originy), xfactor, 0, 0, yfactor, minx, miny);
-                var transmax = this.TransformPoint((maxx - strokebox.originx), (maxy - strokebox.originy), xfactor, 0, 0, yfactor, minx, miny);
-                this.ccontext.closePath();
-                this.ccontext.beginPath();
-                this.ccontext.moveTo(transmin.x, transmin.y); //start top left
-                this.ccontext.lineTo(transmax.x, transmin.y); //line to top right
-                this.ccontext.lineTo(transmax.x, transmax.y); //line to bottom right
-                this.ccontext.lineTo(transmin.x, transmax.y); //line to bottom left
-                this.ccontext.lineTo(transmin.x, transmin.y); //line back to top left
-                this.ccontext.stroke();
-                this.ccontext.closePath();
-            }
-            else if (this.hoveredSelectionPoint == "SW") {
-                var transmin = this.TransformPoint((minx - strokebox.maxX), (miny - strokebox.originy), xfactor, 0, 0, yfactor, maxx, miny);
-                var transmax = this.TransformPoint((maxx - strokebox.maxX), (maxy - strokebox.originy), xfactor, 0, 0, yfactor, maxx, miny);
-                this.ccontext.closePath();
-                this.ccontext.beginPath();
-                this.ccontext.moveTo(transmin.x, transmin.y); //start top left
-                this.ccontext.lineTo(transmax.x, transmin.y); //line to top right
-                this.ccontext.lineTo(transmax.x, transmax.y); //line to bottom right
-                this.ccontext.lineTo(transmin.x, transmax.y); //line to bottom left
-                this.ccontext.lineTo(transmin.x, transmin.y); //line back to top left
-                this.ccontext.stroke();
-                this.ccontext.closePath();
-            }
-            else if (this.hoveredSelectionPoint == "NW") {
-                var transmin = this.TransformPoint((minx - strokebox.maxX), (miny - strokebox.maxY), xfactor, 0, 0, yfactor, maxx, maxy);
-                var transmax = this.TransformPoint((maxx - strokebox.maxX), (maxy - strokebox.maxY), xfactor, 0, 0, yfactor, maxx, maxy);
-                this.ccontext.closePath();
-                this.ccontext.beginPath();
-                this.ccontext.moveTo(transmin.x, transmin.y); //start top left
-                this.ccontext.lineTo(transmax.x, transmin.y); //line to top right
-                this.ccontext.lineTo(transmax.x, transmax.y); //line to bottom right
-                this.ccontext.lineTo(transmin.x, transmax.y); //line to bottom left
-                this.ccontext.lineTo(transmin.x, transmin.y); //line back to top left
-                this.ccontext.stroke();
-                this.ccontext.closePath();
+            else if (this.selectedDrawnObject.objecttype == "TEXT") {
             }
         }
-        else if (this.selectedDrawnObject.objecttype == "CIRCLE") {
-            var firstpoint = this.selectedDrawnObject.points[0];
-            var lastpoint = this.selectedDrawnObject.points[this.selectedDrawnObject.points.length - 1];
-            strokewidth = Math.abs(firstpoint.x - lastpoint.x);
-            strokeheight = Math.abs(firstpoint.y - lastpoint.y);
-            if (this.hoveredSelectionPoint == "P") {
-                resizeheight = resizeheight * -1; //invert y                
-            }
-            var circlexfactor = 1 + (resizewidth / strokewidth); //remove padding
-            var circleyfactor = 1 + (resizeheight / strokeheight);
-            this.ccontext.beginPath();
-            var newfinal = this.TransformPoint(lastpoint.x - (firstpoint.x), lastpoint.y - (firstpoint.y), circlexfactor, 0, 0, circleyfactor, 0, 0);
-            newfinal.x = newfinal.x + firstpoint.x;
-            newfinal.y = newfinal.y + firstpoint.y;
-            var newwidth = Math.abs(newfinal.x - firstpoint.x);
-            var newheight = Math.abs(newfinal.y - firstpoint.y);
-            //now get the length using pythag
-            var radius = Math.sqrt((newwidth * newwidth) + (newheight * newheight));
-            this.ccontext.beginPath();
-            this.ccontext.arc(firstpoint.x, firstpoint.y, radius, 0, 20);
-            this.ccontext.stroke();
-            this.ccontext.closePath();
-        }
-        else if (this.selectedDrawnObject.objecttype == "TEXT") {
+        else {
+            //lets try the multiselect method
         }
     };
     Stemcanvas.prototype.renderCurrentStroke = function () {
         this.ccontext.closePath();
         // this.ccontext.beginPath();
         if (this.ismovingobject) {
-            this.renderObjectMovePreview();
+            if (this.selectedDrawnObject == null) {
+                if (this.selectedMultiDrawnObjects == null) {
+                }
+                else {
+                    this.renderMultiObjectMovePreview();
+                }
+            }
+            else {
+                this.renderObjectMovePreview();
+            }
         }
         if (this.isresizingobject) {
             this.renderObjectResizePreview();
@@ -611,14 +704,14 @@ var Stemcanvas = /** @class */ (function () {
         this.ccontext.lineJoin = "round";
         this.ccontext.lineWidth = this.drawsize;
         this.ccontext.strokeStyle = this.SelectedColour;
-        if (this.isEnteringText) {
-            var x = this.currentStrokeData.points[this.currentStrokeData.points.length - 1].x;
-            var y = this.currentStrokeData.points[this.currentStrokeData.points.length - 1].y;
-            var fontsize = this.drawsize * 2;
-            this.ccontext.fillStyle = this.SelectedColour;
-            this.ccontext.font = fontsize + "px Arial";
-            this.ccontext.fillText(this.textEntered, x, y);
-        }
+        // if (this.isEnteringText) {
+        //     let x = this.currentStrokeData.points[this.currentStrokeData.points.length - 1].x;
+        //     let y = this.currentStrokeData.points[this.currentStrokeData.points.length - 1].y;
+        //     let fontsize = this.drawsize * 2;
+        //     this.ccontext.fillStyle = this.SelectedColour;
+        //     this.ccontext.font = `${fontsize}px Arial`;
+        //     this.ccontext.fillText(this.textEntered, x, y);
+        // }
         if (this.selectedTool == "DRAW") {
             this.ccontext.closePath();
             this.ccontext.beginPath();
@@ -645,11 +738,6 @@ var Stemcanvas = /** @class */ (function () {
             this.ccontext.lineTo(maxx, maxy); //line to bottom right
             this.ccontext.lineTo(minx, maxy); //line to bottom left
             this.ccontext.lineTo(minx, miny); //line back to top left
-            // if(s.isFilled)
-            // {
-            //     this.ccontext.fillStyle = bcontext.strokeStyle;
-            //     bcontext.fill();
-            // }
             this.ccontext.stroke();
             this.ccontext.closePath();
         }
@@ -670,15 +758,48 @@ var Stemcanvas = /** @class */ (function () {
             this.ccontext.stroke();
             this.ccontext.closePath();
         }
+        else if (this.selectedTool == "LINE") {
+            this.ccontext.closePath();
+            this.ccontext.beginPath();
+            if (this.currentStrokeData.points != null && this.currentStrokeData.points.length > 1) {
+                this.ccontext.lineWidth = this.drawsize;
+                this.ccontext.strokeStyle = this.SelectedColour;
+                this.ccontext.moveTo(this.currentStrokeData.points[0].x, this.currentStrokeData.points[0].y);
+                this.ccontext.lineTo(this.currentStrokeData.points[this.currentStrokeData.points.length - 1].x, this.currentStrokeData.points[this.currentStrokeData.points.length - 1].y);
+                this.ccontext.stroke();
+                this.ccontext.closePath();
+            }
+        }
         //
         this.ccontext.closePath();
+    };
+    Stemcanvas.prototype.renderMultiSelectionPreview = function () {
+        if (this.currentStrokeData != null && this.pendetails.penDown && this.hoveredSelectionPoint == "") {
+            if (this.currentStrokeData.length() > this.multiselectionMinimumLength) {
+                var first = this.currentStrokeData.points[0];
+                var last = this.currentStrokeData.points[this.currentStrokeData.points.length - 1];
+                //draw the multi-selection bounds
+                this.ccontext.closePath();
+                this.ccontext.beginPath();
+                this.ccontext.lineWidth = 1;
+                this.ccontext.setLineDash([6]);
+                this.ccontext.moveTo(first.x, first.y);
+                this.ccontext.lineTo(last.x, first.y);
+                this.ccontext.lineTo(last.x, last.y);
+                this.ccontext.lineTo(first.x, last.y);
+                this.ccontext.lineTo(first.x, first.y);
+                this.ccontext.stroke();
+                this.ccontext.closePath();
+                this.ccontext.setLineDash([0]);
+            }
+        }
     };
     Stemcanvas.prototype.renderCursor = function (x, y) {
         if (!this.cursonOnCanvas) {
             return;
         }
         if (this.selectedTool == "SELECT") {
-            if (this.selectedDrawnObject != null) {
+            if (this.selectedDrawnObject != null || this.selectedMultiDrawnObjects != null) {
                 // this.ccontext.drawImage(this.cursPointer,x,y,18,18);      
                 if (this.hoveredSelectionPoint == "C") {
                     this.ccontext.drawImage(this.cursMove, x, y, 27, 18);
@@ -706,24 +827,7 @@ var Stemcanvas = /** @class */ (function () {
             else {
                 this.ccontext.drawImage(this.cursPointer, x, y, 18, 18);
             }
-            if (this.pendetails.penDown && this.hoveredSelectionPoint == "") {
-                if (this.currentStrokeData.length() > this.multiselectionMinimumLength) {
-                    var first = this.currentStrokeData.points[0];
-                    var last = this.currentStrokeData.points[this.currentStrokeData.points.length - 1];
-                    //draw the multi-selection bounds
-                    this.ccontext.closePath();
-                    this.ccontext.beginPath();
-                    this.ccontext.setLineDash([6]);
-                    this.ccontext.moveTo(first.x, first.y);
-                    this.ccontext.lineTo(last.x, first.y);
-                    this.ccontext.lineTo(last.x, last.y);
-                    this.ccontext.lineTo(first.x, last.y);
-                    this.ccontext.lineTo(first.x, first.y);
-                    this.ccontext.stroke();
-                    this.ccontext.closePath();
-                    this.ccontext.setLineDash([0]);
-                }
-            }
+            this.renderMultiSelectionPreview();
         }
         else if (this.selectedTool == "DRAW") {
             this.ccontext.drawImage(this.cursDraw, x, y, 22, 22);
@@ -747,7 +851,6 @@ var Stemcanvas = /** @class */ (function () {
             this.ccontext.drawImage(this.cursType, x - 5, y - 16, 8, 16);
             this.ccontext.stroke();
             this.ccontext.setLineDash([0]);
-            //this.ccontext.strokeText(this.textEntered,x,y);
             this.ccontext.fillStyle = this.SelectedColour;
             this.ccontext.fillText(this.textEntered, x, y);
             this.ccontext.closePath();
@@ -758,12 +861,12 @@ var Stemcanvas = /** @class */ (function () {
         else if (this.selectedTool == "ERASE") {
             this.ccontext.drawImage(this.cursErase, x, y, 25, 17);
         }
+        else if (this.selectedTool == "LINE") {
+            this.ccontext.drawImage(this.cursDraw, x, y, 22, 22);
+        }
     };
     Stemcanvas.prototype.renderSelectionControls = function () {
-        if (this.selectedDrawnObject == null) {
-            //no object has been selected
-        }
-        else {
+        if (this.selectedDrawnObject != null) {
             this.selectedDrawnObject.UpdateBoundingBox("renderSelectionControls");
             var box = this.selectedDrawnObject.getCachedBoundingBox();
             this.ccontext.closePath();
@@ -779,11 +882,6 @@ var Stemcanvas = /** @class */ (function () {
                 this.ccontext.fillRect(lastpoint.x - 4, lastpoint.y - 4, 8, 8);
             }
             else {
-                //let gradtest = new CanvasGradient();
-                // for(let i = 0; i < 10; i++)
-                // {
-                //     gradtest.addColorStop()
-                // }
                 var minx = box.originx;
                 var maxx = box.maxX;
                 var miny = box.originy;
@@ -808,12 +906,14 @@ var Stemcanvas = /** @class */ (function () {
                 this.ccontext.fillRect(maxx - 4, miny - 4, 8, 8);
                 this.ccontext.fillRect(minx - 4, maxy - 4, 8, 8);
                 this.ccontext.fillRect(maxx - 4, maxy - 4, 8, 8);
-                this.ccontext.fillRect(((minx + maxx) / 2) - 4, ((miny + maxy) / 2) - 4, 8, 8);
+                // this.ccontext.fillRect(((minx + maxx) / 2) - 4, ((miny + maxy) / 2) - 4, 8, 8);
             }
             this.ccontext.closePath();
         }
         if (this.selectedMultiDrawnObjects != null) {
             //draw the selection controls for all selected objects:
+            this.ccontext.closePath();
+            this.ccontext.beginPath();
             this.ccontext.moveTo(this.selectedMultiDrawnObjects.minx, this.selectedMultiDrawnObjects.miny); //start top left            
             this.ccontext.lineTo(this.selectedMultiDrawnObjects.maxx, this.selectedMultiDrawnObjects.miny); //line to top right
             this.ccontext.lineTo(this.selectedMultiDrawnObjects.maxx, this.selectedMultiDrawnObjects.maxy); //line to bottom right
@@ -826,12 +926,11 @@ var Stemcanvas = /** @class */ (function () {
             this.ccontext.lineWidth = this.drawsize;
             this.ccontext.setLineDash([0]);
             this.ccontext.closePath();
-            // this.ccontext.fillStyle = "black";
-            // this.ccontext.fillRect(minx-4,miny-4,8,8);
-            // this.ccontext.fillRect(maxx-4,miny-4,8,8);
-            // this.ccontext.fillRect(minx-4, maxy-4,8,8);
-            // this.ccontext.fillRect(maxx -4,maxy - 4,8,8);
-            // this.ccontext.fillRect(((minx + maxx) / 2) - 4,((miny + maxy) /2) -4,8,8);
+            this.ccontext.fillStyle = "black";
+            this.ccontext.fillRect(this.selectedMultiDrawnObjects.minx - 4, this.selectedMultiDrawnObjects.miny - 4, 8, 8);
+            this.ccontext.fillRect(this.selectedMultiDrawnObjects.maxx - 4, this.selectedMultiDrawnObjects.miny - 4, 8, 8);
+            this.ccontext.fillRect(this.selectedMultiDrawnObjects.minx - 4, this.selectedMultiDrawnObjects.maxy - 4, 8, 8);
+            this.ccontext.fillRect(this.selectedMultiDrawnObjects.maxx - 4, this.selectedMultiDrawnObjects.maxy - 4, 8, 8);
         }
         //todo check if multiselect is present
     };
@@ -896,9 +995,30 @@ var Stemcanvas = /** @class */ (function () {
                 this.currentResize.endPoint = endpoint;
             }
         }
+        if (this.selectedMultiDrawnObjects != null) {
+            if (this.selectedMultiDrawnObjects.doesIntersect(this.pendetails.X, this.pendetails.Y)) {
+                this.hoveredSelectionPoint = "C";
+            }
+            else {
+                this.hoveredSelectionPoint = "";
+            }
+            if (helper.IsPointInsideBoxAtPoint(this.pendetails.X, this.pendetails.Y, this.selectedMultiDrawnObjects.minx, this.selectedMultiDrawnObjects.miny, this.selectionHoverBoxSize)) {
+                this.hoveredSelectionPoint = "NW";
+            }
+            else if (helper.IsPointInsideBoxAtPoint(this.pendetails.X, this.pendetails.Y, this.selectedMultiDrawnObjects.maxx, this.selectedMultiDrawnObjects.miny, this.selectionHoverBoxSize)) {
+                this.hoveredSelectionPoint = "NE"; //not near any selection points
+            }
+            else if (helper.IsPointInsideBoxAtPoint(this.pendetails.X, this.pendetails.Y, this.selectedMultiDrawnObjects.maxx, this.selectedMultiDrawnObjects.maxy, this.selectionHoverBoxSize)) {
+                this.hoveredSelectionPoint = "SE"; //not near any selection points
+            }
+            else if (helper.IsPointInsideBoxAtPoint(this.pendetails.X, this.pendetails.Y, this.selectedMultiDrawnObjects.minx, this.selectedMultiDrawnObjects.maxy, this.selectionHoverBoxSize)) {
+                this.hoveredSelectionPoint = "SW"; //not near any selection points
+            }
+        }
     };
     Stemcanvas.prototype.PointerUpEvent = function (e) {
         var _this = this;
+        var _a;
         this.pendetails.penDown = false;
         //push current stroke to the whole drawing
         //render background canvas (async if we can?)
@@ -906,6 +1026,7 @@ var Stemcanvas = /** @class */ (function () {
         if (this.selectedTool == "DRAW") {
             this.currentStrokeData.UpdateBoundingBox("PointerUpEvent 'DRAW'");
             this.drawing.push(this.currentStrokeData);
+            this.currentStrokeData = null;
         }
         else if (this.selectedTool == "TEXT") {
             //show text entry pop over 
@@ -945,7 +1066,7 @@ var Stemcanvas = /** @class */ (function () {
                 //now find the stored stroke, and move all its points
                 var xvector_1 = this.currentMove.endPoint.x - this.currentMove.startPoint.x;
                 var yvector_1 = this.currentMove.endPoint.y - this.currentMove.startPoint.y;
-                this.selectedDrawnObject.strokeid;
+                (_a = this.selectedDrawnObject) === null || _a === void 0 ? void 0 : _a.strokeid;
                 //loop through drawing to find the right object
                 this.drawing.forEach(function (stemobj) {
                     if (stemobj.strokeid == _this.selectedDrawnObject.strokeid) //affect only the selected object
@@ -1059,11 +1180,13 @@ var Stemcanvas = /** @class */ (function () {
                     var y = e.pageY - this.canvas.offsetTop + this.pendetails.scrolly;
                     //get all strokes etc that are near the cursor
                     this.SelectDrawnObjectAtPoint(x, y);
+                    this.currentStrokeData = null;
                 }
                 else {
                     this.currentStrokeData.UpdateBoundingBox("doesnt matter");
                     var bounds = this.currentStrokeData.getCachedBoundingBox();
                     this.SelectDrawnObjectsInsideBounds(bounds);
+                    this.currentStrokeData = null;
                 }
             }
         }
@@ -1077,11 +1200,12 @@ var Stemcanvas = /** @class */ (function () {
                 this.drawing.splice(indexofselected, 1);
             }
         }
+        else if (this.selectedTool == "LINE") {
+        }
         if (this.selectedTool == "TEXT") {
             //dont clear stroke if entering text
         }
         else {
-            this.currentStrokeData = null;
         }
         //since the user has drawn a new object, we can clear the redo stack
         this.isresizingobject = false;
@@ -1161,6 +1285,8 @@ var Stemcanvas = /** @class */ (function () {
         }
         else if (this.selectedTool == "ERASE") {
             // this.currentErase = new StemErasure();
+        }
+        else if (this.selectedTool == "LINE") {
         }
         //todo set colour and width        
     };
@@ -1268,8 +1394,15 @@ var Stemcanvas = /** @class */ (function () {
                 }
             }
         });
-        var temp = new MultiSelectContainer(selected);
-        this.selectedMultiDrawnObjects = temp;
+        if (selected.length == 0) {
+            console.log("no objects selected");
+            this.selectedMultiDrawnObjects = null;
+        }
+        else {
+            var temp = new MultiSelectContainer(selected);
+            this.selectedMultiDrawnObjects = temp;
+            this.currentStrokeData = null;
+        }
     };
     Stemcanvas.prototype.updateDrawingTools = function () {
         var size = this.selectedDrawnObject.strokewidth; //get the size of the selected object
@@ -1310,7 +1443,6 @@ var Stemcanvas = /** @class */ (function () {
         this.cursType.src = "media/type.png";
     };
     Stemcanvas.prototype.startTimer = function () {
-        console.log("start timer");
         var timertext = document.getElementById("questiontimer");
         var startsynctime = performance.now();
         var startClockTime = new Date().getTime();

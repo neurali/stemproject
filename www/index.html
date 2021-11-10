@@ -40,15 +40,30 @@
           
           <form>
             <div class="row">
-              <div class="input-field col s6">
-                <input placeholder="#a12345" id="participant-token" type="text" class="validate">
-                <label for="participant-token">Participant Token</label>
+              <div class="col s6">
+          
+          
+                <div class="input-field col s8">
+                  <input placeholder="#a12345" id="participant-token" type="text" class="validate">
+                  <label for="participant-token">Participant token</label>
+          
+                </div>
+          
+                <div class="input-field col s8">
+                  <input placeholder="wacom" id="devicetype" type="text" class="validate">
+                  <label for="devicetype">Device type</label>
+          
+          
+                </div>
               </div>
             </div>
           </form>
           
             <p>When you are ready, please press begin</p>
-            <button class="btn waves-effect waves-light" id="btnBegin">Begin
+            <button class="btn waves-effect waves-light" id="btnTaskA">Start Task Set A
+              <i class="material-icons right">send</i>
+            </button>
+            <button class="btn waves-effect waves-light" id="btnTaskB">Start Task Set B
               <i class="material-icons right">send</i>
             </button>
 
