@@ -8,11 +8,12 @@ window.onload =()=>{
         let btnTaskA = document.getElementById("btnTaskA") as HTMLElement;
         let btnTaskB = document.getElementById("btnTaskB") as HTMLElement;
 
-        sessionStorage.setItem("token",tokeninput.value);    
-        sessionStorage.setItem("devicetype",devicetype.value);
+        
 
         btnTaskA.addEventListener("click",(e)=>{  
            
+            sessionStorage.setItem("token",tokeninput.value);    
+        sessionStorage.setItem("devicetype",devicetype.value);
             sessionStorage.setItem("taskset","a")
             location.href = "q1.html";
             return false;
@@ -21,6 +22,8 @@ window.onload =()=>{
 
         btnTaskB.addEventListener("click",(e)=>{  
            
+            sessionStorage.setItem("token",tokeninput.value);    
+            sessionStorage.setItem("devicetype",devicetype.value);
             sessionStorage.setItem("taskset","b")
             location.href = "q4.html";
             return false;
