@@ -115,6 +115,7 @@ var Stemcanvas = /** @class */ (function () {
                 if (_this.selectedTool == _this.previousSelectedTool) {
                     return;
                 }
+                _this.currentStrokeData = null;
                 // let alldroptownInputs = document.getElementsByClassName("dynamic");
                 // for(let d = 0; d < alldroptownInputs.length; d++)
                 // {
@@ -1211,6 +1212,7 @@ var Stemcanvas = /** @class */ (function () {
         this.isresizingobject = false;
         this.ccontext.closePath();
         this.UpdateBackgroundRender();
+        this.currentStrokeData = null;
         //this.redoStack = []; //todo redo stack needs ordering after undoing and then adding more content
     };
     Stemcanvas.prototype.PointerDownEvent = function (e) {

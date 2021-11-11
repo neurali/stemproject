@@ -181,6 +181,7 @@ class Stemcanvas {
                 if (this.selectedTool == this.previousSelectedTool) {
                     return;
                 }
+                this.currentStrokeData = null;
                 // let alldroptownInputs = document.getElementsByClassName("dynamic");
                 // for(let d = 0; d < alldroptownInputs.length; d++)
                 // {
@@ -1528,6 +1529,7 @@ class Stemcanvas {
         this.isresizingobject = false;
         this.ccontext.closePath();
         this.UpdateBackgroundRender();
+        this.currentStrokeData = null;
 
         //this.redoStack = []; //todo redo stack needs ordering after undoing and then adding more content
 
