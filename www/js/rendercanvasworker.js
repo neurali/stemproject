@@ -92,6 +92,13 @@ onmessage = function (e) {
             bcontext.fillStyle = bcontext.strokeStyle;
             bcontext.fillText(textobject.text, finalpoint.x, finalpoint.y);
         }
+        else if (s.objecttype == "LINE") {
+            var start = s.points[0];
+            var end = s.points[1];
+            bcontext.moveTo(start.x, start.y);
+            bcontext.lineTo(end.x, end.y);
+            bcontext.stroke();
+        }
     });
     // //buffer.transferToImageBitmap //this is our image (hopefully);
     // //console.log(output);

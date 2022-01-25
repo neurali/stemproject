@@ -1,0 +1,179 @@
+/* testing and bulding */
+.height10{
+    height: 10vh;
+
+}
+.height20{
+    height: 20vh;
+}
+.height30{
+    height: 30vh;
+}
+.height40{
+    height: 40vh;
+}
+.height80{
+    height:85.9vh;
+}
+.notbotmarg{
+    margin-bottom: 0 !important;
+}
+.palette{
+    margin-bottom: 10px;
+}
+.nomarg{
+    margin: 0px;
+}
+.nopad{
+    padding-left: 0px !important;
+}
+.nopadbot{
+    margin-bottom: 0px !important;
+}
+.toptoolspace{
+    
+    padding-left:10px;
+    margin-top:10px;
+    height: 11vh;
+   
+}
+.tool{
+    width: 100%;
+    text-align: left;
+    margin:auto;
+}
+
+.padright{
+    padding-right: 10px;
+}
+.padtop{
+    padding-top: 10px;
+}
+body{
+    background-color: #b2dfdb;
+}
+.sidebar{
+    height: 100vh;
+}
+.canvas-container{
+    min-height: 86vh;
+    max-width: 100%;
+    max-height: 86vh;
+    overflow: scroll;
+    background-color: #f1f1f1  !important;
+    position: relative;
+}
+.smallfab{
+    height: 40px !important;
+    width: 40px !important;
+}
+
+.space-betweencontainer{
+    display: flex;
+    justify-content:space-around;
+    align-items: center;
+    margin-bottom: 25px;    
+}
+.colourfab{
+    
+    height: 3vw !important;
+    width: 3vw !important;
+}
+.sizefab1{
+    height: 10px !important;
+    width: 10px !important;
+}
+.sizefab2{
+    height: 14px !important;
+    width: 14px !important;
+}
+.sizefab3{
+    height: 18px !important;
+    width: 18px !important;
+}
+.sizefab4{
+    height: 22px !important;
+    width: 22px !important;
+}
+.sizefab5{
+    height: 24px !important;
+    width: 24px !important;
+}
+.smallfabicon{
+    line-height: 40px !important;
+}
+.fullwidth{
+    width:100%;
+}
+.normalpad{
+    padding-left: 0.75em !important;
+    padding-right: 0.75em !important;
+}
+.normalmargin{
+    margin-left: 0.75em !important;
+    margin-right: 0.75em !important;
+}
+.colourtoolspace{
+    margin-left: 0.75em !important;
+    margin-right: 0.75em !important;
+    width: 100% !important;
+}
+.questionspace{
+    
+    margin-bottom: 0px;
+    max-height: 10.9vh;
+}
+.width25{
+    width:25%;
+    float:left;
+}
+.clearbutton{
+    margin-right: 10px;
+}
+
+.drawsize{
+    width:20%;
+    float: left;
+    text-align: center;
+    height: 35px;
+}
+.selectedbrushsize{
+    border-bottom: solid rgb(27, 88, 90) 1px;
+}
+.drawingcanvas{
+    position: absolute;
+    cursor: none;
+}
+.aligncanvases{    
+    background-color: transparent;      
+    pointer-events: none;
+    position: absolute;
+    cursor: none;
+}
+.canvasbackground{
+    background-color: rgb(255, 255, 255);
+    pointer-events: none;
+    position: absolute;
+    cursor: none;    
+}
+
+/* .drawsizetiny{
+    height: 10px !important;
+    width: 10px !important;
+}
+.drawsizesmall{
+    height: 15px !important;
+    width: 15px !important;
+}
+.drawsizemedium{
+    height: 20px !important;
+    width: 20px !important;
+}
+.drawsizelarge{
+    height: 25px !important;
+    width: 25px !important;
+}
+.drawsizehuge{
+    height: 30px !important;
+    width: 30px !important;
+} */

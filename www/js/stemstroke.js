@@ -14,73 +14,183 @@ var __extends = (this && this.__extends) || (function () {
     };
 })();
 var StemDrawnObject = /** @class */ (function () {
-    //need to add stroke width data
+    //need to add stroke width data    
     function StemDrawnObject() {
+        this.isFilled = false;
         this.strokecolour = "rgb(0,0,0)";
         //this.points = new Stempoint[1]; //might not work
         this.points = new Array();
         this.strokeid = helper.getGUID(); //overkill (1 in a million chance this will break) TODO: implement auto increment
     }
+    //gets previously created cached drawing box (for quicker access)
+    StemDrawnObject.prototype.getCachedBoundingBox = function () {
+        //should only be called during operations that dont actually update the drawing box
+        return this.cachedBoundingBox;
+    };
     //loops through all the points in the stroke to find the top bottom left and right maximums
-    StemDrawnObject.prototype.getBoundingBox = function () {
-        //limitation: in 30 years if screen resolutions get crazy and the canvas becomes larger than 99999 pixels x or y, this wont work
-        var lowestx = 99999;
-        var lowesty = 99999;
-        var heighestx = -99999;
-        var heighesty = -99999;
-        for (var i = 0; i < this.points.length; i++) {
-            if (this.points[i].x < lowestx) {
-                lowestx = this.points[i].x;
+    StemDrawnObject.prototype.UpdateBoundingBox = function (caller) {
+        if (this.objecttype == "DRAW") {
+            //limitation: in 30 years if screen resolutions get crazy and the canvas becomes larger than 99999 pixels x or y, this wont work
+            var lowestx = 99999;
+            var lowesty = 99999;
+            var heighestx = 0;
+            var heighesty = 0;
+            for (var i = 0; i < this.points.length; i++) {
+                if (this.points[i].x < lowestx) {
+                    lowestx = this.points[i].x;
+                }
+                if (this.points[i].x > heighestx) {
+                    heighestx = this.points[i].x;
+                }
+                if (this.points[i].y < lowesty) {
+                    lowesty = this.points[i].y;
+                }
+                if (this.points[i].y > heighesty) {
+                    heighesty = this.points[i].y;
+                }
             }
-            else if (this.points[i].x > heighestx) {
-                heighestx = this.points[i].x;
-            }
-            if (this.points[i].y < lowesty) {
-                lowesty = this.points[i].y;
-            }
-            else if (this.points[i].y > heighesty) {
-                heighesty = this.points[i].y;
-            }
+            var outputresult = new StemstrokeBox();
+            //15pixels padding for ease of use
+            outputresult.originx = lowestx;
+            outputresult.originy = lowesty;
+            outputresult.maxX = heighestx;
+            outputresult.maxY = heighesty;
+            this.cachedBoundingBox = outputresult;
         }
-        var outputresult = new StemstrokeBox();
-        outputresult.originx = lowestx + 20;
-        outputresult.originy = lowesty + 20;
-        outputresult.maxX = heighestx + 20;
-        outputresult.maxY = heighesty + 20;
-        return outputresult;
+        else if (this.objecttype == "RECTANGLE") {
+            var first = this.points[0];
+            var last = this.points[this.points.length - 1];
+            var lowestx = -1;
+            var heighestx = -1;
+            var lowesty = -1;
+            var heighesty = -1;
+            if (first.x < last.x) {
+                lowestx = first.x;
+                heighestx = last.x;
+            }
+            else {
+                lowestx = last.x;
+                heighestx = first.x;
+            }
+            if (first.y < last.y) {
+                lowesty = first.y;
+                heighesty = last.y;
+            }
+            else {
+                lowesty = last.y;
+                heighesty = first.y;
+            }
+            var output = new StemstrokeBox();
+            output.maxX = heighestx;
+            output.maxY = heighesty;
+            output.originx = lowestx;
+            output.originy = lowesty;
+            this.cachedBoundingBox = output;
+        }
+        else if (this.objecttype == "CIRCLE") {
+            var width = Math.abs(this.points[0].x - this.points[this.points.length - 1].x);
+            var height = Math.abs(this.points[0].y - this.points[this.points.length - 1].y);
+            var radius = Math.sqrt(Math.pow(width, 2) + Math.pow(height, 2));
+            var outputresult = new StemstrokeBox();
+            outputresult.originx = this.points[0].x - (radius);
+            outputresult.maxX = this.points[0].x + (radius);
+            outputresult.originy = this.points[0].y - (radius);
+            outputresult.maxY = this.points[0].y + (radius);
+            this.cachedBoundingBox = outputresult;
+        }
+        else if (this.objecttype == "TEXT") {
+        }
     };
     return StemDrawnObject;
 }());
-var StemStroke = /** @class */ (function (_super) {
-    __extends(StemStroke, _super);
-    function StemStroke() {
-        return _super !== null && _super.apply(this, arguments) || this;
+var Stemstroke = /** @class */ (function (_super) {
+    __extends(Stemstroke, _super);
+    function Stemstroke() {
+        var _this = _super !== null && _super.apply(this, arguments) || this;
+        _this.objecttype = "DRAW";
+        _this.strokeid = helper.getGUID();
+        return _this;
     }
-    return StemStroke;
+    Stemstroke.prototype.getPixelLength = function () {
+        var first = this.points[0];
+        var last = this.points[this.points.length - 1];
+        var width = Math.abs(first.x - last.x);
+        var height = Math.abs(first.y - last.y);
+        var result = Math.sqrt((width * width) + (height * height));
+        return result;
+    };
+    return Stemstroke;
 }(StemDrawnObject));
-var StemShape = /** @class */ (function (_super) {
-    __extends(StemShape, _super);
-    function StemShape() {
-        return _super !== null && _super.apply(this, arguments) || this;
-    }
-    return StemShape;
-}(StemDrawnObject));
-var StemRectangle = /** @class */ (function (_super) {
-    __extends(StemRectangle, _super);
-    function StemRectangle() {
-        return _super !== null && _super.apply(this, arguments) || this;
-    }
-    return StemRectangle;
-}(StemShape));
-var StemErasure = /** @class */ (function (_super) {
-    __extends(StemErasure, _super);
-    function StemErasure() {
-        return _super !== null && _super.apply(this, arguments) || this;
-    }
-    return StemErasure;
-}(StemShape));
 var StemstrokeBox = /** @class */ (function () {
     function StemstrokeBox() {
+        this.selectionpadding = 15;
     }
+    StemstrokeBox.prototype.Intersects = function (x, y) {
+        if (helper.isBetween(x, this.originx, this.maxX, this.selectionpadding) && helper.isBetween(y, this.originy, this.maxY, this.selectionpadding)) {
+            return true;
+        }
+    };
+    StemstrokeBox.prototype.IntersectsCorner = function (x, y) {
+        var cornersize = Canvasconstants.cornersize; //half becaues its based on the center of the point
+        if (x < this.originx - cornersize) {
+            return "";
+        }
+        if (x > this.maxX + cornersize) {
+            return "";
+        }
+        if (y < this.originy - cornersize) {
+            return "";
+        }
+        if (y > this.maxX + cornersize) {
+            return "";
+        }
+        var left = false;
+        var right = false;
+        var top = false;
+        var bottom = false;
+        if (x < this.originx + cornersize) {
+            left = true;
+        }
+        else if (x > this.maxX - cornersize) {
+            right = true;
+        }
+        if (y < this.originy + cornersize) {
+            top = true;
+        }
+        else if (y > this.maxY - cornersize) {
+            bottom = true;
+        }
+        if (left && top) {
+            return "NW";
+        }
+        else if (right && top) {
+            return "NE";
+        }
+        else if (left && bottom) {
+            return "NE";
+        }
+        else if (right && bottom) {
+            return "NW";
+        }
+        else {
+            return "MOVE";
+        }
+    };
     return StemstrokeBox;
 }());
+var Stempoint = /** @class */ (function () {
+    function Stempoint(x, y) {
+        this.timestamp = performance.now();
+        this.x = x;
+        this.y = y;
+    }
+    return Stempoint;
+}());
+var SimplePoint = /** @class */ (function () {
+    function SimplePoint(x, y) {
+        this.x = x;
+        this.y = y;
+    }
+    return SimplePoint;
+}());
+//# sourceMappingURL=stemstroke.js.map

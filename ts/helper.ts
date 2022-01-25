@@ -44,9 +44,46 @@ class helper{
             return null;
           }
 
-        
-        
-          
-          
+    static angleTwoPoint(ax,ay,bx,by)
+    {
+        let result = (Math.atan2(ay-by,ax-bx) * 180 / Math.PI);
+      
+
+        return result;
+        //
+    }
+
+    static RotatePoint(inputx, inputy, a, b, c, d) {
+
+        a = Math.cos(30);
+        b = Math.asin(30);
+        c - Math.sin(30);
+        d - Math.cos(30);
+
+        let outputx = ((a * inputx) + (b * inputx)) ;
+        let outputy = ((c * inputy) + (d * inputy));
+
+        return new SimplePoint(outputx, outputy);
+    }
+
+    static isBetween(input,low, high,padding=0)
+    {
+        if(input > (low - padding))
+        {
+            if(input < (high + padding))
+            {
+                return true
+            }
+            else
+            {
+                return false;
+            }
+        }
+        else
+        {return false;}
+    }
+
+   
+  
     
 }

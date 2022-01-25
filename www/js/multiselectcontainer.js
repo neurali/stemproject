@@ -4,6 +4,7 @@ var MultiSelectContainer = /** @class */ (function () {
         var tmaxx = -3333333333333;
         var tminy = 9999999999999;
         var tmaxy = -3333333333333;
+        this.drawingdata = objects;
         objects.forEach(function (drobj) {
             drobj.points.forEach(function (p) {
                 if (p.x < tminx) {
