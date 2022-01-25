@@ -277,6 +277,7 @@ class Stemcanvas {
         this.pen.Y = e.pageY - (this.canvascontainer.offsetTop) + this.canvascrolly;
         this.pen.pressure = e.pressure;
 
+        console.log(`X: ${this.pen.X} Y: ${this.pen.Y}`);
         if (this.selectionManager.currentlySelected != null) //item is currently selected
         {
             if (this.pen.penDown) { //pen is down

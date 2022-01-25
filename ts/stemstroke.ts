@@ -176,7 +176,7 @@ class StemstrokeBox {
         {
             return "";
         }
-        if(y > this.maxX + cornersize)
+        if(y > this.maxY + cornersize)
         {
             return "";
         }

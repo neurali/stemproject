@@ -141,7 +141,7 @@ var StemstrokeBox = /** @class */ (function () {
         if (y < this.originy - cornersize) {
             return "";
         }
-        if (y > this.maxX + cornersize) {
+        if (y > this.maxY + cornersize) {
             return "";
         }
         var left = false;

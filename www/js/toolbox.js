@@ -41,8 +41,25 @@ var Toolbox = /** @class */ (function () {
                     ;
                 }
                 cur.classList.add("z-depth-3");
-                _this.selectedColour = cur.id.slice(6);
-                console.log(_this.selectedColour);
+                var temp = cur.id.slice(6);
+                if (temp == "Red") {
+                    _this.selectedColour = "#E53935";
+                }
+                else if (temp == "Green") {
+                    _this.selectedColour = "#388E3C";
+                }
+                else if (temp == "Blue") {
+                    _this.selectedColour = "#1976D2";
+                }
+                else if (temp == "Purple") {
+                    _this.selectedColour = "#7b1fa2";
+                }
+                else if (temp == "Orange") {
+                    _this.selectedColour = "#ff9800";
+                }
+                else {
+                    _this.selectedColour = "Black";
+                }
             });
         };
         var this_2 = this;

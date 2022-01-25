@@ -63,8 +63,34 @@ class Toolbox {
                     this.colourtools[i].classList.remove("z-depth-3");;
                 } 
                 cur.classList.add("z-depth-3")
-                this.selectedColour = cur.id.slice(6);
-                console.log(this.selectedColour);
+                let temp = cur.id.slice(6);
+
+                if(temp == "Red")
+                {
+                    this.selectedColour = "#E53935";
+                }
+                else if(temp == "Green")
+                {
+                    this.selectedColour = "#388E3C";
+                }
+                else if(temp == "Blue")
+                {
+                    this.selectedColour = "#1976D2";
+                }
+                else if(temp == "Purple")
+                {
+                    this.selectedColour = "#7b1fa2";
+                }
+                else if(temp == "Orange")
+                {
+                    this.selectedColour = "#ff9800";
+                }
+                else
+                {
+                    this.selectedColour = "Black";
+                }
+                
+
             })
  
         }
