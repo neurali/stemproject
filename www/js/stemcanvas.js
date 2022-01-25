@@ -110,6 +110,12 @@ var Stemcanvas = /** @class */ (function () {
         }
     };
     Stemcanvas.prototype.drawloopSelection = function () {
+        var _this = this;
+        //draws the static marquee around a selected object
+        //dirty the selection if the pen is down and interacting with an object:
+        if (this.pen.onCanvas && this.pen.penDown && this.cursor.interacting) {
+            this.selectionManager.fresh = false;
+        }
         if (this.selectionManager.fresh == false) {
             this.contextSelection.clearRect(0, 0, Canvasconstants.width, Canvasconstants.height);
             if (this.selectionManager.currentlySelected != null) {
@@ -145,6 +151,32 @@ var Stemcanvas = /** @class */ (function () {
                 this.contextSelection.strokeRect(box.maxX - 5, box.maxY - 5, Canvasconstants.cornersize, Canvasconstants.cornersize);
                 this.contextSelection.fillRect(box.originx - 5, box.maxY - 5, 10, 10);
                 this.contextSelection.strokeRect(box.originx - 5, box.maxY - 5, Canvasconstants.cornersize, Canvasconstants.cornersize);
+                if (this.pen.onCanvas && this.pen.penDown) {
+                    console.log("isnt fresh");
+                    if (this.cursor.interacting) {
+                        //now render move or resize previews
+                        if (this.toolbox.selectedtool == "SELECT") {
+                            if (this.cursor.selectmodifier == "MOVE") {
+                                var vector_1 = this.getCurrentStrokeVector();
+                                var previewstroke_1 = new Stemstroke();
+                                this.selectionManager.currentlySelected.points.forEach(function (p) {
+                                    previewstroke_1.points.push(new Stempoint(p.x + vector_1.x, p.y + vector_1.y));
+                                });
+                                this.contextSelection.beginPath();
+                                this.contextSelection.moveTo(previewstroke_1.points[0].x, previewstroke_1.points[0].y);
+                                previewstroke_1.points.forEach(function (p) {
+                                    _this.contextSelection.lineTo(p.x, p.y);
+                                });
+                                this.contextSelection.stroke();
+                                this.contextSelection.closePath();
+                            }
+                            else if (this.cursor.selectmodifier == "NW") {
+                            }
+                            else if (this.cursor.selectmodifier == "NE") {
+                            }
+                        }
+                    }
+                }
                 //draw the selection
                 this.selectionManager.fresh = true;
             }
@@ -317,20 +349,25 @@ var Stemcanvas = /** @class */ (function () {
             else {
                 if (this.cursor.interacting) {
                     if (this.cursor.selectmodifier == "MOVE") {
-                        console.log("move");
-                        //get movement vector:
-                        var x_1 = this.currentstroke.points[this.currentstroke.points.length - 1].x - this.currentstroke.points[0].x;
-                        var y_1 = this.currentstroke.points[this.currentstroke.points.length - 1].y - this.currentstroke.points[0].y;
-                        console.log("".concat(x_1, " ").concat(y_1));
-                        this.currentstroke.UpdateBoundingBox("");
-                        //move all points in stroke:
-                        this.selectionManager.currentlySelected.points.forEach(function (p) {
-                            p.x += x_1;
-                            p.y += y_1;
-                        });
-                        this.selectionManager.currentlySelected.UpdateBoundingBox("");
-                        this.selectionManager.fresh = false;
-                        this.updateDrawing();
+                        if (this.currentstroke.getPixelLength() > Canvasconstants.multiselectMinimumLength) {
+                            console.log("move");
+                            //get movement vector:
+                            var x_1 = this.currentstroke.points[this.currentstroke.points.length - 1].x - this.currentstroke.points[0].x;
+                            var y_1 = this.currentstroke.points[this.currentstroke.points.length - 1].y - this.currentstroke.points[0].y;
+                            console.log("".concat(x_1, " ").concat(y_1));
+                            this.currentstroke.UpdateBoundingBox("");
+                            //move all points in stroke:
+                            this.selectionManager.currentlySelected.points.forEach(function (p) {
+                                p.x += x_1;
+                                p.y += y_1;
+                            });
+                            this.selectionManager.currentlySelected.UpdateBoundingBox("");
+                            this.selectionManager.fresh = false;
+                            this.updateDrawing();
+                        }
+                        else {
+                            this.selectionManager.selectObjectAtPoint(this.pen.X, this.pen.Y);
+                        }
                     }
                     else {
                     }
@@ -712,9 +749,20 @@ var Stemcanvas = /** @class */ (function () {
             _this.contextDrawing.closePath();
         });
     };
+    Stemcanvas.prototype.getCurrentStrokeVector = function () {
+        var output = new Vector();
+        output.x = this.currentstroke.points[this.currentstroke.points.length - 1].x - this.currentstroke.points[0].x;
+        output.y = this.currentstroke.points[this.currentstroke.points.length - 1].y - this.currentstroke.points[0].y;
+        return output;
+    };
     return Stemcanvas;
 }());
 /////////////////////////////////////////
+var Vector = /** @class */ (function () {
+    function Vector() {
+    }
+    return Vector;
+}());
 var Canvasconstants = /** @class */ (function () {
     function Canvasconstants() {
     }
