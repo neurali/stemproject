@@ -36,6 +36,34 @@ var helper = /** @class */ (function () {
             return shorthand.slice(1).map(function (e) { return 0x11 * parseInt(e, 16); });
         return null;
     };
+    helper.angleTwoPoint = function (ax, ay, bx, by) {
+        var result = (Math.atan2(ay - by, ax - bx) * 180 / Math.PI);
+        return result;
+        //
+    };
+    helper.RotatePoint = function (inputx, inputy, a, b, c, d) {
+        a = Math.cos(30);
+        b = Math.asin(30);
+        c - Math.sin(30);
+        d - Math.cos(30);
+        var outputx = ((a * inputx) + (b * inputx));
+        var outputy = ((c * inputy) + (d * inputy));
+        return new SimplePoint(outputx, outputy);
+    };
+    helper.isBetween = function (input, low, high, padding) {
+        if (padding === void 0) { padding = 0; }
+        if (input > (low - padding)) {
+            if (input < (high + padding)) {
+                return true;
+            }
+            else {
+                return false;
+            }
+        }
+        else {
+            return false;
+        }
+    };
     return helper;
 }());
 //# sourceMappingURL=helper.js.map

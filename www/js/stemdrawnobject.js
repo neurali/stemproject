@@ -58,7 +58,6 @@ var StemDrawnObject = /** @class */ (function () {
             this.cachedBoundingBox = outputresult;
         }
         else if (this.objecttype == "RECTANGLE") {
-            console.log("looking at selecting a rectangle");
             var first = this.points[0];
             var last = this.points[this.points.length - 1];
             var lowestx = -1;
@@ -100,7 +99,6 @@ var StemDrawnObject = /** @class */ (function () {
             this.cachedBoundingBox = outputresult;
         }
         else if (this.objecttype == "TEXT") {
-            console.log("text bounding boxes need canvas operations to update, look elsewhere see 1150 stemcanvas.ts");
         }
     };
     return StemDrawnObject;
@@ -139,6 +137,15 @@ var StemShape = /** @class */ (function (_super) {
     }
     return StemShape;
 }(StemDrawnObject));
+var StemLine = /** @class */ (function (_super) {
+    __extends(StemLine, _super);
+    function StemLine() {
+        var _this = _super !== null && _super.apply(this, arguments) || this;
+        _this.objecttype = "LINE";
+        return _this;
+    }
+    return StemLine;
+}(StemShape));
 var StemRectangle = /** @class */ (function (_super) {
     __extends(StemRectangle, _super);
     function StemRectangle() {
@@ -161,7 +168,6 @@ var StemRectangle = /** @class */ (function (_super) {
             }
         }
         else {
-            console.log("stop");
             var height = 9999999;
             var width = 99999999;
             if (x < box.originx && y < box.originy) {

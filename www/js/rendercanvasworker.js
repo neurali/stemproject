@@ -84,13 +84,20 @@ onmessage = function (e) {
             bcontext.closePath();
         }
         else if (s.objecttype == "TEXT") {
-            var finalpoint = s.points[s.points.length - 1];
+            var finalpoint = s.points[s.points.length - 1]; //text objects should only have a single point now
             var textobject = s;
             var textsize = (parseInt(s.strokewidth)) * 2;
             bcontext.font = textsize + "px Arial";
             bcontext.lineWidth = 1.5;
             bcontext.fillStyle = bcontext.strokeStyle;
             bcontext.fillText(textobject.text, finalpoint.x, finalpoint.y);
+        }
+        else if (s.objecttype == "LINE") {
+            var start = s.points[0];
+            var end = s.points[1];
+            bcontext.moveTo(start.x, start.y);
+            bcontext.lineTo(end.x, end.y);
+            bcontext.stroke();
         }
     });
     // //buffer.transferToImageBitmap //this is our image (hopefully);

@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0" />
+  <title>Question 3</title>
+  <!-- CSS  -->
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link href="./css/icofont.css" rel="stylesheet">
+
+  <link href="css/materialize.css" type="text/css" rel="stylesheet" media="screen,projection" />
+  <link href="css/style.css" type="text/css" rel="stylesheet" media="screen,projection" />
+</head>
+
+<body>
+
+  <p data-participant="" data-tasknumber="q6" id="sessioninfo" class="hide">temp session info</p>
+
+  <!-- navigation-->
+  <nav class="hide" role="navigation">
+    <div class="nav-wrapper container">
+      <a id="logo-container" href="#" class="brand-logo">Question One</a>
+      <ul class="right hide-on-med-and-down">
+        <li><a href="#" id="lblParticipant">Participant: </a></li>
+      </ul>
+
+      <!--SMALL SCREEN NAV-->
+      <ul id="nav-mobile" class="sidenav">
+        <li><a href="#">Navbar Link</a></li>
+      </ul>
+      <a href="#" data-target="nav-mobile" class="sidenav-trigger"><i class="material-icons">menu</i></a>
+      <!--END SMALL SCREEN NAV-->
+    </div>
+  </nav>
+
+
+  <div class="section grey lighten-5 nopaddingtop" id="index-banner">
+
+
+
+
+
+    <!--Question Block-->
+    <div class="row nomarginbot">
+      <div class="col s10">
+        <div class="grey lighten-3">
+
+          <ul class="collapsible nomargintop z-depth-0">
+
+
+            <li id="questionblock" class="active">
+
+              <div class="collapsible-header  no-flex">
+
+                <div class="row nomarginbot">
+                  <div class="col s11"><h5>Question Three</h5></div>
+                  <div class="col s1"> <h5><i class="material-icons">menu</i></h5></div>
+                </div>
+              </div>
+
+              <div class="collapsible-body white question-text-fix">
+
+                <div class="row nomarginbot">
+
+                  <p class="nomargintop qpad">Sam wants to enlarge a rectangle with a width of 5cm and a length of 20cm. The new rectangle has a width of 10cm.  Please draw diagrams and show all working </p>
+                  
+                  <div class="col s1">
+                    <p>(a)</p>
+                  </div>
+
+                  <div class="col s11">
+                    <p>If these two shapes are similar (similar figures) what is the length of the new rectangle?
+                    </p>
+                  </div>
+
+                  <div class="col s1">
+                    <p>(b)</p>
+                  </div>
+
+                  <div class="col s11">
+                    <p>What is the combined area of both rectangles? 
+                    </p>
+                  </div>
+
+                </div>
+
+              </div>
+
+            </li>
+
+
+          </ul>
+
+        </div>
+      </div>
+    </div>
+
+
+    <div class="row">
+
+      <div class="col s6 left ">
+        <a id="btnUndo" class="waves-effect waves-red btn grey darken-3 tooltipped" data-position="bottom"
+          data-tooltip="Undo the last action"><i class="material-icons left">undo</i>Undo</a>
+        <a id="btnRedo" class="waves-effect waves-green btn grey tooltipped" data-position="bottom"
+          data-tooltip="Redo the previous action"><i class="material-icons left">redo</i>Redo</a>
+        <a id="btnClear" class="waves-effect waves-green btn grey tooltipped modal-trigger" data-position="bottom"
+          data-tooltip="Clear the whole canvas" data-target="clear-warning"><i
+            class="material-icons left">restart_alt</i>Clear</a>
+      </div>
+      <div class="col s2 right hide">
+        <h6 id="questiontimer">0 Minutes : 0 Seconds</h6>
+      </div>
+      <div class="col s4 left right-align">
+        <a id="btnSave" class="waves-effect waves-red btn green tooltipped" data-position="bottom"
+          data-tooltip="Save the current drawing to file"><i class="material-icons left">save_alt</i>Save</a>
+        <a id="btnNext" class="waves-effect waves-green btn tooltipped" data-position="bottom"
+          data-tooltip="Save drawing and move to next question"><i class="material-icons left">keyboard_tab</i>Next</a>
+
+      </div>
+
+
+    </div>
+    <!--Question Input-->
+    <div class="row nomarginbot">
+      <div class="col s10">
+        <div class="canvas-container" id="canvas-scroll-container">
+
+          <canvas id="canvasq1" width="10" height="10">
+          </canvas>
+
+        </div>
+
+
+
+      </div>
+
+      <!--drawing tools -->
+      <div class="col s2">
+
+        <a class="waves-effect waves-light teal darken-4 btn tool tooltipped" data-position="left"
+          data-tooltip="Draw freehand" id="btnDrawTool"><i
+            class="icofont-pencil-alt-2 material-icons left"> </i>Draw</a>
+        <a class="waves-effect waves-light btn tool tooltipped" data-position="left"
+          data-tooltip="Click to erase objects"><i class="icofont-eraser material-icons left"> </i>Erase</a>
+        <a class="waves-effect waves-light btn tool tooltipped" data-position="left"
+          data-tooltip="Click to select objects"><i class="icofont-ui-pointer material-icons left"> </i>Select</a>
+        <a class="waves-effect waves-light btn tool tooltipped" data-position="left" data-tooltip="Add text"><i
+            class="icofont-italic-alt material-icons left"> </i>Text</a>
+        <!-- <a class="waves-effect waves-light btn tool tooltipped" data-position="left" data-tooltip="Draw straight lines"><i
+            class="icofont-ruler material-icons left"> </i>Line</a> -->
+        <a class="waves-effect waves-light btn tool tooltipped" data-position="left" data-tooltip="Draw rectangles"><i
+          class="icofont-square material-icons left"> </i>Rectangle</a>
+        <a class="waves-effect waves-light btn tool tooltipped" data-position="left"
+          data-tooltip="Draw circles - center to radius"><i
+            class="icofont-spinner-alt-4 material-icons left"> </i>Circle</a>
+
+
+
+
+        <div class="style-border">
+          <p class="teal-text justify text-darken-3 hide">Multiple Objects selected, changing size or colour will affect
+            all selected objects</p>
+          <div class="row  nomargin  full-width">
+            <div class="col s12 left">
+              <form action="#">
+                <p class="range-field">
+                  <label id="drawing-size">Size: 6</label>
+                  <input type="range" id="ctlDrawSize" min="1" max="22" value="3"><span class="thumb"><span
+                      class="value"></span></span>
+                </p>
+              </form>
+            </div>
+          </div>
+
+          <div class="row nomargin full-width">
+            <div class="col s6 nopadding">
+              <input type="color" id="ctlInputColour" name="head" value="#000000">
+            </div>
+            <div class="col s6 nopadding">
+              <p>Pen Colour</p>
+            </div>
+          </div>
+        </div>
+
+
+      </div>
+
+
+    </div>
+
+  </div>
+
+
+  </div>
+  <!-- controls beneath the canvas-->
+
+
+
+  </div>
+  <div class="placeholder200 teal lighten-5 hide">
+    <p>empty section</p>
+
+    <img id="debugimage">
+  </div>
+  <div class="placeholder200 teal lighten-5 hide">
+    <p>empty section</p>
+  </div>
+
+  </div>
+  </div>
+
+
+  <div class="container hide">
+    <div class="section">
+
+      <!--   Icon Section   -->
+      <div class="row hide">
+        <div class="col s12 m4">
+          <div class="icon-block">
+            <h2 class="center light-blue-text"><i class="material-icons">flash_on</i></h2>
+            <h5 class="center">Block</h5>
+
+            <p class="light">lorum</p>
+          </div>
+        </div>
+
+        <div class="col s12 m4 hide">
+          <div class="icon-block">
+            <h2 class="center light-blue-text"><i class="material-icons">group</i></h2>
+            <h5 class="center">Block</h5>
+
+            <p class="light">lorum</p>
+          </div>
+        </div>
+
+        <div class="col s12 m4">
+          <div class="icon-block">
+            <h2 class="center light-blue-text"><i class="material-icons">settings</i></h2>
+            <h5 class="center">Block</h5>
+
+            <p class="light">lorum</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <br><br>
+  </div>
+
+  <!-- Modal Structure -->
+  <div id="clear-warning" class="modal small-modal">
+    <div class="modal-content">
+      <h4>Clear the canvas</h4>
+      <p>You will lose all your work</p>
+    </div>
+    <div class="modal-footer">
+      <a id="btnConfirmClear" class="modal-close waves-effect  teal btn">Ok</a>
+      <a href="#" class="modal-close waves-effect red btn">Cancel</a>
+    </div>
+
+  </div>
+
+
+
+  <footer class="page-footer hide">
+
+    <div class="container">
+      <div class="row">
+        <div class="col l6 s12">
+          <h5 class="white-text">Company Bio</h5>
+          <p class="grey-text text-lighten-4">We are a team of college students working on this project like it's our
+            full time job. Any amount would help support and continue development on this project and is greatly
+            appreciated.</p>
+
+
+        </div>
+        <div class="col l3 s12">
+          <h5 class="white-text">Settings</h5>
+          <ul>
+            <li><a class="white-text" href="#!">Link 1</a></li>
+            <li><a class="white-text" href="#!">Link 2</a></li>
+            <li><a class="white-text" href="#!">Link 3</a></li>
+            <li><a class="white-text" href="#!">Link 4</a></li>
+          </ul>
+        </div>
+        <div class="col l3 s12">
+          <h5 class="white-text">Connect</h5>
+          <ul>
+            <li><a class="white-text" href="#!">Link 1</a></li>
+            <li><a class="white-text" href="#!">Link 2</a></li>
+            <li><a class="white-text" href="#!">Link 3</a></li>
+            <li><a class="white-text" href="#!">Link 4</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="footer-copyright">
+      <div class="container">
+        <a class="orange-text text-lighten-3" href="http://massey.ac.nz">Massey</a>
+      </div>
+    </div>
+  </footer>
+
+  <div id="text-input-modal" class="hide">
+    <div id="text-input-box" class="card darken-1">
+
+      <div class="card-content" id="cardAddText">
+
+        <div class="input-field col s6 nomargin">
+          <input type="text" value="" class="white" id="tbxInput" />
+          <label for="tbxInput">Text to add</label>
+        </div>
+
+      </div>
+      <div class="card-action black-text">
+        <a href="#" id="btnAddText">Add / Update</a>
+        <a href="#" id="btnCancel">Cancel</a>
+      </div>
+
+
+    </div>
+
+  </div>
+
+  <!--  Scripts-->
+  <!-- VISUAL SCRIPTS-->
+  <script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+  <script src="js/materialize.js"></script>
+  <script src="js/init.js"></script>
+
+  <!-- FUNCTIONAL SCRIPTS -->
+  <script src="js/stemcanvas.js"></script>
+  <script src="js/stempen.js"></script>
+  <script src="js/stemdrawnobject.js"></script>
+  <script src="js/stempoint.js"></script>
+  <script src="js/main.js"></script>
+  <script src="js/helper.js"></script>
+  <script src="js/multiselectcontainer.js"></script>
+  <script src="js/sessioninfo.js"></script>
+
+
+</body>
+
+</html>

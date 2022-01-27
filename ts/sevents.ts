@@ -1,0 +1,3 @@
+enum toolboxevents{
+    toolchanged = "tbetoolchanged"
+}

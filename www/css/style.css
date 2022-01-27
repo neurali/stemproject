@@ -39,8 +39,17 @@ canvas{
 .nomargin{
     margin: 0px !important;
 }
+.nomargintop{
+    margin-top: 0px !important;
+}
+.nomarginbot{
+    margin-bottom: 0px;
+}
 .nopadding{
     padding:0px !important;
+}
+.nopaddingtop{
+    padding-top:0px !important;
 }
 
 /* colour picker hack */
@@ -64,14 +73,12 @@ input[type="color"]::-webkit-color-swatch {
     height: 48px;
 }
 
-.dynamcihider{
-    /* do not use */
-}
 .material-icons{
     pointer-events: none !important;
 }
 .small-modal{
-    max-width: 30%;
+    max-width: 20%;
+    left:-50%;
 }
 .space-left{
     margin-left: 5%;
@@ -96,4 +103,77 @@ input[type="color"]::-webkit-color-swatch {
 }
 #cardAddText{
     padding-bottom: 0px;    
+}
+.full-width{
+    width: 100%;
+}
+.style-border{
+    margin-top: 1vw;
+    border: solid #004d40  2px;
+    border-radius: 2px;    
+    -webkit-box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 3px 1px -2px rgba(0, 0, 0, 0.12), 0 1px 5px 0 rgba(0, 0, 0, 0.2);
+    box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 3px 1px -2px rgba(0, 0, 0, 0.12), 0 1px 5px 0 rgba(0, 0, 0, 0.2);
+    
+}
+.justify{
+    text-align: justify;
+    margin:2px;
+}
+.padding-left{
+     padding-left: 10px;
+ 
+}
+.question-text-fix{
+
+    padding-left: 20px ;
+    padding: 0px 0px 0px 20px;
+}
+.no-flex{
+    display: block;
+}
+.flex{
+    display:flex;
+}
+.canvas-container{
+    /* max-height: 600px; */
+    max-height: 200px;
+    max-width: 100%;
+    overflow: scroll;
+    border: solid black 1px;
+}
+.qpad{
+    padding-left: 10px;
+    padding-right: 80px;
+    padding-top: 10px;
+}
+.pallette{
+    width: 100%;
+    height: 40px;
+    background-color: black;
+    margin:auto;
+    margin-bottom: 5px;
+    border: solid black 1px;
+}
+#colour1{
+    background-color: red;
+}
+#colour2{
+    background-color: green;
+}
+#colour3{
+    background-color: blue;
+}
+#colour4{
+    background-color: cyan;
+}
+#colour5{
+    background-color: magenta;
+}
+#colour6{
+    background-color: yellow;
+}
+
+.question-container{
+    max-height: 100px;
+    overflow-y: auto;
 }
