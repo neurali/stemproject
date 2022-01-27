@@ -63,8 +63,10 @@ body{
     max-width: 100%;
     max-height: 86vh;
     overflow: scroll;
-    background-color: #f1f1f1  !important;
+     background-color: #f1f1f1  !important;
     position: relative;
+    touch-action: none;
+    
 }
 .smallfab{
     height: 40px !important;
@@ -154,7 +156,7 @@ body{
     cursor: none;
 }
 .canvasbackground{
-    background-color: rgb(255, 255, 255);
+    background-image: url('../media/canvasBG/25px-grid.png') ;
     pointer-events: none;
     position: absolute;
     cursor: none;    
