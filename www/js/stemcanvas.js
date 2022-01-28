@@ -69,10 +69,7 @@ var Stemcanvas = /** @class */ (function () {
         this.contextSelection.strokeStyle = "black";
         this.contextSelection.lineWidth = 1;
         this.contextSelection.setLineDash([5]);
-        //outerContent.scrollLeft((innerContent.width() - outerContent.width()) / 2);
-        var containerwidth = this.canvascontainer.clientWidth;
-        var widthofcontent = Canvasconstants.width;
-        this.canvascontainer.scrollLeft = 35;
+        this.canvascontainer.scrollLeft = ((Canvasconstants.width - this.canvascontainer.clientWidth) / 2);
     };
     //gets called by animation updates:
     Stemcanvas.prototype.mainloop = function () {
@@ -227,8 +224,6 @@ var Stemcanvas = /** @class */ (function () {
             this.contextInterface.beginPath();
             this.contextInterface.moveTo(this.currentstroke.points[0].x, this.currentstroke.points[0].y);
             this.contextInterface.lineTo(this.currentstroke.points[this.currentstroke.points.length - 1].x, this.currentstroke.points[this.currentstroke.points.length - 1].y);
-            console.log(this.contextInterface.strokeStyle);
-            console.log("".concat(this.currentstroke.points[this.currentstroke.points.length - 1].x, " + ").concat(this.currentstroke.points[this.currentstroke.points.length - 1].y));
             this.contextInterface.stroke();
             this.contextInterface.closePath();
         }
@@ -298,6 +293,7 @@ var Stemcanvas = /** @class */ (function () {
                 }
                 if (this.toolbox.selectedtool == "LINE") {
                     this.currentstroke.points.push(p);
+                    console.log(this.currentstroke.objecttype);
                 }
             }
         }
@@ -668,28 +664,30 @@ var Stemcanvas = /** @class */ (function () {
             this.toolbox.isDrawingObject = true;
             this.currentstroke = new Stemstroke();
             this.currentstrokebuffer = new Stemstroke();
-            this.currentstroke.objecttype == this.toolbox.selectedtool;
+            this.currentstroke.objecttype = this.toolbox.selectedtool;
             this.currentstrokebuffer.points.push(currentpoint);
         }
         else if (this.toolbox.selectedtool == "SELECT") {
             this.toolbox.isDrawingObject = false;
             this.currentstroke = new Stemstroke();
             this.currentstrokebuffer = new Stemstroke();
-            this.currentstroke.objecttype == this.toolbox.selectedtool;
+            this.currentstroke.objecttype = this.toolbox.selectedtool;
             this.currentstroke.points.push(currentpoint); //select doesnt use buffer
         }
         else if (this.toolbox.selectedtool == "ERASE") {
             this.toolbox.isDrawingObject = false;
             this.currentstroke = new Stemstroke();
             this.currentstrokebuffer = new Stemstroke();
-            this.currentstroke.objecttype == this.toolbox.selectedtool;
+            this.currentstroke.objecttype = this.toolbox.selectedtool;
             this.currentstroke.points.push(currentpoint); //select doesnt use buffer
         }
         else if (this.toolbox.selectedtool == "LINE") {
             this.toolbox.isDrawingObject = true;
             this.currentstroke = new Stemstroke();
             this.currentstrokebuffer = new Stemstroke();
-            this.currentstroke.objecttype == this.toolbox.selectedtool;
+            this.currentstroke.objecttype = this.toolbox.selectedtool;
+            console.log(this.toolbox.selectedtool);
+            console.log(this.currentstroke.objecttype);
             this.currentstroke.points.push(currentpoint);
         }
         // this.currentStrokeData = new StemStroke();
@@ -795,6 +793,16 @@ var Stemcanvas = /** @class */ (function () {
                 _this.contextDrawing.stroke();
                 _this.contextDrawing.closePath();
             }
+            else if (stroke.objecttype == "LINE") {
+                _this.contextDrawing.beginPath();
+                _this.contextDrawing.strokeStyle = stroke.strokecolour;
+                _this.contextDrawing.lineWidth = stroke.strokewidth;
+                _this.contextDrawing.moveTo(stroke.points[0].x, stroke.points[0].y);
+                var lastpoint = stroke.points.length - 1;
+                _this.contextDrawing.lineTo(stroke.points[lastpoint].x, stroke.points[lastpoint].y);
+                _this.contextDrawing.stroke();
+                _this.contextDrawing.closePath();
+            }
         });
     };
     Stemcanvas.prototype.getCurrentStrokeVector = function () {
@@ -830,9 +838,9 @@ var SelectionManager = /** @class */ (function () {
         this.fresh = false;
     }
     SelectionManager.prototype.IDObjectAtPoint = function (x, y) {
-        console.log("stop");
         var boxintersected = new Array();
         this.drawingData.forEach(function (el) {
+            debugger;
             el.UpdateBoundingBox("");
             if (el.getCachedBoundingBox().Intersects(x, y)) {
                 boxintersected.push(el);
@@ -888,6 +896,38 @@ var SelectionManager = /** @class */ (function () {
             //         indexofClosest = index;
             //     }
             // }
+            else if (el.objecttype == "LINE") {
+                console.log('stop');
+                debugger;
+                var a_to_p = new Vector();
+                var a_to_b = new Vector();
+                //   a_to_p = [P.x - A.x, P.y - A.y]     # Storing vector A->P
+                a_to_p.x = x - el.points[0].x;
+                a_to_p.y = y - el.points[0].y;
+                //   a_to_b = [B.x - A.x, B.y - A.y]     # Storing vector A->B
+                a_to_b.x = el.points[el.points.length - 1].x;
+                a_to_b.y = el.points[el.points.length - 1].y;
+                //   atb2 = a_to_b[0]**2 + a_to_b[1]**2  # **2 means "squared"
+                //                                       #   Basically finding the squared magnitude
+                //                                       #   of a_to_b
+                var atb2 = Math.pow(a_to_b.x, 2) + Math.pow(a_to_b.y, 2);
+                //   atp_dot_atb = a_to_p[0]*a_to_b[0] + a_to_p[1]*a_to_b[1]
+                //# The dot product of a_to_p and a_to_b
+                var atp_dot_atb = Math.pow(a_to_b.x, 2) + Math.pow(a_to_p.y, 2);
+                //   t = atp_dot_atb / atb2              # The normalized "distance" from a to
+                //                                       #   your closest point
+                var t = atp_dot_atb / atb2;
+                var distance = t;
+                if (distance < closenessvalue) {
+                    closenessvalue = distance;
+                    indexofClosest = index;
+                }
+                //   return Point.new( :x => A.x + a_to_b[0]*t,
+                //                     :y => A.y + a_to_b[1]*t )
+                //                                       # Add the distance to A, moving
+                //                                       #   towards B
+                // end
+            }
             index++;
         });
         if (closenessvalue < 99999999999999999) //check that it actually found something

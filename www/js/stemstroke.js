@@ -100,6 +100,26 @@ var StemDrawnObject = /** @class */ (function () {
         }
         else if (this.objecttype == "TEXT") {
         }
+        else if (this.objecttype == "LINE") {
+            var output = new StemstrokeBox();
+            if (this.points[0].x < this.points[this.points.length - 1].x) {
+                output.originx = this.points[0].x;
+                output.maxX = this.points[this.points.length - 1].x;
+            }
+            else {
+                output.maxX = this.points[0].x;
+                output.originx = this.points[this.points.length - 1].x;
+            }
+            if (this.points[0].y < this.points[this.points.length - 1].y) {
+                output.originy = this.points[0].y;
+                output.maxY = this.points[this.points.length - 1].y;
+            }
+            else {
+                output.maxY = this.points[0].y;
+                output.originy = this.points[this.points.length - 1].y;
+            }
+            this.cachedBoundingBox = output;
+        }
     };
     return StemDrawnObject;
 }());
@@ -107,7 +127,7 @@ var Stemstroke = /** @class */ (function (_super) {
     __extends(Stemstroke, _super);
     function Stemstroke() {
         var _this = _super !== null && _super.apply(this, arguments) || this;
-        _this.objecttype = "DRAW";
+        _this.objecttype = "";
         _this.strokeid = helper.getGUID();
         return _this;
     }
