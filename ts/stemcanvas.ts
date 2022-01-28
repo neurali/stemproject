@@ -1067,6 +1067,17 @@ class Stemcanvas {
                 this.contextDrawing.stroke();
                 this.contextDrawing.closePath();
             }
+            else if(stroke.objecttype == "LINE")
+            {
+                this.contextDrawing.beginPath();
+                this.contextDrawing.strokeStyle = stroke.strokecolour;
+                this.contextDrawing.lineWidth = stroke.strokewidth;
+                this.contextDrawing.moveTo(stroke.points[0].x,stroke.points[0].y);
+                let lastpoint = stroke.points.length -1;
+                this.contextDrawing.lineTo(stroke.points[lastpoint].x,stroke.points[lastpoint].y);
+                this.contextDrawing.stroke();
+                this.contextDrawing.closePath();
+            }
            
         });
     }
