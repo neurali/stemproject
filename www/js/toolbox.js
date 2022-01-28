@@ -12,9 +12,10 @@ var Toolbox = /** @class */ (function () {
                 //remove darken from all the tools
                 for (var i_1 = 0; i_1 < _this.drawtools.length; i_1++) {
                     _this.drawtools[i_1].classList.remove("darken-3");
-                    ;
+                    _this.drawtools[i_1].classList.remove("teal");
                 }
                 //add darken to the clicked button
+                cur.classList.add("teal");
                 cur.classList.add("darken-3");
                 var innertext = cur.innerText;
                 var split = innertext.split(/\r?\n/);

@@ -35,10 +35,13 @@ class Toolbox {
             cur.addEventListener("click", (e) => {    
                 //remove darken from all the tools
                 for (let i = 0; i < this.drawtools.length; i++) {
-                    this.drawtools[i].classList.remove("darken-3");;
+                    this.drawtools[i].classList.remove("darken-3");
+                    this.drawtools[i].classList.remove("teal");
                 }                
                 //add darken to the clicked button
+                cur.classList.add("teal");
                 cur.classList.add("darken-3");
+                
                 let innertext = cur.innerText;
                 let split = innertext.split(/\r?\n/);
                 //get text of selected
