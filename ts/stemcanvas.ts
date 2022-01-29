@@ -84,7 +84,7 @@ class Stemcanvas {
         this.contextSelection = this.selectioncanvas.getContext("2d");
         this.contextCursor = this.cursorcanvas.getContext("2d");
         this.contextInterface = this.interfacecanvas.getContext("2d");
-        this.contextDebug = this.interfacecanvas.getContext("2d");
+        this.contextDebug = this.debugcanvas.getContext("2d");
 
         //prep drawing canvas
         //  this.contextDrawing.fillStyle = "white";
@@ -103,7 +103,7 @@ class Stemcanvas {
             this.selectionManager.currentSelectionID = "";
             this.selectionManager.currentlySelected = null;
             this.selectionManager.fresh = false;
-            this.contextInterface.clearRect(0,0,Canvasconstants.width,Canvasconstants.height);
+            this.contextInterface.clearRect(0, 0, Canvasconstants.width, Canvasconstants.height);
         });
         this.toolbox.selectedtool = "DRAW";
         this.toolbox.selectedDrawSize = 5;
@@ -165,9 +165,9 @@ class Stemcanvas {
     }
     drawloop() {
 
-        this.drawloopStroke();        
+        this.drawloopStroke();
         this.drawloopSelection();
-        this.drawContextMenu()  
+        this.drawContextMenu()
         this.drawloopCursor();
     }
     drawloopCursor() {
@@ -366,23 +366,30 @@ class Stemcanvas {
             this.contextInterface.closePath();
         }
     }
-    drawContextMenu(){
-        
-        if(this.selectionManager.currentlySelected != null)
-        {
-                let box = this.selectionManager.currentlySelected.cachedBoundingBox;
-                this.contextInterface.clearRect(0,0,Canvasconstants.width,Canvasconstants.height);
-                this.contextInterface.drawImage(this.menuImage, ((box.originx + box.maxX) / 2) - (Canvasconstants.cursorsize / 2), box.originy - Canvasconstants.cursorsize, Canvasconstants.cursorsize, Canvasconstants.cursorsize);            
+    drawContextMenu() {
+
+        if (this.selectionManager.currentlySelected != null) {
+            let box = this.selectionManager.currentlySelected.cachedBoundingBox;
+            this.contextInterface.clearRect(0, 0, Canvasconstants.width, Canvasconstants.height);
+            this.contextInterface.drawImage(this.menuImage, ((box.originx + box.maxX) / 2) - (Canvasconstants.cursorsize / 2), box.originy - Canvasconstants.cursorsize, Canvasconstants.cursorsize, Canvasconstants.cursorsize);
+            if (this.selectionManager.showcontextMenu == true) {
+                this.drawFullContextMenu();
+            }
+            else {
+                this.contextInterface.clearRect(0, 0, Canvasconstants.width, Canvasconstants.height);
+            }
+
         }
-        else
-        {
-            if(this.selectionManager.contextfresh == false)
-            {
-                this.contextInterface.clearRect(0,0,Canvasconstants.width,Canvasconstants.height);
+        else {
+            if (this.selectionManager.contextfresh == false) {
+                this.contextInterface.clearRect(0, 0, Canvasconstants.width, Canvasconstants.height);
                 this.selectionManager.contextfresh = true;
             }
         }
-        
+
+    }
+    drawFullContextMenu() {
+
     }
     //when the user drag selects (live while selecting)
     renderSelectionMarquee() {
@@ -422,6 +429,8 @@ class Stemcanvas {
         this.pen.Y = e.pageY - (this.canvascontainer.offsetTop) + this.canvascrolly;
         this.pen.pressure = e.pressure;
 
+        //this.selectionManager.debugCanvasPoint(this.pen.X,this.pen.Y);
+
         if (this.selectionManager.currentlySelected != null) //item is currently selected
         {
             if (this.pen.penDown) { //pen is down
@@ -453,16 +462,15 @@ class Stemcanvas {
                 //now check if the box intersects the context menu (need to think about how it will stop the selection process if touch)
 
                 let contextmenubox = new StemstrokeBox();
-                
+
                 contextmenubox.originx = ((box.originx + box.maxX) / 2) - (Canvasconstants.cursorsize / 2);
                 contextmenubox.maxX = contextmenubox.originx + Canvasconstants.cursorsize;
                 contextmenubox.originy = box.originy - Canvasconstants.cursorsize;
-                contextmenubox.maxY = box.originy + Canvasconstants.cursorsize;
-                
-                
-                if(contextmenubox.Intersects(this.pen.X,this.pen.Y,0))
-                {
-                    this.selectionManager.debugCanvasPoint(this.pen.X,this.pen.Y);
+                contextmenubox.maxY = contextmenubox.originy + Canvasconstants.cursorsize;
+
+
+                if (contextmenubox.Intersects(this.pen.X, this.pen.Y, 0)) {
+                    this.selectionManager.debugCanvasRectangle(contextmenubox.originx, contextmenubox.originy, contextmenubox.maxX, contextmenubox.maxY);
                 }
 
             }
@@ -1165,7 +1173,7 @@ class Canvasconstants {
     static height: number = 1000;
     static multiselectMinimumLength: number = 20; //minimum length for a multiselection box to appear when dragging with the select tool
     static cornersize: number = 10;
-    static cursorsize:number = 38;
+    static cursorsize: number = 38;
 }
 
 class SelectionManager {
@@ -1175,6 +1183,7 @@ class SelectionManager {
     currentlySelectedMulti: StemDrawnObject[];
     fresh: boolean;
     contextfresh: boolean = true;
+    showcontextMenu: boolean = false;
     drawingData: StemDrawnObject[];
     //holds the currently selected drawnobject or multidrawnobject
     //keeps track of freshness    
@@ -1277,8 +1286,8 @@ class SelectionManager {
         else {
             this.fresh = false;
             return null;
-            
-            
+
+
         }
     }
 
@@ -1313,9 +1322,9 @@ class SelectionManager {
         {
             param = dot / len_sq;
         }
-            
 
-       var xx, yy;
+
+        var xx, yy;
 
         if (param < 0) {
             xx = x1;
@@ -1333,7 +1342,7 @@ class SelectionManager {
         var dx = x - xx;
         var dy = y - yy;
         return Math.sqrt(dx * dx + dy * dy);
-        
+
     }
 
     getDistanceBetweenTwoPoints(first: Vector, second: Vector) {
@@ -1382,8 +1391,8 @@ class SelectionManager {
     }
 
     debugCanvasPoint(x, y) {
-        console.log(`${x} - ${y}`);
-        //this.debug.clearRect(0, 0, Canvasconstants.width, Canvasconstants.height);
+
+        this.debug.clearRect(0, 0, Canvasconstants.width, Canvasconstants.height);
         this.debug.strokeStyle = "Red";
         this.debug.lineWidth = 4;
         this.debug.beginPath();
@@ -1391,7 +1400,24 @@ class SelectionManager {
         this.debug.lineTo(x, y);
         this.debug.stroke();
         this.debug.closePath();
-        
+        console.log("why isnt this showing?");
+
+    }
+
+    debugCanvasRectangle(minx, miny, maxx, maxy) {
+        this.debug.clearRect(0, 0, Canvasconstants.width, Canvasconstants.height);
+        this.debug.strokeStyle = "Red";
+        this.debug.lineWidth = 4;
+        this.debug.beginPath();
+        this.debug.moveTo(minx, miny);
+        this.debug.lineTo(minx, maxy);
+        this.debug.lineTo(maxx, maxy);
+        this.debug.lineTo(maxx, miny);
+        this.debug.lineTo(minx, miny);
+
+        this.debug.stroke();
+        this.debug.closePath();
+        console.log("why isnt this showing?");
     }
 
 

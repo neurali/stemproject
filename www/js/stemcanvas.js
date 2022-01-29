@@ -40,7 +40,7 @@ var Stemcanvas = /** @class */ (function () {
         this.contextSelection = this.selectioncanvas.getContext("2d");
         this.contextCursor = this.cursorcanvas.getContext("2d");
         this.contextInterface = this.interfacecanvas.getContext("2d");
-        this.contextDebug = this.interfacecanvas.getContext("2d");
+        this.contextDebug = this.debugcanvas.getContext("2d");
         //prep drawing canvas
         //  this.contextDrawing.fillStyle = "white";
         //  this.contextDrawing.fillRect(0, 0, this.drawingcanvas.width, this.drawingcanvas.height);
@@ -295,6 +295,7 @@ var Stemcanvas = /** @class */ (function () {
         this.pen.X = e.pageX - (this.canvascontainer.offsetLeft) + this.canvasscrollx;
         this.pen.Y = e.pageY - (this.canvascontainer.offsetTop) + this.canvascrolly;
         this.pen.pressure = e.pressure;
+        //this.selectionManager.debugCanvasPoint(this.pen.X,this.pen.Y);
         if (this.selectionManager.currentlySelected != null) //item is currently selected
          {
             if (this.pen.penDown) { //pen is down
@@ -323,9 +324,9 @@ var Stemcanvas = /** @class */ (function () {
                 contextmenubox.originx = ((box.originx + box.maxX) / 2) - (Canvasconstants.cursorsize / 2);
                 contextmenubox.maxX = contextmenubox.originx + Canvasconstants.cursorsize;
                 contextmenubox.originy = box.originy - Canvasconstants.cursorsize;
-                contextmenubox.maxY = box.originy + Canvasconstants.cursorsize;
+                contextmenubox.maxY = contextmenubox.originy + Canvasconstants.cursorsize;
                 if (contextmenubox.Intersects(this.pen.X, this.pen.Y, 0)) {
-                    this.selectionManager.debugCanvasPoint(this.pen.X, this.pen.Y);
+                    this.selectionManager.debugCanvasRectangle(contextmenubox.originx, contextmenubox.originy, contextmenubox.maxX, contextmenubox.maxY);
                 }
             }
         }
@@ -1049,8 +1050,7 @@ var SelectionManager = /** @class */ (function () {
         this.currentlySelected = null;
     };
     SelectionManager.prototype.debugCanvasPoint = function (x, y) {
-        console.log("".concat(x, " - ").concat(y));
-        //this.debug.clearRect(0, 0, Canvasconstants.width, Canvasconstants.height);
+        this.debug.clearRect(0, 0, Canvasconstants.width, Canvasconstants.height);
         this.debug.strokeStyle = "Red";
         this.debug.lineWidth = 4;
         this.debug.beginPath();
@@ -1058,6 +1058,21 @@ var SelectionManager = /** @class */ (function () {
         this.debug.lineTo(x, y);
         this.debug.stroke();
         this.debug.closePath();
+        console.log("why isnt this showing?");
+    };
+    SelectionManager.prototype.debugCanvasRectangle = function (minx, miny, maxx, maxy) {
+        this.debug.clearRect(0, 0, Canvasconstants.width, Canvasconstants.height);
+        this.debug.strokeStyle = "Red";
+        this.debug.lineWidth = 4;
+        this.debug.beginPath();
+        this.debug.moveTo(minx, miny);
+        this.debug.lineTo(minx, maxy);
+        this.debug.lineTo(maxx, maxy);
+        this.debug.lineTo(maxx, miny);
+        this.debug.lineTo(minx, miny);
+        this.debug.stroke();
+        this.debug.closePath();
+        console.log("why isnt this showing?");
     };
     return SelectionManager;
 }());
