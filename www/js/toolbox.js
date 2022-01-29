@@ -4,7 +4,6 @@ var Toolbox = /** @class */ (function () {
         this.selectedColour = "Black";
         //sentinel which tracks the start and endpoint of a draw stroke
         this.isDrawingObject = false;
-        console.log("init drawing tools");
         this.assignelements();
         var _loop_1 = function (i) {
             var cur = this_1.drawtools[i];

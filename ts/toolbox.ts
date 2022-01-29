@@ -26,7 +26,6 @@ class Toolbox {
 
     constructor(eventel:HTMLElement){
 
-        console.log("init drawing tools");
         this.assignelements();
     
         //drawtools

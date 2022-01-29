@@ -22,6 +22,19 @@ var StemDrawnObject = /** @class */ (function () {
         this.points = new Array();
         this.strokeid = helper.getGUID(); //overkill (1 in a million chance this will break) TODO: implement auto increment
     }
+    StemDrawnObject.prototype.getFirstPoint = function () {
+        if (this.points.length > 0) {
+            return this.points[0];
+        }
+        else {
+            return null;
+        }
+    };
+    StemDrawnObject.prototype.getLastPoint = function () {
+        if (this.points.length > 0) {
+            return this.points[this.points.length - 1];
+        }
+    };
     //gets previously created cached drawing box (for quicker access)
     StemDrawnObject.prototype.getCachedBoundingBox = function () {
         //should only be called during operations that dont actually update the drawing box
@@ -145,7 +158,8 @@ var StemstrokeBox = /** @class */ (function () {
     function StemstrokeBox() {
         this.selectionpadding = 15;
     }
-    StemstrokeBox.prototype.Intersects = function (x, y) {
+    StemstrokeBox.prototype.Intersects = function (x, y, padding) {
+        if (padding === void 0) { padding = this.selectionpadding; }
         if (helper.isBetween(x, this.originx, this.maxX, this.selectionpadding) && helper.isBetween(y, this.originy, this.maxY, this.selectionpadding)) {
             return true;
         }

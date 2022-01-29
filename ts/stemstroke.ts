@@ -16,6 +16,22 @@ class StemDrawnObject {
         this.points = new Array();
         this.strokeid = helper.getGUID(); //overkill (1 in a million chance this will break) TODO: implement auto increment
     }
+    getFirstPoint()
+    {if(this.points.length > 0)
+    {
+        return this.points[0];
+    }
+else
+{
+    return null;
+}}
+getLastPoint()
+{
+    if(this.points.length > 0)
+    {
+        return this.points[this.points.length -1];
+    }
+}
 
     //gets previously created cached drawing box (for quicker access)
     getCachedBoundingBox() {
@@ -178,13 +194,15 @@ class StemstrokeBox {
     private selectionpadding: number = 15;
 
 
-    public Intersects(x, y) {
+    public Intersects(x:number, y:number, padding:number = this.selectionpadding) {
         if(helper.isBetween(x,this.originx,this.maxX,this.selectionpadding) && helper.isBetween(y,this.originy,this.maxY,this.selectionpadding))
         {
             return true;
         }
         
     }
+   
+    
 
     public IntersectsCorner(x,y){
 

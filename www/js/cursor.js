@@ -32,49 +32,47 @@ var cursor = /** @class */ (function () {
     cursor.prototype.render = function () {
         if (this.currentTool == "DRAW") {
             this.ctx.clearRect(0, 0, 1500, 1500); //todo, this should be cleared with a smaller rectangle (might be faster)
-            this.ctx.drawImage(this.cursDraw, this.pen.X, this.pen.Y, cursor.Size, cursor.Size);
+            this.ctx.drawImage(this.cursDraw, this.pen.X, this.pen.Y, Canvasconstants.cursorsize, Canvasconstants.cursorsize);
         }
         else if (this.currentTool == "CIRCLE") {
             this.ctx.clearRect(0, 0, 1500, 1500);
-            this.ctx.drawImage(this.cursCircle, this.pen.X, this.pen.Y, cursor.Size, cursor.Size);
+            this.ctx.drawImage(this.cursCircle, this.pen.X, this.pen.Y, Canvasconstants.cursorsize, Canvasconstants.cursorsize);
         }
         else if (this.currentTool == "SELECT") {
             this.ctx.clearRect(0, 0, 1500, 1500);
             //now check the modifier:
             if (this.selectmodifier == "") {
-                this.ctx.drawImage(this.cursPointer, this.pen.X, this.pen.Y, cursor.Size, cursor.Size);
+                this.ctx.drawImage(this.cursPointer, this.pen.X, this.pen.Y, Canvasconstants.cursorsize, Canvasconstants.cursorsize);
             }
             else {
                 if (this.selectmodifier == "MOVE") {
-                    console.log("draw move");
-                    this.ctx.drawImage(this.cursMove, this.pen.X, this.pen.Y, cursor.Size, cursor.Size);
+                    this.ctx.drawImage(this.cursMove, this.pen.X, this.pen.Y, Canvasconstants.cursorsize, Canvasconstants.cursorsize);
                 }
                 else if (this.selectmodifier == "NE") {
-                    this.ctx.drawImage(this.cursNE, this.pen.X, this.pen.Y, cursor.Size, cursor.Size);
+                    this.ctx.drawImage(this.cursNE, this.pen.X, this.pen.Y, Canvasconstants.cursorsize, Canvasconstants.cursorsize);
                 }
                 else if (this.selectmodifier == "NW") {
-                    this.ctx.drawImage(this.cursNW, this.pen.X, this.pen.Y, cursor.Size, cursor.Size);
+                    this.ctx.drawImage(this.cursNW, this.pen.X, this.pen.Y, Canvasconstants.cursorsize, Canvasconstants.cursorsize);
                 }
             }
         }
         else if (this.currentTool == "RECTANGLE") {
             this.ctx.clearRect(0, 0, 1500, 1500);
-            this.ctx.drawImage(this.cursRect, this.pen.X, this.pen.Y, cursor.Size, cursor.Size);
+            this.ctx.drawImage(this.cursRect, this.pen.X, this.pen.Y, Canvasconstants.cursorsize, Canvasconstants.cursorsize);
         }
         else if (this.currentTool == "ERASE") {
             this.ctx.clearRect(0, 0, 1500, 1500);
-            this.ctx.drawImage(this.cursErase, this.pen.X, this.pen.Y, cursor.Size, cursor.Size);
+            this.ctx.drawImage(this.cursErase, this.pen.X, this.pen.Y, Canvasconstants.cursorsize, Canvasconstants.cursorsize);
         }
         else if (this.currentTool == "LINE") {
             this.ctx.clearRect(0, 0, 1500, 1500);
-            this.ctx.drawImage(this.cursLine, this.pen.X, this.pen.Y, cursor.Size, cursor.Size);
+            this.ctx.drawImage(this.cursLine, this.pen.X, this.pen.Y, Canvasconstants.cursorsize, Canvasconstants.cursorsize);
         }
         else if (this.currentTool == "TEXT") {
             this.ctx.clearRect(0, 0, 1500, 1500);
-            this.ctx.drawImage(this.cursType, this.pen.X, this.pen.Y, cursor.Size, cursor.Size);
+            this.ctx.drawImage(this.cursType, this.pen.X, this.pen.Y, Canvasconstants.cursorsize, Canvasconstants.cursorsize);
         }
     };
-    cursor.Size = 38;
     return cursor;
 }());
 //# sourceMappingURL=cursor.js.map
