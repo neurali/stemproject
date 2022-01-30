@@ -207,6 +207,10 @@ class Stemcanvas {
             else if (this.toolbox.selectedtool == "LINE") {
                 this.drawCurrentLine();
             }
+            else if (this.toolbox.selectedtool == "RECTANGLE")
+            {
+                this.drawCurrentRectangle();
+            }
 
         }
         else {
@@ -361,7 +365,24 @@ class Stemcanvas {
             this.contextInterface.beginPath();
             this.contextInterface.moveTo(this.currentstroke.points[0].x, this.currentstroke.points[0].y);
             this.contextInterface.lineTo(this.currentstroke.points[this.currentstroke.points.length - 1].x, this.currentstroke.points[this.currentstroke.points.length - 1].y)
+            this.contextInterface.stroke();
+            this.contextInterface.closePath();
+        }
+    }
+    drawCurrentRectangle(){
+        // uses the context layer to preview
+        if (this.currentstroke.points.length > 1) {
+            this.contextInterface.clearRect(0, 0, Canvasconstants.width, Canvasconstants.height);
+            this.contextInterface.beginPath();
 
+            this.currentstroke.UpdateBoundingBox("");
+            let box = this.currentstroke.getCachedBoundingBox();
+
+            this.contextInterface.moveTo(box.originx,box.originy);
+            this.contextInterface.lineTo(box.maxX,box.originy);
+            this.contextInterface.lineTo(box.maxX,box.maxY);
+            this.contextInterface.lineTo(box.originx,box.maxY);
+            this.contextInterface.lineTo(box.originx,box.originy);
             this.contextInterface.stroke();
             this.contextInterface.closePath();
         }
@@ -489,6 +510,10 @@ class Stemcanvas {
                     this.currentstroke.points.push(p);
                 }
                 if (this.toolbox.selectedtool == "LINE") {
+                    this.currentstroke.points.push(p);
+
+                }
+                if (this.toolbox.selectedtool == "RECTANGLE") {
                     this.currentstroke.points.push(p);
 
                 }
@@ -661,6 +686,14 @@ class Stemcanvas {
             }
         }
         else if (this.toolbox.selectedtool == "LINE") {
+            this.currentstroke.UpdateBoundingBox("");
+            this.currentstroke.strokecolour = this.toolbox.selectedColour;
+            this.currentstroke.strokewidth = this.toolbox.selectedDrawSize;
+            this.drawingdata.push(this.currentstroke);
+            this.updateDrawing();
+            this.currentstroke = null;
+        }
+        else if (this.toolbox.selectedtool == "RECTANGLE") {
             this.currentstroke.UpdateBoundingBox("");
             this.currentstroke.strokecolour = this.toolbox.selectedColour;
             this.currentstroke.strokewidth = this.toolbox.selectedDrawSize;
@@ -977,6 +1010,13 @@ class Stemcanvas {
             this.currentstroke.objecttype = this.toolbox.selectedtool;
             this.currentstroke.points.push(currentpoint);
         }
+        else if(this.toolbox.selectedtool == "RECTANGLE"){
+            this.toolbox.isDrawingObject = true;
+            this.currentstroke = new Stemstroke();
+            this.currentstrokebuffer = new Stemstroke();
+            this.currentstroke.objecttype = this.toolbox.selectedtool;
+            this.currentstroke.points.push(currentpoint);
+        }
 
 
 
@@ -1135,6 +1175,26 @@ class Stemcanvas {
                 this.contextDrawing.lineTo(stroke.points[lastpoint].x, stroke.points[lastpoint].y);
                 this.contextDrawing.stroke();
                 this.contextDrawing.closePath();
+            }
+            else if(stroke.objecttype == "RECTANGLE"){     
+                console.log("asdfasdf");           
+                let box = stroke.getCachedBoundingBox();
+                this.contextDrawing.beginPath();
+                this.contextDrawing.strokeStyle = stroke.strokecolour;
+                this.contextDrawing.lineWidth = stroke.strokewidth;
+
+                this.contextDrawing.moveTo(box.originx,box.originy);
+                this.contextDrawing.lineTo(box.maxX,box.originy);
+                this.contextDrawing.lineTo(box.maxX,box.maxY);
+                this.contextDrawing.lineTo(box.originx,box.maxY);
+                this.contextDrawing.lineTo(box.originx,box.originy);               
+                
+                this.contextDrawing.stroke();
+                this.contextDrawing.closePath();
+
+
+
+    
             }
 
         });
