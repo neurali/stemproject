@@ -129,7 +129,7 @@ var Stemcanvas = /** @class */ (function () {
         }
         else {
             if (this.toolbox.selectedtool == "LINE") {
-                this.contextInterface.clearRect(0, 0, Canvasconstants.width, Canvasconstants.height);
+                // this.contextInterface.clearRect(0, 0, Canvasconstants.width, Canvasconstants.height);
             }
         }
     };
@@ -276,11 +276,12 @@ var Stemcanvas = /** @class */ (function () {
             var box = this.selectionManager.currentlySelected.cachedBoundingBox;
             this.contextInterface.clearRect(0, 0, Canvasconstants.width, Canvasconstants.height);
             this.contextInterface.drawImage(this.menuImage, ((box.originx + box.maxX) / 2) - (Canvasconstants.cursorsize / 2), box.originy - Canvasconstants.cursorsize, Canvasconstants.cursorsize, Canvasconstants.cursorsize);
+            debugger;
             if (this.selectionManager.showcontextMenu == true) {
                 this.drawFullContextMenu();
             }
             else {
-                this.contextInterface.clearRect(0, 0, Canvasconstants.width, Canvasconstants.height);
+                //this.contextInterface.clearRect(0, 0, Canvasconstants.width, Canvasconstants.height);
             }
         }
         else {
