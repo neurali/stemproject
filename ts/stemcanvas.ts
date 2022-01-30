@@ -1261,6 +1261,7 @@ class SelectionManager {
         let boxintersected: Array<StemDrawnObject> = new Array();
         this.drawingData.forEach(el => {
 
+            
             el.UpdateBoundingBox("");
             if (el.getCachedBoundingBox().Intersects(x, y)) {
                 boxintersected.push(el);
@@ -1288,15 +1289,24 @@ class SelectionManager {
                     }
                 });
             }
+            else if(el.objecttype == "RECTANGLE")
+            {     
+                let box = el.getCachedBoundingBox();
+                let xoriginx = Math.abs(x - box.originx);
+                let xmaxx = Math.abs(x - box.maxX);
+                let yoriginy = Math.abs(y - box.originy);
+                let ymaxx = Math.abs(y - box.maxY);
+
+                let distance = Math.min(xoriginx,xmaxx,yoriginy,ymaxx); //get the closest distance to all 4 walls
+            
+                if (distance < closenessvalue) {
+                    indexofClosest = index;
+                    closenessvalue = distance;
+                }
+            }
             // else if (el.objecttype == "RECTANGLE")//find all rectangles
             // {
-            //     //get closest cardinal line N,S,E,W. Distance to that line
-            //     let rectangle = el as StemRectangle;
-            //     let distance = rectangle.MeasureDistanceToPoint(x, y);
-            //     if (distance < closenessvalue) {
-            //         indexofClosest = index;
-            //         closenessvalue = distance;
-            //     }
+            //     
 
             // }
             // else if (el.objecttype == "CIRCLE")//find all circles  

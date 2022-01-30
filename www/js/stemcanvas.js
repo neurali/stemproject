@@ -977,15 +977,21 @@ var SelectionManager = /** @class */ (function () {
                     }
                 });
             }
+            else if (el.objecttype == "RECTANGLE") {
+                var box = el.getCachedBoundingBox();
+                var xoriginx = Math.abs(x - box.originx);
+                var xmaxx = Math.abs(x - box.maxX);
+                var yoriginy = Math.abs(y - box.originy);
+                var ymaxx = Math.abs(y - box.maxY);
+                var distance = Math.min(xoriginx, xmaxx, yoriginy, ymaxx); //get the closest distance to all 4 walls
+                if (distance < closenessvalue) {
+                    indexofClosest = index;
+                    closenessvalue = distance;
+                }
+            }
             // else if (el.objecttype == "RECTANGLE")//find all rectangles
             // {
-            //     //get closest cardinal line N,S,E,W. Distance to that line
-            //     let rectangle = el as StemRectangle;
-            //     let distance = rectangle.MeasureDistanceToPoint(x, y);
-            //     if (distance < closenessvalue) {
-            //         indexofClosest = index;
-            //         closenessvalue = distance;
-            //     }
+            //     
             // }
             // else if (el.objecttype == "CIRCLE")//find all circles  
             // {
