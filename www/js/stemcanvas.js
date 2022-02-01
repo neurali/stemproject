@@ -389,6 +389,20 @@ var Stemcanvas = /** @class */ (function () {
         this.pen.X = e.pageX - (this.canvascontainer.offsetLeft) + this.canvasscrollx;
         this.pen.Y = e.pageY - (this.canvascontainer.offsetTop) + this.canvascrolly;
         this.pen.pressure = e.pressure;
+        if (this.touchcount == 2) {
+            this.touchscrolltracker.points.push(new Stempoint(this.pen.X, this.pen.Y));
+            var movement = new Vector(this.touchscrolltracker.points[this.touchscrolltracker.points.length - 1].x - this.touchscrolltracker.points[0].x, this.touchscrolltracker.points[this.touchscrolltracker.points.length - 1].y - this.touchscrolltracker.points[0].y);
+            this.debugtext(this.canvascontainer.scrollLeft);
+            this.debugtext(movement.x);
+            if (Math.abs(movement.x) > 5) {
+                this.canvascontainer.scrollLeft += (movement.x * -0.05);
+            }
+            if (Math.abs(movement.y) > 5) {
+                this.canvascontainer.scrollTop += (movement.y * -0.05);
+            }
+            // this.canvascontainer.scrollLeft += movement.x;
+            // this.canvascontainer.scrollTop += movement.y;
+        }
         //this.selectionManager.debugCanvasPoint(this.pen.X,this.pen.Y);
         if (this.selectionManager.currentlySelected != null) //item is currently selected
          {
@@ -828,6 +842,8 @@ var Stemcanvas = /** @class */ (function () {
                 this.pen.penDown = false;
                 this.currentstroke = null;
                 this.updateDrawing();
+                this.touchscrolltracker = new Stemstroke();
+                this.touchscrolltracker.points.push(new Stempoint(this.pen.X, this.pen.Y));
                 return;
                 //now we need to start moving the scrollbars around
             }
