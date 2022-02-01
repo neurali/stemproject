@@ -79,6 +79,14 @@ class cursor{
                 {
                     this.ctx.drawImage(this.cursNW, this.pen.X, this.pen.Y, Canvasconstants.cursorsize, Canvasconstants.cursorsize);
                 }
+                else if (this.selectmodifier == "SE")
+                {
+                    this.ctx.drawImage(this.cursNW, this.pen.X, this.pen.Y, Canvasconstants.cursorsize, Canvasconstants.cursorsize);
+                }
+                else if (this.selectmodifier == "SW")
+                {
+                    this.ctx.drawImage(this.cursNE, this.pen.X, this.pen.Y, Canvasconstants.cursorsize, Canvasconstants.cursorsize);
+                }
             }
             
             

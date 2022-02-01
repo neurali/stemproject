@@ -3,10 +3,12 @@ var Stemcanvas = /** @class */ (function () {
         this.canvasscrollx = 0;
         this.canvascrolly = 0;
         this.menuImage = new Image();
+        this.touchcount = 0;
         this.menuImage.src = "media/cursors/c_Menu.png";
         this.drawingdata = new Array();
         this.undodata = new Array();
         this.redodata = new Array();
+        this.debug = document.getElementById("debug");
         this.canvasbackground = document.getElementById("canvasbackground");
         this.canvascontainer = document.getElementById("canvas-scroll-container");
         this.drawingcanvas = document.getElementById(id);
@@ -126,6 +128,9 @@ var Stemcanvas = /** @class */ (function () {
             else if (this.toolbox.selectedtool == "RECTANGLE") {
                 this.drawCurrentRectangle();
             }
+            else if (this.toolbox.selectedtool == "CIRCLE") {
+                this.drawCurrentCircle();
+            }
         }
         else {
             if (this.toolbox.selectedtool == "LINE") {
@@ -203,10 +208,58 @@ var Stemcanvas = /** @class */ (function () {
                                     this.contextSelection.stroke();
                                     this.contextSelection.closePath();
                                 }
+                                else if (this.selectionManager.currentlySelected.objecttype == "RECTANGLE") {
+                                    previewstroke_1.objecttype = "RECTANGLE";
+                                    previewstroke_1.UpdateBoundingBox("");
+                                    var previewbox = previewstroke_1.getCachedBoundingBox();
+                                    this.contextSelection.beginPath();
+                                    this.contextSelection.moveTo(previewbox.originx, previewbox.originy);
+                                    this.contextSelection.lineTo(previewbox.maxX, previewbox.originy);
+                                    this.contextSelection.lineTo(previewbox.maxX, previewbox.maxY);
+                                    this.contextSelection.lineTo(previewbox.originx, previewbox.maxY);
+                                    this.contextSelection.lineTo(previewbox.originx, previewbox.originy);
+                                    this.contextSelection.stroke();
+                                    this.contextSelection.closePath();
+                                }
+                                else if (this.selectionManager.currentlySelected.objecttype == "CIRCLE") {
+                                    previewstroke_1.objecttype = "CIRCLE";
+                                    previewstroke_1.UpdateBoundingBox("");
+                                    var previewbox = previewstroke_1.getCachedBoundingBox();
+                                    this.contextSelection.beginPath();
+                                    //
+                                    var radius = previewstroke_1.getPixelLength();
+                                    var midx = (previewbox.maxX + previewbox.originx) / 2;
+                                    var midy = (previewbox.maxY + previewbox.originy) / 2;
+                                    this.contextSelection.arc(midx, midy, radius, 0, 3.16 * 2);
+                                    this.contextSelection.stroke();
+                                    this.contextSelection.closePath();
+                                    //
+                                }
                             }
-                            else if (this.cursor.selectmodifier == "NW") {
-                            }
-                            else if (this.cursor.selectmodifier == "NE") {
+                            else if (this.cursor.selectmodifier.length == 2) //check if its any of the resize modifiers (NE,NW,SW,SE)
+                             {
+                                var resizevector_1 = this.getCurrentStrokeVector();
+                                var previewstroke_2 = new Stemstroke();
+                                if (this.cursor.selectmodifier == "NE") {
+                                }
+                                else if (this.cursor.selectmodifier == "NW") {
+                                }
+                                else if (this.cursor.selectmodifier == "SE") {
+                                    previewstroke_2 = this.resizeStroke(this.selectionManager.currentlySelected, resizevector_1, this.cursor.selectmodifier);
+                                    this.selectionManager.currentlySelected.points.forEach(function (p) {
+                                        previewstroke_2.points.push(new Stempoint(p.x + resizevector_1.x, p.y + resizevector_1.y));
+                                    });
+                                }
+                                else if (this.cursor.selectmodifier == "SW") {
+                                }
+                                this.contextSelection.closePath();
+                                this.contextSelection.beginPath();
+                                this.contextSelection.moveTo(previewstroke_2.points[0].x, previewstroke_2.points[0].y);
+                                previewstroke_2.points.forEach(function (p) {
+                                    _this.contextSelection.lineTo(p.x, p.y);
+                                });
+                                this.contextSelection.stroke();
+                                this.contextSelection.closePath();
                             }
                         }
                     }
@@ -271,12 +324,25 @@ var Stemcanvas = /** @class */ (function () {
             this.contextInterface.closePath();
         }
     };
+    Stemcanvas.prototype.drawCurrentCircle = function () {
+        if (this.currentstroke.points.length > 1) {
+            this.contextInterface.clearRect(0, 0, Canvasconstants.width, Canvasconstants.height);
+            this.contextInterface.beginPath();
+            this.currentstroke.UpdateBoundingBox("");
+            var box = this.currentstroke.getCachedBoundingBox();
+            var radius = this.currentstroke.getPixelLength();
+            var midx = (box.maxX + box.originx) / 2;
+            var midy = (box.maxY + box.originy) / 2;
+            this.contextInterface.arc(midx, midy, radius, 0, 3.16 * 2);
+            this.contextInterface.stroke();
+            this.contextInterface.closePath();
+        }
+    };
     Stemcanvas.prototype.drawContextMenu = function () {
         if (this.selectionManager.currentlySelected != null) {
             var box = this.selectionManager.currentlySelected.cachedBoundingBox;
             this.contextInterface.clearRect(0, 0, Canvasconstants.width, Canvasconstants.height);
             this.contextInterface.drawImage(this.menuImage, ((box.originx + box.maxX) / 2) - (Canvasconstants.cursorsize / 2), box.originy - Canvasconstants.cursorsize, Canvasconstants.cursorsize, Canvasconstants.cursorsize);
-            debugger;
             if (this.selectionManager.showcontextMenu == true) {
                 this.drawFullContextMenu();
             }
@@ -343,6 +409,7 @@ var Stemcanvas = /** @class */ (function () {
                 if (box.Intersects(this.pen.X, this.pen.Y)) {
                     //now check if its in one of the corners
                     this.cursor.selectmodifier = box.IntersectsCorner(this.pen.X, this.pen.Y);
+                    console.log(this.cursor.selectmodifier);
                 }
                 else {
                     this.cursor.selectmodifier = "";
@@ -354,7 +421,7 @@ var Stemcanvas = /** @class */ (function () {
                 contextmenubox.originy = box.originy - Canvasconstants.cursorsize;
                 contextmenubox.maxY = contextmenubox.originy + Canvasconstants.cursorsize;
                 if (contextmenubox.Intersects(this.pen.X, this.pen.Y, 0)) {
-                    this.selectionManager.debugCanvasRectangle(contextmenubox.originx, contextmenubox.originy, contextmenubox.maxX, contextmenubox.maxY);
+                    //this.selectionManager.debugCanvasRectangle(contextmenubox.originx, contextmenubox.originy, contextmenubox.maxX, contextmenubox.maxY);
                 }
             }
         }
@@ -374,6 +441,9 @@ var Stemcanvas = /** @class */ (function () {
                     this.currentstroke.points.push(p);
                 }
                 if (this.toolbox.selectedtool == "RECTANGLE") {
+                    this.currentstroke.points.push(p);
+                }
+                if (this.toolbox.selectedtool == "CIRCLE") {
                     this.currentstroke.points.push(p);
                 }
             }
@@ -448,6 +518,11 @@ var Stemcanvas = /** @class */ (function () {
         // }
     };
     Stemcanvas.prototype.PointerUpEvent = function (e) {
+        e.preventDefault();
+        if (e.pointerType == "touch") {
+            this.touchcount--;
+            this.debugtext(this.touchcount);
+        }
         // this.crystaliseDrawing();
         this.pen.penDown = false;
         // this.pendetails.penDown = false;
@@ -467,6 +542,7 @@ var Stemcanvas = /** @class */ (function () {
                     //todo multiselect
                 }
                 else {
+                    window.alert("object selected");
                     this.selectionManager.selectObjectAtPoint(this.pen.X, this.pen.Y);
                 }
             }
@@ -529,6 +605,14 @@ var Stemcanvas = /** @class */ (function () {
             this.currentstroke = null;
         }
         else if (this.toolbox.selectedtool == "RECTANGLE") {
+            this.currentstroke.UpdateBoundingBox("");
+            this.currentstroke.strokecolour = this.toolbox.selectedColour;
+            this.currentstroke.strokewidth = this.toolbox.selectedDrawSize;
+            this.drawingdata.push(this.currentstroke);
+            this.updateDrawing();
+            this.currentstroke = null;
+        }
+        else if (this.toolbox.selectedtool == "CIRCLE") {
             this.currentstroke.UpdateBoundingBox("");
             this.currentstroke.strokecolour = this.toolbox.selectedColour;
             this.currentstroke.strokewidth = this.toolbox.selectedDrawSize;
@@ -734,6 +818,22 @@ var Stemcanvas = /** @class */ (function () {
         // //this.redoStack = []; //todo redo stack needs ordering after undoing and then adding more content
     };
     Stemcanvas.prototype.PointerDownEvent = function (e) {
+        if (e.pointerType == "touch") {
+            this.touchcount++;
+            this.debugtext(this.touchcount);
+            //set position of cursor right now, (also need to check for interaction points)
+            this.pen.X = e.pageX - (this.canvascontainer.offsetLeft) + this.canvasscrollx;
+            this.pen.Y = e.pageY - (this.canvascontainer.offsetTop) + this.canvascrolly;
+            if (this.touchcount > 1) {
+                this.pen.penDown = false;
+                this.currentstroke = null;
+                this.updateDrawing();
+                return;
+                //now we need to start moving the scrollbars around
+            }
+            else {
+            }
+        }
         this.pen.penDown = true;
         if (this.cursor.selectmodifier != "") {
             this.cursor.interacting = true;
@@ -778,6 +878,13 @@ var Stemcanvas = /** @class */ (function () {
             this.currentstroke.points.push(currentpoint);
         }
         else if (this.toolbox.selectedtool == "RECTANGLE") {
+            this.toolbox.isDrawingObject = true;
+            this.currentstroke = new Stemstroke();
+            this.currentstrokebuffer = new Stemstroke();
+            this.currentstroke.objecttype = this.toolbox.selectedtool;
+            this.currentstroke.points.push(currentpoint);
+        }
+        else if (this.toolbox.selectedtool == "CIRCLE") {
             this.toolbox.isDrawingObject = true;
             this.currentstroke = new Stemstroke();
             this.currentstrokebuffer = new Stemstroke();
@@ -875,6 +982,14 @@ var Stemcanvas = /** @class */ (function () {
         var _this = this;
         //clear drawingcanvas:
         this.contextDrawing.clearRect(0, 0, Canvasconstants.width, Canvasconstants.height);
+        if (this.drawingdata.length < 1) {
+            return;
+        }
+        for (var i = 0; i < this.drawingdata.length - 1; i++) {
+            if (this.drawingdata[i].points.length < 2) {
+                this.drawingdata.splice(i, 1); //remove the entry from the array
+            }
+        }
         this.drawingdata.forEach(function (stroke) {
             if (stroke.objecttype == "DRAW") {
                 _this.contextDrawing.beginPath();
@@ -911,11 +1026,56 @@ var Stemcanvas = /** @class */ (function () {
                 _this.contextDrawing.stroke();
                 _this.contextDrawing.closePath();
             }
+            else if (stroke.objecttype == "CIRCLE") {
+                var box = stroke.getCachedBoundingBox();
+                _this.contextDrawing.beginPath();
+                _this.contextDrawing.strokeStyle = stroke.strokecolour;
+                _this.contextDrawing.lineWidth = stroke.strokewidth;
+                var radius = stroke.getPixelLength();
+                var midx = (box.maxX + box.originx) / 2;
+                var midy = (box.maxY + box.originy) / 2;
+                _this.contextDrawing.arc(midx, midy, radius, 0, 3.16 * 2);
+                _this.contextDrawing.stroke();
+                _this.contextDrawing.closePath();
+            }
         });
     };
     Stemcanvas.prototype.getCurrentStrokeVector = function () {
         var output = new Vector(this.currentstroke.points[this.currentstroke.points.length - 1].x - this.currentstroke.points[0].x, this.currentstroke.points[this.currentstroke.points.length - 1].y - this.currentstroke.points[0].y);
         return output;
+    };
+    Stemcanvas.prototype.resizePoint = function (inputx, inputy, a, b, c, d) {
+        // how to use: currentpoint.x - (strokebox.originx), currentpoint.y - (strokebox.originy), xfactor, 0, 0, yfactor, 0, 0
+        // will resize based from origin
+        var outputx = ((a * inputx) + (b * inputx));
+        var outputy = ((c * inputy) + (d * inputy));
+        return new Stempoint(outputx, outputy);
+    };
+    Stemcanvas.prototype.resizeStroke = function (inputstroke, resizevector, modifier) {
+        var _this = this;
+        inputstroke.UpdateBoundingBox("");
+        var strokebox = inputstroke.getCachedBoundingBox();
+        //takes input stroke and return
+        var outputstroke = new Stemstroke();
+        var resizefactor = new Vector(1 + (resizevector.x / (strokebox.maxX - strokebox.originx)), 1 + (resizevector.y / (strokebox.maxY - strokebox.originy)));
+        if (modifier == "NW") {
+        }
+        else if (modifier == "NE") {
+        }
+        else if (modifier == "SE") {
+            inputstroke.points.forEach(function (p) {
+                var resizedpoint = _this.resizePoint(p.x - strokebox.originx, p.y - strokebox.originy, resizefactor.x, 0, 0, resizefactor.y);
+                resizedpoint.x += strokebox.originx;
+                resizedpoint.y += strokebox.originy;
+                outputstroke.points.push(resizedpoint);
+            });
+        }
+        else if (modifier == "SW") {
+        }
+        return outputstroke;
+    };
+    Stemcanvas.prototype.debugtext = function (input) {
+        this.debug.innerText = input;
     };
     return Stemcanvas;
 }());
@@ -994,15 +1154,27 @@ var SelectionManager = /** @class */ (function () {
             // {
             //     
             // }
-            // else if (el.objecttype == "CIRCLE")//find all circles  
-            // {
-            //     let circle = el as StemCircle;
-            //     let distance = circle.MeasureDistanceToPoint(x, y);
-            //     if (distance < closenessvalue) {
-            //         closenessvalue = distance;
-            //         indexofClosest = index;
-            //     }
-            // }
+            else if (el.objecttype == "CIRCLE") //find all circles  
+             {
+                var actualdistance = null;
+                var box = el.getCachedBoundingBox();
+                el.radius = el.getPixelLength();
+                var centerx = (box.originx + box.maxX) / 2;
+                var centery = (box.originy + box.maxY) / 2;
+                var distancetocenter = _this.getDistanceBetweenTwoPoints(new Vector(x, y), new Vector(centerx, centery));
+                if (distancetocenter < el.radius) //check if click is inside the circle
+                 {
+                    actualdistance = el.radius - distancetocenter;
+                }
+                else {
+                    actualdistance = distancetocenter - el.radius;
+                }
+                var distance = actualdistance;
+                if (distance < closenessvalue) {
+                    closenessvalue = distance;
+                    indexofClosest = index;
+                }
+            }
             // else if (el.objecttype == "TEXT") {
             //     let text = el as StemText;
             //     let distance = 99999999999;
@@ -1029,6 +1201,7 @@ var SelectionManager = /** @class */ (function () {
         });
         if (closenessvalue < 99999999999999999) //check that it actually found something
          {
+            console.log("closeness = " + closenessvalue);
             return boxintersected[indexofClosest].strokeid;
         }
         else {
@@ -1125,7 +1298,6 @@ var SelectionManager = /** @class */ (function () {
         this.debug.lineTo(x, y);
         this.debug.stroke();
         this.debug.closePath();
-        console.log("why isnt this showing?");
     };
     SelectionManager.prototype.debugCanvasRectangle = function (minx, miny, maxx, maxy) {
         this.debug.clearRect(0, 0, Canvasconstants.width, Canvasconstants.height);

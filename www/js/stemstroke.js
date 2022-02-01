@@ -40,6 +40,14 @@ var StemDrawnObject = /** @class */ (function () {
         //should only be called during operations that dont actually update the drawing box
         return this.cachedBoundingBox;
     };
+    StemDrawnObject.prototype.getPixelLength = function () {
+        var first = this.points[0];
+        var last = this.points[this.points.length - 1];
+        var width = Math.abs(first.x - last.x);
+        var height = Math.abs(first.y - last.y);
+        var result = Math.sqrt((width * width) + (height * height));
+        return result;
+    };
     //loops through all the points in the stroke to find the top bottom left and right maximums
     StemDrawnObject.prototype.UpdateBoundingBox = function (caller) {
         if (this.objecttype == "DRAW") {
@@ -144,14 +152,6 @@ var Stemstroke = /** @class */ (function (_super) {
         _this.strokeid = helper.getGUID();
         return _this;
     }
-    Stemstroke.prototype.getPixelLength = function () {
-        var first = this.points[0];
-        var last = this.points[this.points.length - 1];
-        var width = Math.abs(first.x - last.x);
-        var height = Math.abs(first.y - last.y);
-        var result = Math.sqrt((width * width) + (height * height));
-        return result;
-    };
     return Stemstroke;
 }(StemDrawnObject));
 var StemstrokeBox = /** @class */ (function () {
@@ -201,10 +201,10 @@ var StemstrokeBox = /** @class */ (function () {
             return "NE";
         }
         else if (left && bottom) {
-            return "NE";
+            return "SW";
         }
         else if (right && bottom) {
-            return "NW";
+            return "SE";
         }
         else {
             return "MOVE";
