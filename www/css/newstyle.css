@@ -156,7 +156,7 @@ body{
     cursor: none;
 }
 .canvasbackground{
-    background-image: url('../media/canvasBG/25px-grid.png') ;
+    background-image: url('../media/canvasBG/bg.png') ;
     pointer-events: none;
     position: absolute;
     cursor: none;    

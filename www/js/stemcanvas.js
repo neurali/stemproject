@@ -148,7 +148,7 @@ var Stemcanvas = /** @class */ (function () {
         if (this.selectionManager.fresh == false) {
             this.contextSelection.clearRect(0, 0, Canvasconstants.width, Canvasconstants.height);
             if (this.selectionManager.currentlySelected != null) {
-                //draw the selected object bounds - black and white lines     
+                //draw the selected object bounds - black and white lines   
                 var box = this.selectionManager.currentlySelected.getCachedBoundingBox();
                 this.contextSelection.setLineDash([0]);
                 this.contextSelection.beginPath();
@@ -238,28 +238,37 @@ var Stemcanvas = /** @class */ (function () {
                             }
                             else if (this.cursor.selectmodifier.length == 2) //check if its any of the resize modifiers (NE,NW,SW,SE)
                              {
-                                var resizevector_1 = this.getCurrentStrokeVector();
-                                var previewstroke_2 = new Stemstroke();
-                                if (this.cursor.selectmodifier == "NE") {
-                                }
-                                else if (this.cursor.selectmodifier == "NW") {
-                                }
-                                else if (this.cursor.selectmodifier == "SE") {
-                                    previewstroke_2 = this.resizeStroke(this.selectionManager.currentlySelected, resizevector_1, this.cursor.selectmodifier);
-                                    this.selectionManager.currentlySelected.points.forEach(function (p) {
-                                        previewstroke_2.points.push(new Stempoint(p.x + resizevector_1.x, p.y + resizevector_1.y));
+                                var resizevector = this.getCurrentStrokeVector();
+                                var previewstroke = new Stemstroke();
+                                previewstroke = this.resizeStroke(this.selectionManager.currentlySelected, resizevector, this.cursor.selectmodifier);
+                                var selectedtype = this.selectionManager.currentlySelected.objecttype;
+                                if (selectedtype == "DRAW") {
+                                    this.contextSelection.beginPath();
+                                    this.contextSelection.moveTo(previewstroke.points[0].x, previewstroke.points[0].y);
+                                    previewstroke.points.forEach(function (p) {
+                                        _this.contextSelection.lineTo(p.x, p.y);
                                     });
+                                    this.contextSelection.stroke();
+                                    this.contextSelection.closePath();
                                 }
-                                else if (this.cursor.selectmodifier == "SW") {
+                                else if (selectedtype == "CIRCLE") {
+                                    if (previewstroke.points.length > 1) {
+                                        previewstroke.objecttype = "CIRCLE";
+                                        previewstroke.UpdateBoundingBox("");
+                                        var previewbox = previewstroke.getCachedBoundingBox();
+                                        this.contextSelection.beginPath();
+                                        var radius = previewstroke.getPixelLength();
+                                        var midx = (previewbox.maxX + previewbox.originx) / 2;
+                                        var midy = (previewbox.maxY + previewbox.originy) / 2;
+                                        this.contextSelection.arc(midx, midy, radius, 0, 3.16 * 2);
+                                        this.contextSelection.stroke();
+                                        this.contextSelection.closePath();
+                                    }
                                 }
-                                this.contextSelection.closePath();
-                                this.contextSelection.beginPath();
-                                this.contextSelection.moveTo(previewstroke_2.points[0].x, previewstroke_2.points[0].y);
-                                previewstroke_2.points.forEach(function (p) {
-                                    _this.contextSelection.lineTo(p.x, p.y);
-                                });
-                                this.contextSelection.stroke();
-                                this.contextSelection.closePath();
+                                else if (selectedtype == "LINE") {
+                                }
+                                else if (selectedtype == "RECTANGLE") {
+                                }
                             }
                         }
                     }
@@ -300,12 +309,14 @@ var Stemcanvas = /** @class */ (function () {
     Stemcanvas.prototype.drawCurrentLine = function () {
         // uses the context layer to preview
         if (this.currentstroke.points.length > 1) {
-            this.contextInterface.clearRect(0, 0, Canvasconstants.width, Canvasconstants.height);
-            this.contextInterface.beginPath();
-            this.contextInterface.moveTo(this.currentstroke.points[0].x, this.currentstroke.points[0].y);
-            this.contextInterface.lineTo(this.currentstroke.points[this.currentstroke.points.length - 1].x, this.currentstroke.points[this.currentstroke.points.length - 1].y);
-            this.contextInterface.stroke();
-            this.contextInterface.closePath();
+            if (!this.cursor.interacting) {
+                this.contextInterface.clearRect(0, 0, Canvasconstants.width, Canvasconstants.height);
+                this.contextInterface.beginPath();
+                this.contextInterface.moveTo(this.currentstroke.points[0].x, this.currentstroke.points[0].y);
+                this.contextInterface.lineTo(this.currentstroke.points[this.currentstroke.points.length - 1].x, this.currentstroke.points[this.currentstroke.points.length - 1].y);
+                this.contextInterface.stroke();
+                this.contextInterface.closePath();
+            }
         }
     };
     Stemcanvas.prototype.drawCurrentRectangle = function () {
@@ -556,7 +567,6 @@ var Stemcanvas = /** @class */ (function () {
                     //todo multiselect
                 }
                 else {
-                    window.alert("object selected");
                     this.selectionManager.selectObjectAtPoint(this.pen.X, this.pen.Y);
                 }
             }
@@ -582,6 +592,22 @@ var Stemcanvas = /** @class */ (function () {
                         }
                     }
                     else {
+                        ////////////////
+                        if (this.cursor.selectmodifier.length == 2) {
+                            //do a resize
+                        }
+                        var resizevector = this.getCurrentStrokeVector();
+                        var previewstroke = new Stemstroke();
+                        previewstroke = this.resizeStroke(this.selectionManager.currentlySelected, resizevector, this.cursor.selectmodifier);
+                        this.debugtext("preview length: ".concat(previewstroke.points.length, " \r\n selectedlength: ").concat(this.selectionManager.currentlySelected.points.length));
+                        for (var i = 0; i < this.selectionManager.currentlySelected.points.length; i++) {
+                            this.selectionManager.currentlySelected.points[i].x = previewstroke.points[i].x;
+                            this.selectionManager.currentlySelected.points[i].y = previewstroke.points[i].y;
+                        }
+                        this.selectionManager.currentlySelected.UpdateBoundingBox("");
+                        this.selectionManager.fresh = false;
+                        this.updateDrawing();
+                        ///////////////
                     }
                 }
                 else {
