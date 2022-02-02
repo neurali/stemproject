@@ -97,8 +97,8 @@
                         </div>
             
                         <div class="clearbutton">
-                            <a id="btnClear" class="waves-effect waves-light btn teal darken-4 fullwidth tooltipped" data-position="left"
-                            data-tooltip="Draw freehand"> Clear canvas</a>
+                            <a id="btnClear" class="waves-effect waves-light btn teal darken-4 fullwidth tooltipped modal-trigger" data-position="left"
+                            data-tooltip="Draw freehand" data-target="clear-warning"> Clear canvas</a>
                         </div>
                      
                 </div>
@@ -213,6 +213,20 @@
 
 
         </div>
+
+        <!-- Modal Structure -->
+  <div id="clear-warning" class="modal small-modal">
+    <div class="modal-content">
+      <h4>Clear the canvas</h4>
+      <p>You will lose all your work</p>
+      <p>This <strong>cannot</strong>  be undone</p>
+    </div>
+    <div class="modal-footer">
+      <a id="btnConfirmClear" class="modal-close waves-effect  teal btn">Clear canvas</a>
+      <a href="#" class="modal-close waves-effect red btn">Cancel</a>
+    </div>
+
+  </div>
 
 
     </div>

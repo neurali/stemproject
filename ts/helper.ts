@@ -83,6 +83,11 @@ class helper{
         {return false;}
     }
 
+    static random(min,max)
+    {
+        return Math.random() * (max - min) + min;
+    }
+
    
   
     

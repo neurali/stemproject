@@ -6,6 +6,7 @@ class StemDrawnObject {
     points: Stempoint[];
     strokecolour: string = "rgb(0,0,0)";
     strokewidth: number;
+    copyof:string;
     objecttype: string;
     scale: number;
     rotate: number;

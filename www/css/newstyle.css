@@ -161,24 +161,13 @@ body{
     position: absolute;
     cursor: none;    
 }
-
-/* .drawsizetiny{
-    height: 10px !important;
-    width: 10px !important;
+.small-modal{
+    max-width: 30%;
+    left:-30%;
 }
-.drawsizesmall{
-    height: 15px !important;
-    width: 15px !important;
-}
-.drawsizemedium{
-    height: 20px !important;
-    width: 20px !important;
-}
-.drawsizelarge{
-    height: 25px !important;
-    width: 25px !important;
-}
-.drawsizehuge{
-    height: 30px !important;
-    width: 30px !important;
-} */
+#toast-container {
+    top: auto !important;
+    right: auto !important;
+    bottom: 90%;
+    left:90%;  
+  }

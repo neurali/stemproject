@@ -64,6 +64,9 @@ var helper = /** @class */ (function () {
             return false;
         }
     };
+    helper.random = function (min, max) {
+        return Math.random() * (max - min) + min;
+    };
     return helper;
 }());
 //# sourceMappingURL=helper.js.map
