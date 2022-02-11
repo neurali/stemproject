@@ -11,6 +11,7 @@ class StemDrawnObject {
     scale: number;
     rotate: number;
     radius: number; //only used by circles
+    
     //need to add stroke width data    
 
     constructor() {

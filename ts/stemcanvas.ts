@@ -1,8 +1,9 @@
 class Stemcanvas {
 
     drawingdata: Array<Stemstroke>;
-    undodata: Array<Stemstroke>;
-    redodata: Array<Stemstroke>;
+
+    undoActions: Array<UndoAction>; //holds things that can be undone
+    redoActions: Array<UndoAction>; //holds things that can be redone
 
     canvasbackground: HTMLDivElement;
     drawingcanvas: HTMLCanvasElement;
@@ -43,8 +44,8 @@ class Stemcanvas {
 
         this.menuImage.src = "media/cursors/c_Menu.png"
         this.drawingdata = new Array<Stemstroke>();
-        this.undodata = new Array<Stemstroke>();
-        this.redodata = new Array<Stemstroke>();
+        this.undoActions = new Array<UndoAction>();
+        this.redoActions = new Array<UndoAction>();
 
         this.debug = document.getElementById("debug") as HTMLParagraphElement;
 
@@ -135,6 +136,7 @@ class Stemcanvas {
 
         document.getElementById("btnUndo").addEventListener("click", () => {
             this.undo();
+
         })
         document.getElementById("btnRedo").addEventListener("click", () => {
             this.redo();
@@ -176,13 +178,161 @@ class Stemcanvas {
         this.updateDrawing();
     }
     undo() {
+        
+        if(this.undoActions.length < 1)
+        {
+            if(this.drawingdata.length > 0)
+            {
+                //pop last drawing object into the redo stack
+                let lastDrawnObject = this.drawingdata.pop();
+                this.redoActions.push(new UndoUndoObject(lastDrawnObject));
+            }
+            
+            
+        }
+        else
+        {
+            let lastactionundone = this.undoActions[this.undoActions.length -1];
+            if(lastactionundone.actiontype == "MOVE")
+            {
+                let lastmove = lastactionundone as UndoMoveAction; //now we need the move data
+                let objecttomove:Stemstroke;
+                this.drawingdata.forEach(s => {
+                    if(s.strokeid == lastmove.id)
+                    {
+                        objecttomove = s;
+                    }
+                });
+                for(let i = 0; i < objecttomove.points.length; i++)
+                {
+                    let p = objecttomove.points[i];
+                    p.x -= lastmove.vector.x;
+                    p.y -= lastmove.vector.y;
+                }
+            }
+            else if(lastactionundone.actiontype == "RESIZE")
+            {
+                let lastresize = lastactionundone as UndoResizeAction;
+                let objecttoresize:Stemstroke;
+                this.drawingdata.forEach(s => {
+                    if(s.strokeid == lastresize.id)
+                    {
+                        objecttoresize = s;
+                    }
+                });
+                
+                let invertedvector = new Vector(-lastresize.vector.x,-lastresize.vector.y);
+                let tempresizefromundo = this.resizeStroke(objecttoresize,invertedvector,lastresize.direction);
+                for(let i = 0; i < tempresizefromundo.points.length; i++)
+                {
+                    let point = tempresizefromundo.points[i];
+                    objecttoresize.points[i].x = point.x;
+                    objecttoresize.points[i].y = point.y;
+                }
+            }
+            else if(lastactionundone.actiontype == "ERASE")
+            {
+                let lasterase = lastactionundone as UndoEraseAction;
+                this.drawingdata.push(lasterase.thestroke);  
+            }
+
+            //now pop the action off the undo stack to the redo stack
+            this.redoActions.push(this.undoActions.pop());
+            
+
+        }
+        this.updateDrawing();
+
+        console.log(`redo stack length: ${this.redoActions.length}`);
+        console.log(`undo stack length: ${this.undoActions.length}`);
+        console.log(`drawing data length: ${this.drawingdata.length}`);
+
 
     }
     redo() {
+        if(this.redoActions.length > 0)
+        {
+            let lastaction = this.redoActions[this.redoActions.length -1];
+            if(lastaction.actiontype == "ERASE")
+            {
+                let eraseaction = lastaction as UndoEraseAction;
+                this.drawingdata.push(eraseaction.thestroke);
+            }
+            else if(lastaction.actiontype == "MOVE")
+            {
+                let lastmove = lastaction as UndoMoveAction;
+                
+                //
+                let objecttomove:Stemstroke;
+                this.drawingdata.forEach(s => {
+                    if(s.strokeid == lastmove.id)
+                    {
+                        objecttomove = s;
+                    }
+                });
+                for(let i = 0; i < objecttomove.points.length; i++)
+                {
+                    let p = objecttomove.points[i];
+                    p.x += lastmove.vector.x;
+                    p.y += lastmove.vector.y;
+                }
+                //
+            }
+            else if(lastaction.actiontype == "RESIZE")
+            {
+                let resizeaction = lastaction as UndoResizeAction;
 
+                //let lastresize = lastactionundone as UndoResizeAction;
+                let objecttoresize:Stemstroke;
+                this.drawingdata.forEach(s => {
+                    if(s.strokeid == resizeaction.id)
+                    {
+                        objecttoresize = s;
+                    }
+                });
+                
+                let tempresizefromundo = this.resizeStroke(objecttoresize,resizeaction.vector,resizeaction.direction);
+                for(let i = 0; i < tempresizefromundo.points.length; i++)
+                {
+                    let point = tempresizefromundo.points[i];
+                    objecttoresize.points[i].x = point.x;
+                    objecttoresize.points[i].y = point.y;
+                }
+                
+
+                //
+            }
+            else if(lastaction.actiontype == "UNDO")
+            {
+                //here we are adding the 'undone' object back to the drawing
+                //this doesnt need to get pushed into the redo stack (that would be undoing an undo of an undo? jeez this is doing my head in) but now we have an issue where if the user draws a stroke halfway
+                //in the undo stack, it doesnt get undone. maybe we should do away with (undoing strokes) and just have 'actions' that can be undone
+                let redoundo = lastaction as UndoUndoObject;
+                this.drawingdata.push(redoundo.thestroke);
+                this.redoActions.pop();
+
+            }
+           
+            if(lastaction.actiontype != "UNDO")
+            {
+                this.undoActions.push(this.redoActions.pop());
+            }
+            
+
+            
+            this.updateDrawing();
+        }
+        else
+        {
+            //do nothing
+        }
+        console.log(`redo stack length: ${this.redoActions.length}`);
+        console.log(`undo stack length: ${this.undoActions.length}`);
+        console.log(`drawing data length: ${this.drawingdata.length}`);
+        
     }
     copy() {
-        console.log("copy");
+        
         if(this.selectionManager.currentlySelected != null)
         {
             this.selectionManager.copySelected();
@@ -203,7 +353,6 @@ class Stemcanvas {
         this.selectionManager.pasteFromClipboard();
 
         this.updateDrawing();
-        console.log('stop');
         this.debugtext(this.drawingdata.length);
 
     }
@@ -707,7 +856,6 @@ class Stemcanvas {
                 if (box.Intersects(this.pen.X, this.pen.Y)) {
                     //now check if its in one of the corners
                     this.cursor.selectmodifier = box.IntersectsCorner(this.pen.X, this.pen.Y);
-                    console.log(this.cursor.selectmodifier);
                 }
                 else {
                     this.cursor.selectmodifier = "";
@@ -753,6 +901,7 @@ class Stemcanvas {
                 if (this.toolbox.selectedtool == "CIRCLE") {
                     this.currentstroke.points.push(p);
                 }
+
 
 
             }
@@ -899,6 +1048,8 @@ class Stemcanvas {
                                 p.y += y;
                             });
 
+                            let undomoveaction = new UndoMoveAction(new Vector(x,y),this.selectionManager.currentSelectionID+"");
+                            this.undoActions.push(undomoveaction);
                             this.selectionManager.currentlySelected.UpdateBoundingBox("");
                             this.selectionManager.fresh = false;
                             this.updateDrawing();
@@ -918,12 +1069,14 @@ class Stemcanvas {
 
                         previewstroke = this.resizeStroke(this.selectionManager.currentlySelected, resizevector, this.cursor.selectmodifier);
 
-                        this.debugtext(`preview length: ${previewstroke.points.length} \r\n selectedlength: ${this.selectionManager.currentlySelected.points.length}`)
-
                         for (let i = 0; i < this.selectionManager.currentlySelected.points.length; i++) {
                             this.selectionManager.currentlySelected.points[i].x = previewstroke.points[i].x;
                             this.selectionManager.currentlySelected.points[i].y = previewstroke.points[i].y;
                         }
+                                                                                                                    //stupid hack coz data type is String not string
+                        let resizeundo = new UndoResizeAction(resizevector,this.selectionManager.currentSelectionID+"",this.cursor.selectmodifier);
+                        this.undoActions.push(resizeundo);
+
                         this.selectionManager.currentlySelected.UpdateBoundingBox("");
                         this.selectionManager.fresh = false;
                         this.updateDrawing();
@@ -949,14 +1102,18 @@ class Stemcanvas {
         else if (this.toolbox.selectedtool == "ERASE") {
             //is the stroke a line or a point
             if (this.currentstroke.getPixelLength() > Canvasconstants.multiselectMinimumLength) {
-                //line
+                //line erase
             }
             else {
                 //point
                 let underpointerid = this.selectionManager.IDObjectAtPoint(this.currentstroke.points[this.currentstroke.points.length - 1].x, this.currentstroke.points[this.currentstroke.points.length - 1].y);
                 //
                 let indexunderpointer = this.selectionManager.indexAtID(underpointerid);
-                this.undodata.push(this.drawingdata[indexunderpointer]);
+                if(indexunderpointer == null)
+                {
+                    return;
+                }
+                this.undoActions.push(new UndoEraseAction(this.drawingdata[indexunderpointer]));
                 this.drawingdata.splice(indexunderpointer, 1); //remove the entry from the array
                 this.updateDrawing();
 
@@ -1472,7 +1629,7 @@ class Stemcanvas {
     updateDrawing() {
         //clear drawingcanvas:
         this.contextDrawing.clearRect(0, 0, Canvasconstants.width, Canvasconstants.height);
-
+        this.selectionManager.fresh = false;
         if (this.drawingdata.length < 1) {
             return;
         }
@@ -1561,6 +1718,8 @@ class Stemcanvas {
         return new Stempoint(outputx, outputy);
     }
     resizeStroke(inputstroke: Stemstroke, resizevector: Vector, modifier: string) {
+
+        console.log(modifier);
         inputstroke.UpdateBoundingBox("");
         let strokebox = inputstroke.getCachedBoundingBox();
 
@@ -1700,7 +1859,50 @@ class Vector {
         this.y = y;
     }
 }
+class UndoAction{
+    actiontype:string
+    constructor(actiontype:string)
+    {
+        this.actiontype = actiontype;
+    }
+    //when an object is moved, we 
+    
+}
+class UndoMoveAction extends UndoAction{
+    vector:Vector;
+    id:string;
+    constructor(moveVector:Vector, strokeid:string){
+        super("MOVE");
+        this.vector = moveVector;
+        this.id = strokeid;
+    }
+}
+class UndoResizeAction extends UndoAction{
+    vector:Vector;
+    id:string;
+    direction:string;
 
+    constructor(resizeVector:Vector,strokeid:string,direction:string){
+        super("RESIZE");
+        this.vector = resizeVector;
+        this.id = strokeid;
+        this.direction = direction;
+    }
+}
+class UndoEraseAction extends UndoAction{
+    thestroke:Stemstroke;
+    constructor(strokeobject:Stemstroke){
+        super("ERASE");
+        this.thestroke = strokeobject;
+    }
+}
+class UndoUndoObject extends UndoAction{ //this object is used to redo objects that have been removed via undo (as opossed to erase)
+    thestroke:Stemstroke;
+    constructor(strokeobject:Stemstroke){
+        super("UNDO");
+        this.thestroke = strokeobject;
+    }
+}
 
 class Canvasconstants {
     static width: number = 1500;
@@ -1839,7 +2041,6 @@ class SelectionManager {
 
         if (closenessvalue < 99999999999999999) //check that it actually found something
         {
-            console.log("closeness = " + closenessvalue);
             return boxintersected[indexofClosest].strokeid;
         }
         else {
@@ -1916,7 +2117,6 @@ class SelectionManager {
 
         this.currentlySelectedMulti = null;
         let idofselected = this.IDObjectAtPoint(x, y);
-        console.log(idofselected);
         let indexofid = -1;
 
         for (let i = 0; i < this.drawingData.length; i++) {
@@ -2004,7 +2204,6 @@ class SelectionManager {
 
         this.currentlySelected = null;
 
-        console.log(this.drawingData.length);
         if(this.clipboard != null)
         {            
             let indexofcopied = this.clipboard.strokeid;            
@@ -2051,7 +2250,6 @@ class SelectionManager {
 
         this.debug.stroke();
         this.debug.closePath();
-        console.log("why isnt this showing?");
     }
 
 
