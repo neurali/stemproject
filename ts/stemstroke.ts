@@ -1,6 +1,6 @@
 class StemDrawnObject {
 
-    cachedBoundingBox: StemstrokeBox;
+    public cachedBoundingBox: StemstrokeBox;
     public isFilled: Boolean = false;
     strokeid: string;
     points: Stempoint[];

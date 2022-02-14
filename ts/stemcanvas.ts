@@ -148,6 +148,21 @@ class Stemcanvas {
         document.getElementById("btnPaste").addEventListener("click", () => {
             this.paste();
         })
+        //
+        
+        // 
+        document.getElementById("btnGrid").addEventListener("click", () => {
+            console.log("btnclicked");
+            this.canvasBackgroundSwitch("grid");
+        })
+        document.getElementById("btnLines").addEventListener("click", () => {
+            console.log("btnclicked");
+            this.canvasBackgroundSwitch("lines");
+        })
+        document.getElementById("btnBlank").addEventListener("click", () => {
+            console.log("btnclicked");
+            this.canvasBackgroundSwitch("blank");
+        })
 
 
         this.cursor = new cursor(this.contextCursor, this.pen);
@@ -172,9 +187,29 @@ class Stemcanvas {
     cursDraw: any;
     cursType: any;
 
+    canvasBackgroundSwitch(s:string){
 
+        console.log(s);
+        let canvasbackground = document.getElementById("canvasbackground") as HTMLDivElement;
+        
+        
+        if(s=="blank"){
+            
+            canvasbackground.style.backgroundImage = "url(./media/canvasBG/blank.png)"
+        }
+        else if(s=="grid"){
+            canvasbackground.style.backgroundImage = "url(./media/canvasBG/bg.png)"
+        }
+        else if(s=="lines"){
+            canvasbackground.style.backgroundImage = "url(./media/canvasBG/lines.png)"
+        }
+
+    }
     clearcanvas() {
         this.drawingdata = new Array();
+        this.undoActions = new Array();
+        this.redoActions = new Array();
+        this.selectionManager.FlushSelection();
         this.updateDrawing();
     }
     undo() {
@@ -427,8 +462,12 @@ class Stemcanvas {
 
         }
         else {
-            if (this.toolbox.selectedtool == "LINE") {
-                // this.contextInterface.clearRect(0, 0, Canvasconstants.width, Canvasconstants.height);
+            if (this.toolbox.selectedtool == "LINE" || this.toolbox.selectedtool == "RECTANGLE" || this.toolbox.selectedtool == "CIRCLE") {
+                if(!this.selectionManager.fresh)
+                {
+                    this.contextInterface.clearRect(0, 0, Canvasconstants.width, Canvasconstants.height);
+
+                }
             }
         }
 
@@ -653,8 +692,57 @@ class Stemcanvas {
                 //draw the selection
                 this.selectionManager.fresh = true;
             }
+            //if(single object is not selected)
+            //else ->
             else {
+               
+                if(this.selectionManager.currentlySelectedMulti != null)
+                {
 
+                    let minx = 99999999999;
+                    let miny = 99999999999;
+                    let maxx = -99999999999;
+                    let maxy = -99999999999;
+
+                    this.selectionManager.currentlySelectedMulti.forEach(s => {
+                        let first = s.getFirstPoint();
+                        let last = s.getLastPoint();
+                        
+                        let lowestx = Math.min(first.x,last.x);
+                        let lowesty = Math.min(first.y, last.y);
+                        let heighestx = Math.max(first.x, last.x);
+                        let heighesty = Math.max(first.y,last.y);
+
+                        if(lowestx < minx)
+                        {
+                            minx = lowestx;
+                        }
+                        if(lowesty < miny)
+                        {
+                            miny = lowesty;
+                        }
+                        if(heighestx > maxx)
+                        {
+                            maxx = heighestx;
+                        }
+                        if(heighesty > maxy)
+                        {
+                            maxy = heighesty;
+                        }
+                        
+                    });
+
+                    this.contextSelection.setLineDash([0]);
+                    this.contextSelection.beginPath();
+                    this.contextSelection.moveTo(minx,miny); //start at topleft
+                    this.contextSelection.lineTo(maxx,miny);
+                    this.contextSelection.lineTo(maxx,maxy);
+                    this.contextSelection.lineTo(minx,maxy);
+                    this.contextSelection.lineTo(minx,miny);
+                    //this.contextSelection.stroke();
+                    this.stroke("selection");
+                    
+                }
             }
         }
         //check if there is a currentselection
@@ -812,10 +900,6 @@ class Stemcanvas {
                 this.touchscrolltracker.points[this.touchscrolltracker.points.length - 1].x - this.touchscrolltracker.points[0].x,
                 this.touchscrolltracker.points[this.touchscrolltracker.points.length - 1].y - this.touchscrolltracker.points[0].y
             );
-
-            this.debugtext(this.canvascontainer.scrollLeft);
-
-            this.debugtext(movement.x);
 
             if (Math.abs(movement.x) > 5) {
                 this.canvascontainer.scrollLeft += (movement.x * -0.05);
@@ -1022,9 +1106,18 @@ class Stemcanvas {
             //check if there is already a selected object
             if (this.selectionManager.currentlySelected == null) {
                 if (this.currentstroke.getPixelLength() > Canvasconstants.multiselectMinimumLength) {
-                    //todo multiselect
                     this.currentstroke.UpdateBoundingBox("");
-                    this.selectionManager.selectInsideBox(this.currentstroke.getCachedBoundingBox());
+                    let selectionbox:StemstrokeBox = new StemstrokeBox();
+
+                    let firstpoint = this.currentstroke.getFirstPoint();
+                    let lastpoint = this.currentstroke.getLastPoint();
+                 
+                    selectionbox.originx = Math.min(firstpoint.x,lastpoint.x);
+                    selectionbox.originy = Math.min(firstpoint.y,lastpoint.y);
+                    selectionbox.maxX = Math.max(firstpoint.x,lastpoint.x);
+                    selectionbox.maxY = Math.max(firstpoint.y,lastpoint.y);
+
+                    this.selectionManager.selectInsideBox(selectionbox);
                 }
                 else {
                     this.selectionManager.selectObjectAtPoint(this.pen.X, this.pen.Y);
@@ -1089,7 +1182,12 @@ class Stemcanvas {
                 }
                 else {
                     if (this.currentstroke.getPixelLength() > Canvasconstants.multiselectMinimumLength) {
-                        //todo multiselect
+                        
+                        this.currentstroke.UpdateBoundingBox("");
+                        let box = this.currentstroke.getCachedBoundingBox();
+                        console.log(this.currentstroke);
+                        console.log(box);
+                        this.selectionManager.selectInsideBox(box);
                     }
                     else {
                         this.selectionManager.selectObjectAtPoint(this.pen.X, this.pen.Y);
@@ -1126,6 +1224,7 @@ class Stemcanvas {
             this.drawingdata.push(this.currentstroke);
             this.updateDrawing();
             this.currentstroke = null;
+
         }
         else if (this.toolbox.selectedtool == "RECTANGLE") {
             this.currentstroke.UpdateBoundingBox("");
@@ -1932,6 +2031,15 @@ class SelectionManager {
         this.fresh = false;
         this.debug = debug;
     }
+    FlushSelection(){
+        this.currentSelectionID = null;
+        this.currentlySelected = null;
+        this.clipboard = null;
+        this.currentlySelectedMulti = null;
+        this.fresh = false;
+        this.contextfresh = false;
+        this.showFullContextMenu = false;    
+    }
 
     IDObjectAtPoint(x: number, y: number) {
 
@@ -2153,7 +2261,7 @@ class SelectionManager {
         this.drawingData.forEach(s => {
             let first = s.points[0];
             let last = s.points[s.points.length -1];
-
+           
             let firstorlastinside = false
             if(this.PointInsideBoxCheck(first.x,first.y,selectionbox)){
                 firstorlastinside = true;
@@ -2173,6 +2281,7 @@ class SelectionManager {
             }
             else if(selected.length > 1){
                 this.currentlySelectedMulti = selected;
+                console.log(this.currentlySelectedMulti);
             }
             else
             {

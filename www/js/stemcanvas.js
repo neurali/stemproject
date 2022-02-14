@@ -102,6 +102,20 @@ var Stemcanvas = /** @class */ (function () {
         document.getElementById("btnPaste").addEventListener("click", function () {
             _this.paste();
         });
+        //
+        // 
+        document.getElementById("btnGrid").addEventListener("click", function () {
+            console.log("btnclicked");
+            _this.canvasBackgroundSwitch("grid");
+        });
+        document.getElementById("btnLines").addEventListener("click", function () {
+            console.log("btnclicked");
+            _this.canvasBackgroundSwitch("lines");
+        });
+        document.getElementById("btnBlank").addEventListener("click", function () {
+            console.log("btnclicked");
+            _this.canvasBackgroundSwitch("blank");
+        });
         this.cursor = new cursor(this.contextCursor, this.pen);
         this.cursor.currentTool = "DRAW";
         this.selectionManager = new SelectionManager(this.drawingdata, this.contextDebug);
@@ -110,8 +124,24 @@ var Stemcanvas = /** @class */ (function () {
         this.contextSelection.setLineDash([5]);
         this.canvascontainer.scrollLeft = ((Canvasconstants.width - this.canvascontainer.clientWidth) / 2);
     };
+    Stemcanvas.prototype.canvasBackgroundSwitch = function (s) {
+        console.log(s);
+        var canvasbackground = document.getElementById("canvasbackground");
+        if (s == "blank") {
+            canvasbackground.style.backgroundImage = "url(./media/canvasBG/blank.png)";
+        }
+        else if (s == "grid") {
+            canvasbackground.style.backgroundImage = "url(./media/canvasBG/bg.png)";
+        }
+        else if (s == "lines") {
+            canvasbackground.style.backgroundImage = "url(./media/canvasBG/lines.png)";
+        }
+    };
     Stemcanvas.prototype.clearcanvas = function () {
         this.drawingdata = new Array();
+        this.undoActions = new Array();
+        this.redoActions = new Array();
+        this.selectionManager.FlushSelection();
         this.updateDrawing();
     };
     Stemcanvas.prototype.undo = function () {
@@ -208,7 +238,8 @@ var Stemcanvas = /** @class */ (function () {
             }
             else if (lastaction.actiontype == "UNDO") {
                 //here we are adding the 'undone' object back to the drawing
-                //this doesnt need to get pushed into the redo stack (that would be undoing an undo of an undo? jeez this is doing my head in)
+                //this doesnt need to get pushed into the redo stack (that would be undoing an undo of an undo? jeez this is doing my head in) but now we have an issue where if the user draws a stroke halfway
+                //in the undo stack, it doesnt get undone. maybe we should do away with (undoing strokes) and just have 'actions' that can be undone
                 var redoundo = lastaction;
                 this.drawingdata.push(redoundo.thestroke);
                 this.redoActions.pop();
@@ -294,8 +325,10 @@ var Stemcanvas = /** @class */ (function () {
             }
         }
         else {
-            if (this.toolbox.selectedtool == "LINE") {
-                // this.contextInterface.clearRect(0, 0, Canvasconstants.width, Canvasconstants.height);
+            if (this.toolbox.selectedtool == "LINE" || this.toolbox.selectedtool == "RECTANGLE" || this.toolbox.selectedtool == "CIRCLE") {
+                if (!this.selectionManager.fresh) {
+                    this.contextInterface.clearRect(0, 0, Canvasconstants.width, Canvasconstants.height);
+                }
             }
         }
     };
@@ -471,7 +504,44 @@ var Stemcanvas = /** @class */ (function () {
                 //draw the selection
                 this.selectionManager.fresh = true;
             }
+            //if(single object is not selected)
+            //else ->
             else {
+                if (this.selectionManager.currentlySelectedMulti != null) {
+                    var minx_1 = 99999999999;
+                    var miny_1 = 99999999999;
+                    var maxx_1 = -99999999999;
+                    var maxy_1 = -99999999999;
+                    this.selectionManager.currentlySelectedMulti.forEach(function (s) {
+                        var first = s.getFirstPoint();
+                        var last = s.getLastPoint();
+                        var lowestx = Math.min(first.x, last.x);
+                        var lowesty = Math.min(first.y, last.y);
+                        var heighestx = Math.max(first.x, last.x);
+                        var heighesty = Math.max(first.y, last.y);
+                        if (lowestx < minx_1) {
+                            minx_1 = lowestx;
+                        }
+                        if (lowesty < miny_1) {
+                            miny_1 = lowesty;
+                        }
+                        if (heighestx > maxx_1) {
+                            maxx_1 = heighestx;
+                        }
+                        if (heighesty > maxy_1) {
+                            maxy_1 = heighesty;
+                        }
+                    });
+                    this.contextSelection.setLineDash([0]);
+                    this.contextSelection.beginPath();
+                    this.contextSelection.moveTo(minx_1, miny_1); //start at topleft
+                    this.contextSelection.lineTo(maxx_1, miny_1);
+                    this.contextSelection.lineTo(maxx_1, maxy_1);
+                    this.contextSelection.lineTo(minx_1, maxy_1);
+                    this.contextSelection.lineTo(minx_1, miny_1);
+                    //this.contextSelection.stroke();
+                    this.stroke("selection");
+                }
             }
         }
         //check if there is a currentselection
@@ -598,8 +668,6 @@ var Stemcanvas = /** @class */ (function () {
         if (this.touchcount == 2) {
             this.touchscrolltracker.points.push(new Stempoint(this.pen.X, this.pen.Y));
             var movement = new Vector(this.touchscrolltracker.points[this.touchscrolltracker.points.length - 1].x - this.touchscrolltracker.points[0].x, this.touchscrolltracker.points[this.touchscrolltracker.points.length - 1].y - this.touchscrolltracker.points[0].y);
-            this.debugtext(this.canvascontainer.scrollLeft);
-            this.debugtext(movement.x);
             if (Math.abs(movement.x) > 5) {
                 this.canvascontainer.scrollLeft += (movement.x * -0.05);
             }
@@ -759,9 +827,15 @@ var Stemcanvas = /** @class */ (function () {
             //check if there is already a selected object
             if (this.selectionManager.currentlySelected == null) {
                 if (this.currentstroke.getPixelLength() > Canvasconstants.multiselectMinimumLength) {
-                    //todo multiselect
                     this.currentstroke.UpdateBoundingBox("");
-                    this.selectionManager.selectInsideBox(this.currentstroke.getCachedBoundingBox());
+                    var selectionbox = new StemstrokeBox();
+                    var firstpoint = this.currentstroke.getFirstPoint();
+                    var lastpoint = this.currentstroke.getLastPoint();
+                    selectionbox.originx = Math.min(firstpoint.x, lastpoint.x);
+                    selectionbox.originy = Math.min(firstpoint.y, lastpoint.y);
+                    selectionbox.maxX = Math.max(firstpoint.x, lastpoint.x);
+                    selectionbox.maxY = Math.max(firstpoint.y, lastpoint.y);
+                    this.selectionManager.selectInsideBox(selectionbox);
                 }
                 else {
                     this.selectionManager.selectObjectAtPoint(this.pen.X, this.pen.Y);
@@ -811,7 +885,11 @@ var Stemcanvas = /** @class */ (function () {
                 }
                 else {
                     if (this.currentstroke.getPixelLength() > Canvasconstants.multiselectMinimumLength) {
-                        //todo multiselect
+                        this.currentstroke.UpdateBoundingBox("");
+                        var box = this.currentstroke.getCachedBoundingBox();
+                        console.log(this.currentstroke);
+                        console.log(box);
+                        this.selectionManager.selectInsideBox(box);
                     }
                     else {
                         this.selectionManager.selectObjectAtPoint(this.pen.X, this.pen.Y);
@@ -1462,6 +1540,15 @@ var SelectionManager = /** @class */ (function () {
         this.fresh = false;
         this.debug = debug;
     }
+    SelectionManager.prototype.FlushSelection = function () {
+        this.currentSelectionID = null;
+        this.currentlySelected = null;
+        this.clipboard = null;
+        this.currentlySelectedMulti = null;
+        this.fresh = false;
+        this.contextfresh = false;
+        this.showFullContextMenu = false;
+    };
     SelectionManager.prototype.IDObjectAtPoint = function (x, y) {
         var _this = this;
         var boxintersected = new Array();
@@ -1660,6 +1747,7 @@ var SelectionManager = /** @class */ (function () {
             }
             else if (selected.length > 1) {
                 _this.currentlySelectedMulti = selected;
+                console.log(_this.currentlySelectedMulti);
             }
             else {
                 //select nothing
