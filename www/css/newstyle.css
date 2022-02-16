@@ -171,3 +171,15 @@ body{
     bottom: 10%;
     left:10%;  
   }
+
+  div > a{
+      width: 100%;
+  }
+
+.hidden{
+    display: none;
+}
+.modal-footer > a {
+    width:49%;
+    padding-right: 10px;
+}

@@ -109,6 +109,7 @@ class Stemcanvas {
             this.cursor.currentTool = this.toolbox.selectedtool;
             this.selectionManager.currentSelectionID = "";
             this.selectionManager.currentlySelected = null;
+            this.selectionManager.FlushSelection();
             this.selectionManager.fresh = false;
             this.contextInterface.clearRect(0, 0, Canvasconstants.width, Canvasconstants.height);
         });
@@ -142,14 +143,14 @@ class Stemcanvas {
             this.redo();
         })
         document.getElementById("btnCopy").addEventListener("click", () => {
-            
+
             this.copy();
         })
         document.getElementById("btnPaste").addEventListener("click", () => {
             this.paste();
         })
         //
-        
+
         // 
         document.getElementById("btnGrid").addEventListener("click", () => {
             console.log("btnclicked");
@@ -187,20 +188,20 @@ class Stemcanvas {
     cursDraw: any;
     cursType: any;
 
-    canvasBackgroundSwitch(s:string){
+    canvasBackgroundSwitch(s: string) {
 
         console.log(s);
         let canvasbackground = document.getElementById("canvasbackground") as HTMLDivElement;
-        
-        
-        if(s=="blank"){
-            
+
+
+        if (s == "blank") {
+
             canvasbackground.style.backgroundImage = "url(./media/canvasBG/blank.png)"
         }
-        else if(s=="grid"){
+        else if (s == "grid") {
             canvasbackground.style.backgroundImage = "url(./media/canvasBG/bg.png)"
         }
-        else if(s=="lines"){
+        else if (s == "lines") {
             canvasbackground.style.backgroundImage = "url(./media/canvasBG/lines.png)"
         }
 
@@ -210,70 +211,61 @@ class Stemcanvas {
         this.undoActions = new Array();
         this.redoActions = new Array();
         this.selectionManager.FlushSelection();
+        this.selectionManager = new SelectionManager(this.drawingdata, this.contextDebug);
         this.updateDrawing();
     }
     undo() {
-        
-        if(this.undoActions.length < 1)
-        {
-            if(this.drawingdata.length > 0)
-            {
+
+        if (this.undoActions.length < 1) {
+            if (this.drawingdata.length > 0) {
                 //pop last drawing object into the redo stack
                 let lastDrawnObject = this.drawingdata.pop();
                 this.redoActions.push(new UndoUndoObject(lastDrawnObject));
             }
-            
-            
+
+
         }
-        else
-        {
-            let lastactionundone = this.undoActions[this.undoActions.length -1];
-            if(lastactionundone.actiontype == "MOVE")
-            {
+        else {
+            let lastactionundone = this.undoActions[this.undoActions.length - 1];
+            if (lastactionundone.actiontype == "MOVE") {
                 let lastmove = lastactionundone as UndoMoveAction; //now we need the move data
-                let objecttomove:Stemstroke;
+                let objecttomove: Stemstroke;
                 this.drawingdata.forEach(s => {
-                    if(s.strokeid == lastmove.id)
-                    {
+                    if (s.strokeid == lastmove.id) {
                         objecttomove = s;
                     }
                 });
-                for(let i = 0; i < objecttomove.points.length; i++)
-                {
+                for (let i = 0; i < objecttomove.points.length; i++) {
                     let p = objecttomove.points[i];
                     p.x -= lastmove.vector.x;
                     p.y -= lastmove.vector.y;
                 }
             }
-            else if(lastactionundone.actiontype == "RESIZE")
-            {
+            else if (lastactionundone.actiontype == "RESIZE") {
                 let lastresize = lastactionundone as UndoResizeAction;
-                let objecttoresize:Stemstroke;
+                let objecttoresize: Stemstroke;
                 this.drawingdata.forEach(s => {
-                    if(s.strokeid == lastresize.id)
-                    {
+                    if (s.strokeid == lastresize.id) {
                         objecttoresize = s;
                     }
                 });
-                
-                let invertedvector = new Vector(-lastresize.vector.x,-lastresize.vector.y);
-                let tempresizefromundo = this.resizeStroke(objecttoresize,invertedvector,lastresize.direction);
-                for(let i = 0; i < tempresizefromundo.points.length; i++)
-                {
+
+                let invertedvector = new Vector(-lastresize.vector.x, -lastresize.vector.y);
+                let tempresizefromundo = this.resizeStroke(objecttoresize, invertedvector, lastresize.direction);
+                for (let i = 0; i < tempresizefromundo.points.length; i++) {
                     let point = tempresizefromundo.points[i];
                     objecttoresize.points[i].x = point.x;
                     objecttoresize.points[i].y = point.y;
                 }
             }
-            else if(lastactionundone.actiontype == "ERASE")
-            {
+            else if (lastactionundone.actiontype == "ERASE") {
                 let lasterase = lastactionundone as UndoEraseAction;
-                this.drawingdata.push(lasterase.thestroke);  
+                this.drawingdata.push(lasterase.thestroke);
             }
 
             //now pop the action off the undo stack to the redo stack
             this.redoActions.push(this.undoActions.pop());
-            
+
 
         }
         this.updateDrawing();
@@ -285,60 +277,51 @@ class Stemcanvas {
 
     }
     redo() {
-        if(this.redoActions.length > 0)
-        {
-            let lastaction = this.redoActions[this.redoActions.length -1];
-            if(lastaction.actiontype == "ERASE")
-            {
+        if (this.redoActions.length > 0) {
+            let lastaction = this.redoActions[this.redoActions.length - 1];
+            if (lastaction.actiontype == "ERASE") {
                 let eraseaction = lastaction as UndoEraseAction;
                 this.drawingdata.push(eraseaction.thestroke);
             }
-            else if(lastaction.actiontype == "MOVE")
-            {
+            else if (lastaction.actiontype == "MOVE") {
                 let lastmove = lastaction as UndoMoveAction;
-                
+
                 //
-                let objecttomove:Stemstroke;
+                let objecttomove: Stemstroke;
                 this.drawingdata.forEach(s => {
-                    if(s.strokeid == lastmove.id)
-                    {
+                    if (s.strokeid == lastmove.id) {
                         objecttomove = s;
                     }
                 });
-                for(let i = 0; i < objecttomove.points.length; i++)
-                {
+                for (let i = 0; i < objecttomove.points.length; i++) {
                     let p = objecttomove.points[i];
                     p.x += lastmove.vector.x;
                     p.y += lastmove.vector.y;
                 }
                 //
             }
-            else if(lastaction.actiontype == "RESIZE")
-            {
+            else if (lastaction.actiontype == "RESIZE") {
                 let resizeaction = lastaction as UndoResizeAction;
 
                 //let lastresize = lastactionundone as UndoResizeAction;
-                let objecttoresize:Stemstroke;
+                let objecttoresize: Stemstroke;
                 this.drawingdata.forEach(s => {
-                    if(s.strokeid == resizeaction.id)
-                    {
+                    if (s.strokeid == resizeaction.id) {
                         objecttoresize = s;
                     }
                 });
-                
-                let tempresizefromundo = this.resizeStroke(objecttoresize,resizeaction.vector,resizeaction.direction);
-                for(let i = 0; i < tempresizefromundo.points.length; i++)
-                {
+
+                let tempresizefromundo = this.resizeStroke(objecttoresize, resizeaction.vector, resizeaction.direction);
+                for (let i = 0; i < tempresizefromundo.points.length; i++) {
                     let point = tempresizefromundo.points[i];
                     objecttoresize.points[i].x = point.x;
                     objecttoresize.points[i].y = point.y;
                 }
-                
+
 
                 //
             }
-            else if(lastaction.actiontype == "UNDO")
-            {
+            else if (lastaction.actiontype == "UNDO") {
                 //here we are adding the 'undone' object back to the drawing
                 //this doesnt need to get pushed into the redo stack (that would be undoing an undo of an undo? jeez this is doing my head in) but now we have an issue where if the user draws a stroke halfway
                 //in the undo stack, it doesnt get undone. maybe we should do away with (undoing strokes) and just have 'actions' that can be undone
@@ -347,40 +330,37 @@ class Stemcanvas {
                 this.redoActions.pop();
 
             }
-           
-            if(lastaction.actiontype != "UNDO")
-            {
+
+            if (lastaction.actiontype != "UNDO") {
                 this.undoActions.push(this.redoActions.pop());
             }
-            
 
-            
+
+
             this.updateDrawing();
         }
-        else
-        {
+        else {
             //do nothing
         }
         console.log(`redo stack length: ${this.redoActions.length}`);
         console.log(`undo stack length: ${this.undoActions.length}`);
         console.log(`drawing data length: ${this.drawingdata.length}`);
-        
+
     }
     copy() {
-        
-        if(this.selectionManager.currentlySelected != null)
-        {
+
+        if (this.selectionManager.currentlySelected != null) {
             this.selectionManager.copySelected();
             //@ts-ignore 
-            M.toast({html: 'Copied'});
+            M.toast({ html: 'Copied' });
         }
-        else{
-            
+        else {
+
             //@ts-ignore 
-            M.toast({html: 'Select object first'});
+            M.toast({ html: 'Select object first' });
         }
-        
-        
+
+
 
     }
     paste() {
@@ -420,6 +400,8 @@ class Stemcanvas {
         //cursor drawing
         if (this.pen.onCanvas) {
             this.cursor.render();
+
+
 
             if (this.toolbox.selectedtool == "SELECT" && this.currentstroke != null) {
                 this.currentstroke.UpdateBoundingBox("");
@@ -463,8 +445,7 @@ class Stemcanvas {
         }
         else {
             if (this.toolbox.selectedtool == "LINE" || this.toolbox.selectedtool == "RECTANGLE" || this.toolbox.selectedtool == "CIRCLE") {
-                if(!this.selectionManager.fresh)
-                {
+                if (!this.selectionManager.fresh) {
                     this.contextInterface.clearRect(0, 0, Canvasconstants.width, Canvasconstants.height);
 
                 }
@@ -480,7 +461,7 @@ class Stemcanvas {
             this.selectionManager.fresh = false;
         }
 
-        if (this.selectionManager.fresh == false) {
+        if (this.selectionManager.fresh == false || this.selectionManager.multifresh == false) {
             this.contextSelection.clearRect(0, 0, Canvasconstants.width, Canvasconstants.height);
             if (this.selectionManager.currentlySelected != null) {
                 //draw the selected object bounds - black and white lines   
@@ -539,63 +520,69 @@ class Stemcanvas {
                                 //calc and affect move vector to selected object points
                                 let vector = this.getCurrentStrokeVector();
                                 let previewstroke = new Stemstroke();
-                                this.selectionManager.currentlySelected.points.forEach(p => {
-                                    previewstroke.points.push(new Stempoint(p.x + vector.x, p.y + vector.y));
-                                });
 
-                                if (this.selectionManager.currentlySelected.objecttype == "DRAW") {
-                                    this.contextSelection.beginPath();
-                                    this.contextSelection.moveTo(previewstroke.points[0].x, previewstroke.points[0].y);
-                                    previewstroke.points.forEach(p => {
-                                        this.contextSelection.lineTo(p.x, p.y);
+                                if (this.selectionManager.currentlySelected != null) {
+                                    console.log("currently selected is not null");
+                                    this.selectionManager.currentlySelected.points.forEach(p => {
+                                        previewstroke.points.push(new Stempoint(p.x + vector.x, p.y + vector.y));
                                     });
-                                    //this.contextSelection.stroke();
-                                    this.stroke("selection");
-                                    //this.contextSelection.closePath();
+
+                                    if (this.selectionManager.currentlySelected.objecttype == "DRAW") {
+                                        this.contextSelection.beginPath();
+                                        this.contextSelection.moveTo(previewstroke.points[0].x, previewstroke.points[0].y);
+                                        previewstroke.points.forEach(p => {
+                                            this.contextSelection.lineTo(p.x, p.y);
+                                        });
+                                        //this.contextSelection.stroke();
+                                        this.stroke("selection");
+                                        //this.contextSelection.closePath();
+                                    }
+                                    else if (this.selectionManager.currentlySelected.objecttype == "LINE") {
+                                        this.contextSelection.beginPath();
+                                        this.contextSelection.moveTo(previewstroke.points[0].x, previewstroke.points[0].y);
+                                        this.contextSelection.lineTo(previewstroke.points[previewstroke.points.length - 1].x, previewstroke.points[previewstroke.points.length - 1].y);
+                                        //this.contextSelection.stroke();
+                                        this.stroke("selection");
+                                        //this.contextSelection.closePath();
+                                    }
+                                    else if (this.selectionManager.currentlySelected.objecttype == "RECTANGLE") {
+
+                                        previewstroke.objecttype = "RECTANGLE";
+                                        previewstroke.UpdateBoundingBox("");
+                                        let previewbox = previewstroke.getCachedBoundingBox();
+
+                                        this.contextSelection.beginPath();
+                                        this.contextSelection.moveTo(previewbox.originx, previewbox.originy);
+                                        this.contextSelection.lineTo(previewbox.maxX, previewbox.originy);
+                                        this.contextSelection.lineTo(previewbox.maxX, previewbox.maxY);
+                                        this.contextSelection.lineTo(previewbox.originx, previewbox.maxY);
+                                        this.contextSelection.lineTo(previewbox.originx, previewbox.originy);
+                                        this.contextSelection.stroke();
+                                        this.contextSelection.closePath();
+
+                                    }
+                                    else if (this.selectionManager.currentlySelected.objecttype == "CIRCLE") {
+                                        previewstroke.objecttype = "CIRCLE";
+                                        previewstroke.UpdateBoundingBox("");
+                                        let previewbox = previewstroke.getCachedBoundingBox();
+                                        this.contextSelection.beginPath();
+
+                                        //
+
+                                        let radius = previewstroke.getPixelLength();
+                                        let midx = (previewbox.maxX + previewbox.originx) / 2;
+                                        let midy = (previewbox.maxY + previewbox.originy) / 2;
+
+
+                                        this.contextSelection.arc(midx, midy, radius, 0, 3.16 * 2);
+                                        //this.contextSelection.stroke();
+                                        this.stroke("selection");
+                                        //this.contextSelection.closePath();
+                                        //
+                                    }
                                 }
-                                else if (this.selectionManager.currentlySelected.objecttype == "LINE") {
-                                    this.contextSelection.beginPath();
-                                    this.contextSelection.moveTo(previewstroke.points[0].x, previewstroke.points[0].y);
-                                    this.contextSelection.lineTo(previewstroke.points[previewstroke.points.length - 1].x, previewstroke.points[previewstroke.points.length - 1].y);
-                                    //this.contextSelection.stroke();
-                                    this.stroke("selection");
-                                    //this.contextSelection.closePath();
-                                }
-                                else if (this.selectionManager.currentlySelected.objecttype == "RECTANGLE") {
-
-                                    previewstroke.objecttype = "RECTANGLE";
-                                    previewstroke.UpdateBoundingBox("");
-                                    let previewbox = previewstroke.getCachedBoundingBox();
-
-                                    this.contextSelection.beginPath();
-                                    this.contextSelection.moveTo(previewbox.originx, previewbox.originy);
-                                    this.contextSelection.lineTo(previewbox.maxX, previewbox.originy);
-                                    this.contextSelection.lineTo(previewbox.maxX, previewbox.maxY);
-                                    this.contextSelection.lineTo(previewbox.originx, previewbox.maxY);
-                                    this.contextSelection.lineTo(previewbox.originx, previewbox.originy);
-                                    this.contextSelection.stroke();
-                                    this.contextSelection.closePath();
-
-                                }
-                                else if (this.selectionManager.currentlySelected.objecttype == "CIRCLE") {
-                                    previewstroke.objecttype = "CIRCLE";
-                                    previewstroke.UpdateBoundingBox("");
-                                    let previewbox = previewstroke.getCachedBoundingBox();
-                                    this.contextSelection.beginPath();
-
-                                    //
-
-                                    let radius = previewstroke.getPixelLength();
-                                    let midx = (previewbox.maxX + previewbox.originx) / 2;
-                                    let midy = (previewbox.maxY + previewbox.originy) / 2;
 
 
-                                    this.contextSelection.arc(midx, midy, radius, 0, 3.16 * 2);
-                                    //this.contextSelection.stroke();
-                                    this.stroke("selection");
-                                    //this.contextSelection.closePath();
-                                    //
-                                }
 
                             }
                             else if (this.cursor.selectmodifier.length == 2) //check if its any of the resize modifiers (NE,NW,SW,SE)
@@ -654,7 +641,7 @@ class Stemcanvas {
 
                                     if (previewstroke.points.length > 1) {
 
-                                        
+
                                         previewstroke.UpdateBoundingBox("");
                                         let first = previewstroke.points[0];
                                         let last = previewstroke.points[previewstroke.points.length - 1];
@@ -695,9 +682,8 @@ class Stemcanvas {
             //if(single object is not selected)
             //else ->
             else {
-               
-                if(this.selectionManager.currentlySelectedMulti != null)
-                {
+
+                if (this.selectionManager.currentlySelectedMulti != null) {
 
                     let minx = 99999999999;
                     let miny = 99999999999;
@@ -707,47 +693,158 @@ class Stemcanvas {
                     this.selectionManager.currentlySelectedMulti.forEach(s => {
                         let first = s.getFirstPoint();
                         let last = s.getLastPoint();
-                        
-                        let lowestx = Math.min(first.x,last.x);
+
+                        let lowestx = Math.min(first.x, last.x);
                         let lowesty = Math.min(first.y, last.y);
                         let heighestx = Math.max(first.x, last.x);
-                        let heighesty = Math.max(first.y,last.y);
+                        let heighesty = Math.max(first.y, last.y);
 
-                        if(lowestx < minx)
-                        {
+                        if (lowestx < minx) {
                             minx = lowestx;
                         }
-                        if(lowesty < miny)
-                        {
+                        if (lowesty < miny) {
                             miny = lowesty;
                         }
-                        if(heighestx > maxx)
-                        {
+                        if (heighestx > maxx) {
                             maxx = heighestx;
                         }
-                        if(heighesty > maxy)
-                        {
+                        if (heighesty > maxy) {
                             maxy = heighesty;
                         }
-                        
+
                     });
 
                     this.contextSelection.setLineDash([0]);
                     this.contextSelection.beginPath();
-                    this.contextSelection.moveTo(minx,miny); //start at topleft
-                    this.contextSelection.lineTo(maxx,miny);
-                    this.contextSelection.lineTo(maxx,maxy);
-                    this.contextSelection.lineTo(minx,maxy);
-                    this.contextSelection.lineTo(minx,miny);
-                    //this.contextSelection.stroke();
+                    this.contextSelection.moveTo(minx, miny); //start at topleft
+                    this.contextSelection.lineTo(maxx, miny);
+                    this.contextSelection.lineTo(maxx, maxy);
+                    this.contextSelection.lineTo(minx, maxy);
+                    this.contextSelection.lineTo(minx, miny);
                     this.stroke("selection");
-                    
+
+                    //now draw the dotted white line on top:
+                    this.contextSelection.setLineDash([9]);
+                    this.contextSelection.strokeStyle = "white";
+                    this.contextSelection.beginPath();
+                    this.contextSelection.moveTo(minx, miny); //start at topleft
+                    this.contextSelection.lineTo(maxx, miny);
+                    this.contextSelection.lineTo(maxx, maxy);
+                    this.contextSelection.lineTo(minx, maxy);
+                    this.contextSelection.lineTo(minx, miny);
+                    this.stroke("selection");
+                    this.contextSelection.strokeStyle = "black";
+                    this.contextSelection.closePath();
+                    this.selectionManager.multifresh = true;
+
+                    this.contextSelection.fillStyle = "white"
+                    this.contextSelection.strokeStyle = "black";
+
+                    this.contextSelection.setLineDash([0]);
+
+                    this.contextSelection.fillRect(minx - 5, miny - 5, Canvasconstants.cornersize, Canvasconstants.cornersize);
+                    this.contextSelection.strokeRect(minx - 5, miny - 5, Canvasconstants.cornersize, Canvasconstants.cornersize);
+
+                    this.contextSelection.fillRect(maxx - 5, miny - 5, 10, 10);
+                    this.contextSelection.strokeRect(maxx - 5, miny - 5, Canvasconstants.cornersize, Canvasconstants.cornersize);
+
+                    this.contextSelection.fillRect(maxx - 5, maxy - 5, 10, 10);
+                    this.contextSelection.strokeRect(maxx - 5, maxy - 5, Canvasconstants.cornersize, Canvasconstants.cornersize);
+
+                    this.contextSelection.fillRect(minx - 5, maxy - 5, 10, 10);
+                    this.contextSelection.strokeRect(minx - 5, maxy - 5, Canvasconstants.cornersize, Canvasconstants.cornersize);
+
+
+                    //now check if interacting and render the move preview etc:
+
+                    /////////////////////////////////////////////////////////////
+
+                    if (this.pen.onCanvas && this.pen.penDown) {
+                        if (this.cursor.interacting) {
+                            //now render move or resize previews
+                            if (this.toolbox.selectedtool == "SELECT") {
+
+                                if (this.cursor.selectmodifier == "MOVE") {
+
+                                    //calc and affect move vector to selected object points
+                                    let vector = this.getCurrentStrokeVector();
+
+                                    console.log("currently multi selected");
+                                    this.selectionManager.currentlySelectedMulti.forEach(s => {
+                                        let tempstroke = new Stemstroke();
+
+                                        s.points.forEach(p => {
+                                            tempstroke.points.push(new Stempoint(p.x + vector.x, p.y + vector.y));
+                                        });
+
+                                        ////////////////////////////////////////////////////
+                                        if (s.objecttype == "DRAW") {
+                                            this.contextSelection.beginPath();
+                                            this.contextSelection.moveTo(tempstroke.points[0].x, tempstroke.points[0].y);
+                                            tempstroke.points.forEach(p => {
+                                                this.contextSelection.lineTo(p.x, p.y);
+                                            });
+                                            //this.contextSelection.stroke();
+                                            this.stroke("selection");
+                                            //this.contextSelection.closePath();
+                                        }
+                                        else if (s.objecttype == "LINE") {
+                                            this.contextSelection.beginPath();
+                                            this.contextSelection.moveTo(tempstroke.points[0].x, tempstroke.points[0].y);
+                                            this.contextSelection.lineTo(tempstroke.points[tempstroke.points.length - 1].x, tempstroke.points[tempstroke.points.length - 1].y);
+                                            //this.contextSelection.stroke();
+                                            this.stroke("selection");
+                                            //this.contextSelection.closePath();
+                                        }
+                                        else if (s.objecttype == "RECTANGLE") {
+
+                                            tempstroke.objecttype = "RECTANGLE";
+                                            tempstroke.UpdateBoundingBox("");
+                                            let previewbox = tempstroke.getCachedBoundingBox();
+
+                                            this.contextSelection.beginPath();
+                                            this.contextSelection.moveTo(previewbox.originx, previewbox.originy);
+                                            this.contextSelection.lineTo(previewbox.maxX, previewbox.originy);
+                                            this.contextSelection.lineTo(previewbox.maxX, previewbox.maxY);
+                                            this.contextSelection.lineTo(previewbox.originx, previewbox.maxY);
+                                            this.contextSelection.lineTo(previewbox.originx, previewbox.originy);
+                                            this.contextSelection.stroke();
+                                            this.contextSelection.closePath();
+
+                                        }
+                                        else if (s.objecttype == "CIRCLE") {
+                                            tempstroke.objecttype = "CIRCLE";
+                                            tempstroke.UpdateBoundingBox("");
+                                            let previewbox = tempstroke.getCachedBoundingBox();
+                                            this.contextSelection.beginPath();
+
+                                            //
+
+                                            let radius = tempstroke.getPixelLength();
+                                            let midx = (previewbox.maxX + previewbox.originx) / 2;
+                                            let midy = (previewbox.maxY + previewbox.originy) / 2;
+
+
+                                            this.contextSelection.arc(midx, midy, radius, 0, 3.16 * 2);
+                                            //this.contextSelection.stroke();
+                                            this.stroke("selection");
+                                            //this.contextSelection.closePath();
+                                            //
+                                        }
+
+                                        ////////////////////////////////////////////////////
+
+
+                                    });
+                                }
+                            }
+                        }
+                    }
+
+                    //////////////////////////////////////////////////////////////
                 }
             }
         }
-        //check if there is a currentselection
-        //now check if its 'fresh'
-        //now check if it has already been drawn
     }
     drawCurrentStroke() {
         //draw only the buffer, as the last part will still be on the canvas
@@ -768,7 +865,7 @@ class Stemcanvas {
                 this.contextDrawing.lineTo(this.currentstrokebuffer.points[i].x, this.currentstrokebuffer.points[i].y);
                 this.currentstroke.points.push(this.currentstrokebuffer.points[i]);
             }
-            
+
             this.contextDrawing.stroke(); //this one buffers so not a good idea to pass this one off to manager
             //now dump the buffer
             this.currentstrokebuffer.points = [];
@@ -919,7 +1016,7 @@ class Stemcanvas {
 
         if (this.selectionManager.currentlySelected != null) //item is currently selected
         {
-            if (this.pen.penDown) { //pen is down
+            if (this.pen.penDown) { //pen is down               
 
                 //draw points are buffered into stroke to improve perf
                 let p = new Stempoint(this.pen.X, this.pen.Y);
@@ -957,6 +1054,46 @@ class Stemcanvas {
 
                 if (contextmenubox.Intersects(this.pen.X, this.pen.Y, 0)) {
                     //this.selectionManager.debugCanvasRectangle(contextmenubox.originx, contextmenubox.originy, contextmenubox.maxX, contextmenubox.maxY);
+                }
+
+            }
+        }
+        else if (this.selectionManager.currentlySelectedMulti != null) {
+            if (this.pen.penDown) {
+                let p = new Stempoint(this.pen.X, this.pen.Y);
+                p.timestamp = performance.now();
+                p.press = this.pen.pressure;
+                this.currentstrokebuffer.points.push(p); //strokes get pushed into buffer, and popped as they are rendered 
+
+                if (this.cursor.interacting) {
+                    this.currentstroke.points.push(p);
+                }
+            }
+            else {
+
+                //check if cursor is intersecting any selected objects
+                console.log("checking group selection modifier");
+                let box = this.selectionManager.getGroupBoundingBox();
+                if (box.Intersects(this.pen.X, this.pen.Y)) {
+                    //now check if its in one of the corners
+                    this.cursor.selectmodifier = box.IntersectsCorner(this.pen.X, this.pen.Y);
+                }
+                else {
+                    this.cursor.selectmodifier = "";
+                }
+
+                //now check if the box intersects the context menu (need to think about how it will stop the selection process if touch)
+
+                let contextmenubox = new StemstrokeBox();
+
+                contextmenubox.originx = ((box.originx + box.maxX) / 2) - (Canvasconstants.cursorsize / 2);
+                contextmenubox.maxX = contextmenubox.originx + Canvasconstants.cursorsize;
+                contextmenubox.originy = box.originy - Canvasconstants.cursorsize;
+                contextmenubox.maxY = contextmenubox.originy + Canvasconstants.cursorsize;
+
+
+                if (contextmenubox.Intersects(this.pen.X, this.pen.Y, 0)) {
+
                 }
 
             }
@@ -1082,10 +1219,6 @@ class Stemcanvas {
         // this.crystaliseDrawing();
         this.pen.penDown = false;
 
-
-
-
-
         // this.pendetails.penDown = false;
         // //push current stroke to the whole drawing
         // //render background canvas (async if we can?)
@@ -1095,36 +1228,13 @@ class Stemcanvas {
             this.currentstroke.strokecolour = this.toolbox.selectedColour;
             this.currentstroke.strokewidth = this.toolbox.selectedDrawSize;
 
-
-            //experiment            
-
-
             this.drawingdata.push(this.currentstroke);
         }
         else if (this.toolbox.selectedtool == "SELECT") {
-
+            console.log("stop");
             //check if there is already a selected object
-            if (this.selectionManager.currentlySelected == null) {
-                if (this.currentstroke.getPixelLength() > Canvasconstants.multiselectMinimumLength) {
-                    this.currentstroke.UpdateBoundingBox("");
-                    let selectionbox:StemstrokeBox = new StemstrokeBox();
+            if (this.selectionManager.currentlySelected != null) {
 
-                    let firstpoint = this.currentstroke.getFirstPoint();
-                    let lastpoint = this.currentstroke.getLastPoint();
-                 
-                    selectionbox.originx = Math.min(firstpoint.x,lastpoint.x);
-                    selectionbox.originy = Math.min(firstpoint.y,lastpoint.y);
-                    selectionbox.maxX = Math.max(firstpoint.x,lastpoint.x);
-                    selectionbox.maxY = Math.max(firstpoint.y,lastpoint.y);
-
-                    this.selectionManager.selectInsideBox(selectionbox);
-                }
-                else {
-                    this.selectionManager.selectObjectAtPoint(this.pen.X, this.pen.Y);
-                }
-
-            }
-            else {
                 if (this.cursor.interacting) {
                     if (this.cursor.selectmodifier == "MOVE") {
                         if (this.currentstroke.getPixelLength() > Canvasconstants.multiselectMinimumLength) {
@@ -1141,7 +1251,7 @@ class Stemcanvas {
                                 p.y += y;
                             });
 
-                            let undomoveaction = new UndoMoveAction(new Vector(x,y),this.selectionManager.currentSelectionID+"");
+                            let undomoveaction = new UndoMoveAction(new Vector(x, y), this.selectionManager.currentSelectionID + "");
                             this.undoActions.push(undomoveaction);
                             this.selectionManager.currentlySelected.UpdateBoundingBox("");
                             this.selectionManager.fresh = false;
@@ -1153,9 +1263,9 @@ class Stemcanvas {
 
                     }
                     else {
-                       
+
                         if (this.cursor.selectmodifier.length == 2) {
-                           
+
                         }
                         let resizevector = this.getCurrentStrokeVector();
                         let previewstroke = new Stemstroke();
@@ -1166,8 +1276,8 @@ class Stemcanvas {
                             this.selectionManager.currentlySelected.points[i].x = previewstroke.points[i].x;
                             this.selectionManager.currentlySelected.points[i].y = previewstroke.points[i].y;
                         }
-                                                                                                                    //stupid hack coz data type is String not string
-                        let resizeundo = new UndoResizeAction(resizevector,this.selectionManager.currentSelectionID+"",this.cursor.selectmodifier);
+                        //stupid hack coz data type is String not string
+                        let resizeundo = new UndoResizeAction(resizevector, this.selectionManager.currentSelectionID + "", this.cursor.selectmodifier);
                         this.undoActions.push(resizeundo);
 
                         this.selectionManager.currentlySelected.UpdateBoundingBox("");
@@ -1182,7 +1292,7 @@ class Stemcanvas {
                 }
                 else {
                     if (this.currentstroke.getPixelLength() > Canvasconstants.multiselectMinimumLength) {
-                        
+
                         this.currentstroke.UpdateBoundingBox("");
                         let box = this.currentstroke.getCachedBoundingBox();
                         console.log(this.currentstroke);
@@ -1194,7 +1304,54 @@ class Stemcanvas {
 
                     }
                 }
+
             }
+            else if (this.selectionManager.currentlySelectedMulti != null) {
+                //first check if its a drag stroke (T)D)
+
+                if (this.cursor.interacting) {
+                    if (this.cursor.selectmodifier == "MOVE") {
+                    }
+                    else
+                    {
+                        if(this.cursor.selectmodifier.length == 2)
+                        {
+                            //resize command
+                        }
+                    }
+                }
+                else
+                {
+                    this.selectionManager.selectObjectAtPoint(this.pen.X, this.pen.Y);
+                }
+            }
+
+            if(this.selectionManager.currentlySelected == null && this.selectionManager.currentlySelectedMulti == null)
+            {
+                if (this.currentstroke.getPixelLength() > Canvasconstants.multiselectMinimumLength) {
+                    this.currentstroke.UpdateBoundingBox("");
+                    let selectionbox: StemstrokeBox = new StemstrokeBox();
+
+                    let firstpoint = this.currentstroke.getFirstPoint();
+                    let lastpoint = this.currentstroke.getLastPoint();
+
+                    selectionbox.originx = Math.min(firstpoint.x, lastpoint.x);
+                    selectionbox.originy = Math.min(firstpoint.y, lastpoint.y);
+                    selectionbox.maxX = Math.max(firstpoint.x, lastpoint.x);
+                    selectionbox.maxY = Math.max(firstpoint.y, lastpoint.y);
+
+                    this.selectionManager.selectInsideBox(selectionbox);
+                }
+                else {
+                    this.selectionManager.selectObjectAtPoint(this.pen.X, this.pen.Y);
+                }
+            }     
+            else
+            {
+
+            }      
+            
+
             this.currentstroke = null;
         }
         else if (this.toolbox.selectedtool == "ERASE") {
@@ -1207,8 +1364,7 @@ class Stemcanvas {
                 let underpointerid = this.selectionManager.IDObjectAtPoint(this.currentstroke.points[this.currentstroke.points.length - 1].x, this.currentstroke.points[this.currentstroke.points.length - 1].y);
                 //
                 let indexunderpointer = this.selectionManager.indexAtID(underpointerid);
-                if(indexunderpointer == null)
-                {
+                if (indexunderpointer == null) {
                     return;
                 }
                 this.undoActions.push(new UndoEraseAction(this.drawingdata[indexunderpointer]));
@@ -1909,37 +2065,31 @@ class Stemcanvas {
     // }
 
 
-    stroke(context:string)
-    {
+    stroke(context: string) {
 
-    //     contextDrawing: CanvasRenderingContext2D;
-    // contextSelection: CanvasRenderingContext2D;
-    // contextCursor: CanvasRenderingContext2D;
-    // contextInterface: CanvasRenderingContext2D;
-    // contextDebug: CanvasRenderingContext2D;
+        //     contextDrawing: CanvasRenderingContext2D;
+        // contextSelection: CanvasRenderingContext2D;
+        // contextCursor: CanvasRenderingContext2D;
+        // contextInterface: CanvasRenderingContext2D;
+        // contextDebug: CanvasRenderingContext2D;
 
-        if(context == "draw")
-        {
+        if (context == "draw") {
             this.contextDrawing.stroke();
             this.contextDrawing.closePath();
         }
-        else if(context == "selection")
-        {
+        else if (context == "selection") {
             this.contextSelection.stroke();
             this.contextSelection.closePath();
         }
-        else if(context == "cursor")
-        {
+        else if (context == "cursor") {
             this.contextCursor.stroke();
             this.contextCursor.closePath();
         }
-        else if(context == "interface")
-        {
+        else if (context == "interface") {
             this.contextInterface.stroke();
             this.contextInterface.closePath();
         }
-        else if(context == "debug")
-        {
+        else if (context == "debug") {
             this.contextDebug.stroke();
             this.contextDebug.closePath();
         }
@@ -1958,46 +2108,45 @@ class Vector {
         this.y = y;
     }
 }
-class UndoAction{
-    actiontype:string
-    constructor(actiontype:string)
-    {
+class UndoAction {
+    actiontype: string
+    constructor(actiontype: string) {
         this.actiontype = actiontype;
     }
     //when an object is moved, we 
-    
+
 }
-class UndoMoveAction extends UndoAction{
-    vector:Vector;
-    id:string;
-    constructor(moveVector:Vector, strokeid:string){
+class UndoMoveAction extends UndoAction {
+    vector: Vector;
+    id: string;
+    constructor(moveVector: Vector, strokeid: string) {
         super("MOVE");
         this.vector = moveVector;
         this.id = strokeid;
     }
 }
-class UndoResizeAction extends UndoAction{
-    vector:Vector;
-    id:string;
-    direction:string;
+class UndoResizeAction extends UndoAction {
+    vector: Vector;
+    id: string;
+    direction: string;
 
-    constructor(resizeVector:Vector,strokeid:string,direction:string){
+    constructor(resizeVector: Vector, strokeid: string, direction: string) {
         super("RESIZE");
         this.vector = resizeVector;
         this.id = strokeid;
         this.direction = direction;
     }
 }
-class UndoEraseAction extends UndoAction{
-    thestroke:Stemstroke;
-    constructor(strokeobject:Stemstroke){
+class UndoEraseAction extends UndoAction {
+    thestroke: Stemstroke;
+    constructor(strokeobject: Stemstroke) {
         super("ERASE");
         this.thestroke = strokeobject;
     }
 }
-class UndoUndoObject extends UndoAction{ //this object is used to redo objects that have been removed via undo (as opossed to erase)
-    thestroke:Stemstroke;
-    constructor(strokeobject:Stemstroke){
+class UndoUndoObject extends UndoAction { //this object is used to redo objects that have been removed via undo (as opossed to erase)
+    thestroke: Stemstroke;
+    constructor(strokeobject: Stemstroke) {
         super("UNDO");
         this.thestroke = strokeobject;
     }
@@ -2015,8 +2164,12 @@ class SelectionManager {
     debug: CanvasRenderingContext2D;
     currentSelectionID: String;
     currentlySelected: StemDrawnObject;
-    clipboard:StemDrawnObject;
+    clipboard: StemDrawnObject;
+
     currentlySelectedMulti: StemDrawnObject[];
+    multiBoundingBox: StemstrokeBox;
+    multifresh: boolean = false;
+
     fresh: boolean;
     contextfresh: boolean = true;
     showFullContextMenu: boolean = false;
@@ -2031,14 +2184,14 @@ class SelectionManager {
         this.fresh = false;
         this.debug = debug;
     }
-    FlushSelection(){
+    FlushSelection() {
         this.currentSelectionID = null;
         this.currentlySelected = null;
         this.clipboard = null;
         this.currentlySelectedMulti = null;
         this.fresh = false;
         this.contextfresh = false;
-        this.showFullContextMenu = false;    
+        this.showFullContextMenu = false;
     }
 
     IDObjectAtPoint(x: number, y: number) {
@@ -2168,6 +2321,42 @@ class SelectionManager {
         return null;
     }
 
+    getGroupBoundingBox()//uses the selectedmulti object
+    {
+        let lowestx = 999999999999,
+            lowesty = 999999999999,
+            heighestx = -999999999999,
+            heighesty = -999999999999;
+
+        this.currentlySelectedMulti.forEach(s => {
+            s.points.forEach(p => {
+                if (p.x < lowestx) {
+                    lowestx = p.x;
+                }
+                else if (p.x > heighestx) {
+                    heighestx = p.x;
+                }
+
+                if (p.y < lowesty) {
+                    lowesty = p.y;
+                }
+                else if (p.y > heighesty) {
+                    heighesty = p.y;
+                }
+
+            });
+        });
+
+        this.multiBoundingBox = new StemstrokeBox();
+        this.multiBoundingBox.maxX = heighestx;
+        this.multiBoundingBox.maxY = heighesty;
+        this.multiBoundingBox.originx = lowestx;
+        this.multiBoundingBox.originy = lowesty;
+
+
+        return this.multiBoundingBox;
+    }
+
     ///A to B is the line, P is the point
     getDistanceOfPointToLine(a: Vector, b: Vector, p: Vector) {
         let x = p.x;
@@ -2260,44 +2449,42 @@ class SelectionManager {
         let selected = new Array<Stemstroke>();
         this.drawingData.forEach(s => {
             let first = s.points[0];
-            let last = s.points[s.points.length -1];
-           
+            let last = s.points[s.points.length - 1];
+
             let firstorlastinside = false
-            if(this.PointInsideBoxCheck(first.x,first.y,selectionbox)){
+            if (this.PointInsideBoxCheck(first.x, first.y, selectionbox)) {
                 firstorlastinside = true;
             }
-            if(this.PointInsideBoxCheck(last.x,last.y,selectionbox)){
+            if (this.PointInsideBoxCheck(last.x, last.y, selectionbox)) {
                 firstorlastinside = true;
             }
 
-            if(firstorlastinside)
-            {
+            if (firstorlastinside) {
                 selected.push(s);
             }
 
-            if(selected.length == 1)
-            {
+            if (selected.length == 1) {
+                this.multiBoundingBox = null;
                 //do a normal selection
             }
-            else if(selected.length > 1){
+            else if (selected.length > 1) {
                 this.currentlySelectedMulti = selected;
                 console.log(this.currentlySelectedMulti);
             }
-            else
-            {
+            else {
+                this.multiBoundingBox = null;
                 //select nothing
             }
         });
 
 
     }
-    copySelected()
-    {
-        this.clipboard = new StemDrawnObject();        
+    copySelected() {
+        this.clipboard = new StemDrawnObject();
         let copytime = performance.now();
 
         this.currentlySelected.points.forEach(p => {
-            let np = Object.create(new Stempoint(p.x + 20,p.y + 20));
+            let np = Object.create(new Stempoint(p.x + 20, p.y + 20));
             np.press = p.press;
             np.timestamp = copytime; //
             this.clipboard.points.push(np);
@@ -2309,28 +2496,26 @@ class SelectionManager {
         this.clipboard.copyof = this.currentlySelected.strokeid;
     }
 
-    pasteFromClipboard(){
+    pasteFromClipboard() {
 
         this.currentlySelected = null;
 
-        if(this.clipboard != null)
-        {            
-            let indexofcopied = this.clipboard.strokeid;            
+        if (this.clipboard != null) {
+            let indexofcopied = this.clipboard.strokeid;
             //orig
-            this.drawingData.push(this.clipboard);    
-            
-            this.currentlySelected = this.drawingData[this.drawingData.length -1];
-            
-            this.fresh = false   
-            this.currentSelectionID = this.currentlySelected.strokeid;  
+            this.drawingData.push(this.clipboard);
+
+            this.currentlySelected = this.drawingData[this.drawingData.length - 1];
+
+            this.fresh = false
+            this.currentSelectionID = this.currentlySelected.strokeid;
 
             this.clipboard = null; //clear it for now revisit      
-            
+
         }
-        else
-        {
+        else {
             //@ts-ignore 
-            M.toast({html: 'Copy object first'});
+            M.toast({ html: 'Copy object first' });
         }
     }
 
@@ -2362,13 +2547,11 @@ class SelectionManager {
     }
 
 
-    PointInsideBoxCheck(x,y,box:StemstrokeBox){
-        if(x < box.originx || x > box.maxX)
-        {
+    PointInsideBoxCheck(x, y, box: StemstrokeBox) {
+        if (x < box.originx || x > box.maxX) {
             return false;
         }
-        if(y<box.originy || y > box.maxY)
-        {
+        if (y < box.originy || y > box.maxY) {
             return false;
         }
 
