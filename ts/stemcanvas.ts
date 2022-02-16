@@ -40,7 +40,43 @@ class Stemcanvas {
     touchscrolltracker: Stemstroke;//keeps track when touch users are using two fingers to pan
     debug: HTMLParagraphElement;
 
+    //session info
+    participant:string;
+    taskset:string;
+    task: string;
+    devicetype:string;
+
+    //session info for file download:
+    //session start time clock
+    starttimeclock: string = "";
+    //session start time performance
+    starttimeperf: string = "";
+    //session end time clock
+    endtimeclock: string = "";
+
     constructor(id: string) {
+
+        //load the session details:   
+        this.participant = sessionStorage.getItem("token");
+        this.taskset = sessionStorage.getItem("taskset");
+        this.devicetype = sessionStorage.getItem("devicetype");
+
+        let sessioninfo = document.getElementById("sessioninfo") as HTMLElement;
+        let attTasknumber = sessioninfo.attributes.getNamedItem("data-tasknumber");
+        this.task = attTasknumber.value;
+
+        if (this.taskset == "a") {
+            if (this.task == "q3") {
+                document.getElementById("btnNext").classList.add("hide");
+            }
+        }
+        else if (this.taskset == "b") {
+            if (this.task == "q6") {
+                document.getElementById("btnNext").classList.add("hide");
+            }
+        }
+
+
 
         this.menuImage.src = "media/cursors/c_Menu.png"
         this.drawingdata = new Array<Stemstroke>();
@@ -163,6 +199,10 @@ class Stemcanvas {
         document.getElementById("btnBlank").addEventListener("click", () => {
             console.log("btnclicked");
             this.canvasBackgroundSwitch("blank");
+        })
+
+        document.getElementById("btnSave").addEventListener("click",()=>{
+            this.saveDataLocally();
         })
 
 
@@ -2035,6 +2075,67 @@ class Stemcanvas {
     }
 
 
+    startTimer() {
+
+        let timertext = document.getElementById("questiontimer") as HTMLHeadingElement;
+
+        let startsynctime = performance.now();
+        let startClockTime = new Date().getTime();
+
+        this.starttimeclock = new Date().toLocaleString();
+        this.starttimeperf = startsynctime.toString();
+
+        let x = setInterval(function () {
+
+            let currentTime = new Date().getTime();
+            var distance = currentTime - startClockTime;
+            var hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            var seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+            timertext.innerText = `${hours}h  ${minutes}m  ${seconds}s`;
+        }
+            , 2000);
+
+
+    }
+
+    saveDataLocally(){
+            let participantDeviceTask = `${this.participant} - ${this.devicetype} - ${this.task}`;
+
+            //download canvas, 
+            //this.selectedDrawnObject = null;
+            this.updateDrawing();
+            let image = this.drawingcanvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
+            var anchor = document.createElement('a');
+            anchor.setAttribute('download', `canvas - .png`);
+            anchor.setAttribute('href', image);
+            anchor.click();
+            //drawing data json, 
+
+            //Export JSON
+            var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(this.drawingdata));
+            anchor = document.createElement('a');
+            anchor.setAttribute("href", dataStr);
+            anchor.setAttribute("download", `${participantDeviceTask} - drawingdata.json`);
+            anchor.click();
+
+            //and session information
+            let session = new Sessioninfo();
+            session.start = this.starttimeclock
+            session.end = new Date().toLocaleString();
+            session.startperf = this.starttimeperf;
+            session.devicetype = this.devicetype;
+            session.task = this.task;
+            session.participanttoken = this.participant;
+
+            let sessionoutputstring = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(session));
+            anchor = document.createElement('a');
+            anchor.setAttribute("href", sessionoutputstring);
+            anchor.setAttribute("download", `${participantDeviceTask} - sessioninfo.json`);
+            anchor.click();
+    }
+
 
 
     debugtext(input: any) {
@@ -2566,7 +2667,20 @@ class SelectionManager {
 
 
 }
+class Sessioninfo{
 
+    public Sessioninfo(){
+
+    }
+    public participanttoken:string;
+    public devicetype:string;
+    public task:string;
+    
+    public start:string;
+    public startperf:string;
+    public end:string;
+
+}
 
 
 

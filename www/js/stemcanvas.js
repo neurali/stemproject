@@ -19,6 +19,30 @@ var Stemcanvas = /** @class */ (function () {
         this.canvascrolly = 0;
         this.menuImage = new Image();
         this.touchcount = 0;
+        //session info for file download:
+        //session start time clock
+        this.starttimeclock = "";
+        //session start time performance
+        this.starttimeperf = "";
+        //session end time clock
+        this.endtimeclock = "";
+        //load the session details:   
+        this.participant = sessionStorage.getItem("token");
+        this.taskset = sessionStorage.getItem("taskset");
+        this.devicetype = sessionStorage.getItem("devicetype");
+        var sessioninfo = document.getElementById("sessioninfo");
+        var attTasknumber = sessioninfo.attributes.getNamedItem("data-tasknumber");
+        this.task = attTasknumber.value;
+        if (this.taskset == "a") {
+            if (this.task == "q3") {
+                document.getElementById("btnNext").classList.add("hide");
+            }
+        }
+        else if (this.taskset == "b") {
+            if (this.task == "q6") {
+                document.getElementById("btnNext").classList.add("hide");
+            }
+        }
         this.menuImage.src = "media/cursors/c_Menu.png";
         this.drawingdata = new Array();
         this.undoActions = new Array();
@@ -116,6 +140,9 @@ var Stemcanvas = /** @class */ (function () {
         document.getElementById("btnBlank").addEventListener("click", function () {
             console.log("btnclicked");
             _this.canvasBackgroundSwitch("blank");
+        });
+        document.getElementById("btnSave").addEventListener("click", function () {
+            _this.saveDataLocally();
         });
         this.cursor = new cursor(this.contextCursor, this.pen);
         this.cursor.currentTool = "DRAW";
@@ -1562,6 +1589,52 @@ var Stemcanvas = /** @class */ (function () {
         }
         return outputstroke;
     };
+    Stemcanvas.prototype.startTimer = function () {
+        var timertext = document.getElementById("questiontimer");
+        var startsynctime = performance.now();
+        var startClockTime = new Date().getTime();
+        this.starttimeclock = new Date().toLocaleString();
+        this.starttimeperf = startsynctime.toString();
+        var x = setInterval(function () {
+            var currentTime = new Date().getTime();
+            var distance = currentTime - startClockTime;
+            var hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            var seconds = Math.floor((distance % (1000 * 60)) / 1000);
+            timertext.innerText = "".concat(hours, "h  ").concat(minutes, "m  ").concat(seconds, "s");
+        }, 2000);
+    };
+    Stemcanvas.prototype.saveDataLocally = function () {
+        var participantDeviceTask = "".concat(this.participant, " - ").concat(this.devicetype, " - ").concat(this.task);
+        //download canvas, 
+        //this.selectedDrawnObject = null;
+        this.updateDrawing();
+        var image = this.drawingcanvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
+        var anchor = document.createElement('a');
+        anchor.setAttribute('download', "canvas - .png");
+        anchor.setAttribute('href', image);
+        anchor.click();
+        //drawing data json, 
+        //Export JSON
+        var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(this.drawingdata));
+        anchor = document.createElement('a');
+        anchor.setAttribute("href", dataStr);
+        anchor.setAttribute("download", "".concat(participantDeviceTask, " - drawingdata.json"));
+        anchor.click();
+        //and session information
+        var session = new Sessioninfo();
+        session.start = this.starttimeclock;
+        session.end = new Date().toLocaleString();
+        session.startperf = this.starttimeperf;
+        session.devicetype = this.devicetype;
+        session.task = this.task;
+        session.participanttoken = this.participant;
+        var sessionoutputstring = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(session));
+        anchor = document.createElement('a');
+        anchor.setAttribute("href", sessionoutputstring);
+        anchor.setAttribute("download", "".concat(participantDeviceTask, " - sessioninfo.json"));
+        anchor.click();
+    };
     Stemcanvas.prototype.debugtext = function (input) {
         this.debug.innerText = input;
     };
@@ -1990,5 +2063,12 @@ var SelectionManager = /** @class */ (function () {
         return true;
     };
     return SelectionManager;
+}());
+var Sessioninfo = /** @class */ (function () {
+    function Sessioninfo() {
+    }
+    Sessioninfo.prototype.Sessioninfo = function () {
+    };
+    return Sessioninfo;
 }());
 //# sourceMappingURL=stemcanvas.js.map
