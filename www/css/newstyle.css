@@ -124,9 +124,13 @@ body{
     width: 100% !important;
 }
 .questionspace{
-    
+
     margin-bottom: 0px;
     max-height: 10.9vh;
+    overflow-y:scroll;
+}
+.question-container{
+    border: solid #98c7c4;
 }
 .width25{
     width:25%;

@@ -1635,6 +1635,15 @@ var Stemcanvas = /** @class */ (function () {
         anchor.setAttribute("download", "".concat(participantDeviceTask, " - sessioninfo.json"));
         anchor.click();
     };
+    Stemcanvas.prototype.NextAndSaveLocally = function () {
+        var participantDeviceTask = "".concat(this.participant, " - ").concat(this.devicetype, " - ").concat(this.task);
+        console.log(participantDeviceTask);
+        //download canvas, 
+        this.saveDataLocally();
+        var currentquestionarray = this.task.split('q');
+        var currentquestion = parseInt(currentquestionarray[1]);
+        location.href = "q".concat(currentquestion + 1, ".html");
+    };
     Stemcanvas.prototype.debugtext = function (input) {
         this.debug.innerText = input;
     };

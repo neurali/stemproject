@@ -2136,6 +2136,20 @@ class Stemcanvas {
             anchor.click();
     }
 
+    NextAndSaveLocally()
+    {
+        let participantDeviceTask = `${this.participant} - ${this.devicetype} - ${this.task}`;
+
+            console.log(participantDeviceTask);
+            //download canvas, 
+            this.saveDataLocally()
+
+            let currentquestionarray = this.task.split('q');
+            let currentquestion = parseInt(currentquestionarray[1]);
+
+            location.href = `q${currentquestion + 1}.html`;
+    }
+
 
 
     debugtext(input: any) {
