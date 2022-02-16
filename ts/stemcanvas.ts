@@ -1,5 +1,6 @@
 class Stemcanvas {
 
+    isios: boolean;
     drawingdata: Array<Stemstroke>;
 
     undoActions: Array<UndoAction>; //holds things that can be undone
@@ -41,10 +42,10 @@ class Stemcanvas {
     debug: HTMLParagraphElement;
 
     //session info
-    participant:string;
-    taskset:string;
+    participant: string;
+    taskset: string;
     task: string;
-    devicetype:string;
+    devicetype: string;
 
     //session info for file download:
     //session start time clock
@@ -55,6 +56,17 @@ class Stemcanvas {
     endtimeclock: string = "";
 
     constructor(id: string) {
+
+
+
+        var isIOS = /iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent);
+        if (isIOS) {
+            this.isios = true;
+        }
+        else {
+            this.isios = false;
+        }
+
 
         //load the session details:   
         this.participant = sessionStorage.getItem("token");
@@ -67,12 +79,12 @@ class Stemcanvas {
 
         if (this.taskset == "a") {
             if (this.task == "q3") {
-                document.getElementById("btnNext").classList.add("hide");
+                document.getElementById("btnNext").classList.add("hidden");
             }
         }
         else if (this.taskset == "b") {
             if (this.task == "q6") {
-                document.getElementById("btnNext").classList.add("hide");
+                document.getElementById("btnNext").classList.add("hidden");
             }
         }
 
@@ -94,6 +106,7 @@ class Stemcanvas {
         this.debugcanvas = document.getElementById("debugcanvas") as HTMLCanvasElement;
 
         this.initialisecanvas();
+        this.startTimer();
         requestAnimationFrame(this.mainloop.bind(this));
 
     }
@@ -201,9 +214,21 @@ class Stemcanvas {
             this.canvasBackgroundSwitch("blank");
         })
 
-        document.getElementById("btnSave").addEventListener("click",()=>{
+        document.getElementById("btnSave").addEventListener("click", () => {
             this.saveDataLocally();
         })
+        //cant use this as ios wont let you push the user to a new location (need to apply the link on load I guess) see below
+        document.getElementById("btnNext").addEventListener("click", () => {
+            // let currentquestionarray = this.task.split('q');
+            // let currentquestion = parseInt(currentquestionarray[1]);
+
+            // location.href = `q${currentquestion + 1}.html`;
+            this.NextAndSaveLocally();
+        })
+
+
+
+
 
 
         this.cursor = new cursor(this.contextCursor, this.pen);
@@ -1352,22 +1377,18 @@ class Stemcanvas {
                 if (this.cursor.interacting) {
                     if (this.cursor.selectmodifier == "MOVE") {
                     }
-                    else
-                    {
-                        if(this.cursor.selectmodifier.length == 2)
-                        {
+                    else {
+                        if (this.cursor.selectmodifier.length == 2) {
                             //resize command
                         }
                     }
                 }
-                else
-                {
+                else {
                     this.selectionManager.selectObjectAtPoint(this.pen.X, this.pen.Y);
                 }
             }
 
-            if(this.selectionManager.currentlySelected == null && this.selectionManager.currentlySelectedMulti == null)
-            {
+            if (this.selectionManager.currentlySelected == null && this.selectionManager.currentlySelectedMulti == null) {
                 if (this.currentstroke.getPixelLength() > Canvasconstants.multiselectMinimumLength) {
                     this.currentstroke.UpdateBoundingBox("");
                     let selectionbox: StemstrokeBox = new StemstrokeBox();
@@ -1385,12 +1406,11 @@ class Stemcanvas {
                 else {
                     this.selectionManager.selectObjectAtPoint(this.pen.X, this.pen.Y);
                 }
-            }     
-            else
-            {
+            }
+            else {
 
-            }      
-            
+            }
+
 
             this.currentstroke = null;
         }
@@ -2100,26 +2120,62 @@ class Stemcanvas {
 
     }
 
-    saveDataLocally(){
-            let participantDeviceTask = `${this.participant} - ${this.devicetype} - ${this.task}`;
+    saveDataLocally() {
 
-            //download canvas, 
-            //this.selectedDrawnObject = null;
-            this.updateDrawing();
+        let participantDeviceTask = `${this.participant} - ${this.devicetype} - ${this.task}`;
+        this.updateDrawing();
+        window.open("www.google.com");
+
+        if (this.isios) {
+
+
+            ////////////////// SAVE PNG IMAGE FILE (will download as unknown - needs to be sent via email or something)
+            let image = this.drawingcanvas.toDataURL("image/png").replace("image/png", "image/octet-stream");  //this is dirty, but it works for now                      
+            //window.open(image);
+
+
+            //////////////////// SAVE THE SESSION INFO FILE
+            let session = new Sessioninfo();
+            session.start = this.starttimeclock
+            session.end = new Date().toLocaleString();
+            session.startperf = this.starttimeperf;
+            session.devicetype = this.devicetype;
+            session.task = this.task;
+            session.participanttoken = this.participant;
+            let sessionoutputstring = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(session));
+            
+            
+            //////////////////// SAVE THE DRAWING DATA FILE
+            let packageoutput = new FileOutputPackage(); //we package the session info in so we can buddy up the files later on (just in case right. coz all the files will be named unknown!)
+            
+            packageoutput.drawingdata = this.drawingdata;
+            packageoutput.sessioninfo = session;
+            packageoutput.imagefile = image;
+
+            let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(packageoutput));
+            window.open(dataStr);
+
+            var anchor = document.createElement('a');
+            anchor.setAttribute("href", dataStr);
+            anchor.setAttribute("download", `${participantDeviceTask} - packagedSession.json`);
+            anchor.click();
+
+            
+        }
+        else {
+
+            //build image into a json uri
             let image = this.drawingcanvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
             var anchor = document.createElement('a');
             anchor.setAttribute('download', `canvas - .png`);
             anchor.setAttribute('href', image);
             anchor.click();
-            //drawing data json, 
-
             //Export JSON
             var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(this.drawingdata));
             anchor = document.createElement('a');
             anchor.setAttribute("href", dataStr);
             anchor.setAttribute("download", `${participantDeviceTask} - drawingdata.json`);
             anchor.click();
-
             //and session information
             let session = new Sessioninfo();
             session.start = this.starttimeclock
@@ -2134,20 +2190,25 @@ class Stemcanvas {
             anchor.setAttribute("href", sessionoutputstring);
             anchor.setAttribute("download", `${participantDeviceTask} - sessioninfo.json`);
             anchor.click();
+
+        }
+
+
+
+
     }
 
-    NextAndSaveLocally()
-    {
+    NextAndSaveLocally() {
         let participantDeviceTask = `${this.participant} - ${this.devicetype} - ${this.task}`;
 
-            console.log(participantDeviceTask);
-            //download canvas, 
-            this.saveDataLocally()
+        this.saveDataLocally()
 
-            let currentquestionarray = this.task.split('q');
-            let currentquestion = parseInt(currentquestionarray[1]);
+        let currentquestionarray = this.task.split('q');
+        let currentquestion = parseInt(currentquestionarray[1]);
 
-            location.href = `q${currentquestion + 1}.html`;
+
+        let nextlink = document.getElementById("nextlink") as HTMLAnchorElement;
+        nextlink.href = `q${currentquestion + 1}.html`;
     }
 
 
@@ -2681,19 +2742,32 @@ class SelectionManager {
 
 
 }
-class Sessioninfo{
+class Sessioninfo {
 
-    public Sessioninfo(){
+    public Sessioninfo() {
 
     }
-    public participanttoken:string;
-    public devicetype:string;
-    public task:string;
-    
-    public start:string;
-    public startperf:string;
-    public end:string;
+    public participanttoken: string;
+    public devicetype: string;
+    public task: string;
 
+    public start: string;
+    public startperf: string;
+    public end: string;
+
+}
+class FileOutputPackage{
+
+    public drawingdata: Stemstroke[];
+    public sessioninfo:any;
+    public imagefile:any;
+    public test:string = "is this bit showing up at least?";
+
+
+    constructor(){
+
+        
+    }
 }
 
 

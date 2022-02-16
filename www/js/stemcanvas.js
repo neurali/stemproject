@@ -26,6 +26,13 @@ var Stemcanvas = /** @class */ (function () {
         this.starttimeperf = "";
         //session end time clock
         this.endtimeclock = "";
+        var isIOS = /iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent);
+        if (isIOS) {
+            this.isios = true;
+        }
+        else {
+            this.isios = false;
+        }
         //load the session details:   
         this.participant = sessionStorage.getItem("token");
         this.taskset = sessionStorage.getItem("taskset");
@@ -35,12 +42,12 @@ var Stemcanvas = /** @class */ (function () {
         this.task = attTasknumber.value;
         if (this.taskset == "a") {
             if (this.task == "q3") {
-                document.getElementById("btnNext").classList.add("hide");
+                document.getElementById("btnNext").classList.add("hidden");
             }
         }
         else if (this.taskset == "b") {
             if (this.task == "q6") {
-                document.getElementById("btnNext").classList.add("hide");
+                document.getElementById("btnNext").classList.add("hidden");
             }
         }
         this.menuImage.src = "media/cursors/c_Menu.png";
@@ -56,6 +63,7 @@ var Stemcanvas = /** @class */ (function () {
         this.interfacecanvas = document.getElementById("interfacecanvas");
         this.debugcanvas = document.getElementById("debugcanvas");
         this.initialisecanvas();
+        this.startTimer();
         requestAnimationFrame(this.mainloop.bind(this));
     }
     Stemcanvas.prototype.initialisecanvas = function () {
@@ -143,6 +151,13 @@ var Stemcanvas = /** @class */ (function () {
         });
         document.getElementById("btnSave").addEventListener("click", function () {
             _this.saveDataLocally();
+        });
+        //cant use this as ios wont let you push the user to a new location (need to apply the link on load I guess) see below
+        document.getElementById("btnNext").addEventListener("click", function () {
+            // let currentquestionarray = this.task.split('q');
+            // let currentquestion = parseInt(currentquestionarray[1]);
+            // location.href = `q${currentquestion + 1}.html`;
+            _this.NextAndSaveLocally();
         });
         this.cursor = new cursor(this.contextCursor, this.pen);
         this.cursor.currentTool = "DRAW";
@@ -1606,43 +1621,68 @@ var Stemcanvas = /** @class */ (function () {
     };
     Stemcanvas.prototype.saveDataLocally = function () {
         var participantDeviceTask = "".concat(this.participant, " - ").concat(this.devicetype, " - ").concat(this.task);
-        //download canvas, 
-        //this.selectedDrawnObject = null;
         this.updateDrawing();
-        var image = this.drawingcanvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
-        var anchor = document.createElement('a');
-        anchor.setAttribute('download', "canvas - .png");
-        anchor.setAttribute('href', image);
-        anchor.click();
-        //drawing data json, 
-        //Export JSON
-        var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(this.drawingdata));
-        anchor = document.createElement('a');
-        anchor.setAttribute("href", dataStr);
-        anchor.setAttribute("download", "".concat(participantDeviceTask, " - drawingdata.json"));
-        anchor.click();
-        //and session information
-        var session = new Sessioninfo();
-        session.start = this.starttimeclock;
-        session.end = new Date().toLocaleString();
-        session.startperf = this.starttimeperf;
-        session.devicetype = this.devicetype;
-        session.task = this.task;
-        session.participanttoken = this.participant;
-        var sessionoutputstring = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(session));
-        anchor = document.createElement('a');
-        anchor.setAttribute("href", sessionoutputstring);
-        anchor.setAttribute("download", "".concat(participantDeviceTask, " - sessioninfo.json"));
-        anchor.click();
+        window.open("www.google.com");
+        if (this.isios) {
+            ////////////////// SAVE PNG IMAGE FILE (will download as unknown - needs to be sent via email or something)
+            var image = this.drawingcanvas.toDataURL("image/png").replace("image/png", "image/octet-stream"); //this is dirty, but it works for now                      
+            //window.open(image);
+            //////////////////// SAVE THE SESSION INFO FILE
+            var session = new Sessioninfo();
+            session.start = this.starttimeclock;
+            session.end = new Date().toLocaleString();
+            session.startperf = this.starttimeperf;
+            session.devicetype = this.devicetype;
+            session.task = this.task;
+            session.participanttoken = this.participant;
+            var sessionoutputstring = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(session));
+            //////////////////// SAVE THE DRAWING DATA FILE
+            var packageoutput = new FileOutputPackage(); //we package the session info in so we can buddy up the files later on (just in case right. coz all the files will be named unknown!)
+            packageoutput.drawingdata = this.drawingdata;
+            packageoutput.sessioninfo = session;
+            packageoutput.imagefile = image;
+            var dataStr_1 = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(packageoutput));
+            window.open(dataStr_1);
+            var anchor = document.createElement('a');
+            anchor.setAttribute("href", dataStr_1);
+            anchor.setAttribute("download", "".concat(participantDeviceTask, " - packagedSession.json"));
+            anchor.click();
+        }
+        else {
+            //build image into a json uri
+            var image = this.drawingcanvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
+            var anchor = document.createElement('a');
+            anchor.setAttribute('download', "canvas - .png");
+            anchor.setAttribute('href', image);
+            anchor.click();
+            //Export JSON
+            var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(this.drawingdata));
+            anchor = document.createElement('a');
+            anchor.setAttribute("href", dataStr);
+            anchor.setAttribute("download", "".concat(participantDeviceTask, " - drawingdata.json"));
+            anchor.click();
+            //and session information
+            var session = new Sessioninfo();
+            session.start = this.starttimeclock;
+            session.end = new Date().toLocaleString();
+            session.startperf = this.starttimeperf;
+            session.devicetype = this.devicetype;
+            session.task = this.task;
+            session.participanttoken = this.participant;
+            var sessionoutputstring = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(session));
+            anchor = document.createElement('a');
+            anchor.setAttribute("href", sessionoutputstring);
+            anchor.setAttribute("download", "".concat(participantDeviceTask, " - sessioninfo.json"));
+            anchor.click();
+        }
     };
     Stemcanvas.prototype.NextAndSaveLocally = function () {
         var participantDeviceTask = "".concat(this.participant, " - ").concat(this.devicetype, " - ").concat(this.task);
-        console.log(participantDeviceTask);
-        //download canvas, 
         this.saveDataLocally();
         var currentquestionarray = this.task.split('q');
         var currentquestion = parseInt(currentquestionarray[1]);
-        location.href = "q".concat(currentquestion + 1, ".html");
+        var nextlink = document.getElementById("nextlink");
+        nextlink.href = "q".concat(currentquestion + 1, ".html");
     };
     Stemcanvas.prototype.debugtext = function (input) {
         this.debug.innerText = input;
@@ -2079,5 +2119,11 @@ var Sessioninfo = /** @class */ (function () {
     Sessioninfo.prototype.Sessioninfo = function () {
     };
     return Sessioninfo;
+}());
+var FileOutputPackage = /** @class */ (function () {
+    function FileOutputPackage() {
+        this.test = "is this bit showing up at least?";
+    }
+    return FileOutputPackage;
 }());
 //# sourceMappingURL=stemcanvas.js.map

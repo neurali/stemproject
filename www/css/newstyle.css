@@ -54,9 +54,18 @@
 }
 body{
     background-color: #b2dfdb;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
 .sidebar{
     height: 100vh;
+    max-height: 100vh;
+    overflow-y: scroll;
+    background-color: white !important;
 }
 .canvas-container{
     min-height: 86vh;
