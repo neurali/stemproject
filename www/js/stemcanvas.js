@@ -67,6 +67,7 @@ var Stemcanvas = /** @class */ (function () {
         requestAnimationFrame(this.mainloop.bind(this));
     }
     Stemcanvas.prototype.initialisecanvas = function () {
+        //live check:
         var _this = this;
         this.canvasbackground.style.minHeight = Canvasconstants.height + "px";
         this.canvasbackground.style.minWidth = Canvasconstants.width + "px";
@@ -107,6 +108,7 @@ var Stemcanvas = /** @class */ (function () {
             _this.selectionManager.FlushSelection();
             _this.selectionManager.fresh = false;
             _this.contextInterface.clearRect(0, 0, Canvasconstants.width, Canvasconstants.height);
+            _this.touchcount = 0; //reset touch count (as a quick fix)
         });
         this.toolbox.selectedtool = "DRAW";
         this.toolbox.selectedDrawSize = 5;
@@ -990,7 +992,6 @@ var Stemcanvas = /** @class */ (function () {
             this.drawingdata.push(this.currentstroke);
         }
         else if (this.toolbox.selectedtool == "SELECT") {
-            console.log("stop");
             //check if there is already a selected object
             if (this.selectionManager.currentlySelected != null) {
                 if (this.cursor.interacting) {
@@ -1322,6 +1323,8 @@ var Stemcanvas = /** @class */ (function () {
         // //this.redoStack = []; //todo redo stack needs ordering after undoing and then adding more content
     };
     Stemcanvas.prototype.PointerDownEvent = function (e) {
+        this.pen.X = e.pageX - (this.canvascontainer.offsetLeft) + this.canvasscrollx;
+        this.pen.Y = e.pageY - (this.canvascontainer.offsetTop) + this.canvascrolly;
         if (e.pointerType == "touch") {
             this.touchcount++;
             this.debugtext(this.touchcount);
@@ -1622,12 +1625,11 @@ var Stemcanvas = /** @class */ (function () {
     Stemcanvas.prototype.saveDataLocally = function () {
         var participantDeviceTask = "".concat(this.participant, " - ").concat(this.devicetype, " - ").concat(this.task);
         this.updateDrawing();
-        window.open("www.google.com");
         if (this.isios) {
-            ////////////////// SAVE PNG IMAGE FILE (will download as unknown - needs to be sent via email or something)
+            // SAVE PNG IMAGE FILE (will download as unknown - needs to be sent via email or something)
             var image = this.drawingcanvas.toDataURL("image/png").replace("image/png", "image/octet-stream"); //this is dirty, but it works for now                      
             //window.open(image);
-            //////////////////// SAVE THE SESSION INFO FILE
+            // SAVE THE SESSION INFO FILE
             var session = new Sessioninfo();
             session.start = this.starttimeclock;
             session.end = new Date().toLocaleString();
@@ -1677,12 +1679,13 @@ var Stemcanvas = /** @class */ (function () {
         }
     };
     Stemcanvas.prototype.NextAndSaveLocally = function () {
-        var participantDeviceTask = "".concat(this.participant, " - ").concat(this.devicetype, " - ").concat(this.task);
-        this.saveDataLocally();
+        // let participantDeviceTask = `${this.participant} - ${this.devicetype} - ${this.task}`;
         var currentquestionarray = this.task.split('q');
         var currentquestion = parseInt(currentquestionarray[1]);
-        var nextlink = document.getElementById("nextlink");
-        nextlink.href = "q".concat(currentquestion + 1, ".html");
+        var nextquestion = "q" + (currentquestion + 1) + ".html";
+        //document.location.href = (nextquestion);
+        window.open(nextquestion);
+        this.saveDataLocally();
     };
     Stemcanvas.prototype.debugtext = function (input) {
         this.debug.innerText = input;

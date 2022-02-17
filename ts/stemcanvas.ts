@@ -113,8 +113,12 @@ class Stemcanvas {
 
     initialisecanvas() {
 
+        //live check:
+        
+
         this.canvasbackground.style.minHeight = Canvasconstants.height + "px";
         this.canvasbackground.style.minWidth = Canvasconstants.width + "px";
+        
         //initialise
         this.drawingcanvas.width = Canvasconstants.width;
         this.drawingcanvas.height = Canvasconstants.height;
@@ -161,6 +165,7 @@ class Stemcanvas {
             this.selectionManager.FlushSelection();
             this.selectionManager.fresh = false;
             this.contextInterface.clearRect(0, 0, Canvasconstants.width, Canvasconstants.height);
+            this.touchcount = 0; //reset touch count (as a quick fix)
         });
         this.toolbox.selectedtool = "DRAW";
         this.toolbox.selectedDrawSize = 5;
@@ -1273,8 +1278,7 @@ class Stemcanvas {
         // }
     }
     PointerUpEvent(e: PointerEvent) {
-
-
+       
         e.preventDefault();
 
         if (e.pointerType == "touch") {
@@ -1296,7 +1300,7 @@ class Stemcanvas {
             this.drawingdata.push(this.currentstroke);
         }
         else if (this.toolbox.selectedtool == "SELECT") {
-            console.log("stop");
+            
             //check if there is already a selected object
             if (this.selectionManager.currentlySelected != null) {
 
@@ -1719,7 +1723,10 @@ class Stemcanvas {
     }
     PointerDownEvent(e: PointerEvent) {
 
+        this.pen.X = e.pageX - (this.canvascontainer.offsetLeft) + this.canvasscrollx;
+        this.pen.Y = e.pageY - (this.canvascontainer.offsetTop) + this.canvascrolly;
 
+        
 
 
         if (e.pointerType == "touch") {
@@ -2123,18 +2130,17 @@ class Stemcanvas {
     saveDataLocally() {
 
         let participantDeviceTask = `${this.participant} - ${this.devicetype} - ${this.task}`;
-        this.updateDrawing();
-        window.open("www.google.com");
+        this.updateDrawing();        
 
         if (this.isios) {
 
 
-            ////////////////// SAVE PNG IMAGE FILE (will download as unknown - needs to be sent via email or something)
+            // SAVE PNG IMAGE FILE (will download as unknown - needs to be sent via email or something)
             let image = this.drawingcanvas.toDataURL("image/png").replace("image/png", "image/octet-stream");  //this is dirty, but it works for now                      
             //window.open(image);
 
 
-            //////////////////// SAVE THE SESSION INFO FILE
+            // SAVE THE SESSION INFO FILE
             let session = new Sessioninfo();
             session.start = this.starttimeclock
             session.end = new Date().toLocaleString();
@@ -2159,11 +2165,9 @@ class Stemcanvas {
             anchor.setAttribute("href", dataStr);
             anchor.setAttribute("download", `${participantDeviceTask} - packagedSession.json`);
             anchor.click();
-
             
         }
         else {
-
             //build image into a json uri
             let image = this.drawingcanvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
             var anchor = document.createElement('a');
@@ -2190,7 +2194,6 @@ class Stemcanvas {
             anchor.setAttribute("href", sessionoutputstring);
             anchor.setAttribute("download", `${participantDeviceTask} - sessioninfo.json`);
             anchor.click();
-
         }
 
 
@@ -2199,16 +2202,18 @@ class Stemcanvas {
     }
 
     NextAndSaveLocally() {
-        let participantDeviceTask = `${this.participant} - ${this.devicetype} - ${this.task}`;
+        // let participantDeviceTask = `${this.participant} - ${this.devicetype} - ${this.task}`;
 
-        this.saveDataLocally()
+         
 
-        let currentquestionarray = this.task.split('q');
-        let currentquestion = parseInt(currentquestionarray[1]);
-
-
-        let nextlink = document.getElementById("nextlink") as HTMLAnchorElement;
-        nextlink.href = `q${currentquestion + 1}.html`;
+         let currentquestionarray = this.task.split('q');
+         let currentquestion = parseInt(currentquestionarray[1]);
+         let nextquestion = "q" +(currentquestion +1 ) + ".html";
+         //document.location.href = (nextquestion);
+         window.open(nextquestion);
+        
+         
+         this.saveDataLocally()
     }
 
 

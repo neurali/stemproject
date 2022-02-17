@@ -169,7 +169,7 @@ body{
     cursor: none;
 }
 .canvasbackground{
-    background-image: url('../media/canvasBG/bg.png') ;
+    background-image: url('../media/canvasBG/blank.png') ;
     pointer-events: none;
     position: absolute;
     cursor: none;    

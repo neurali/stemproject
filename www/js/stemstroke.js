@@ -41,6 +41,9 @@ var StemDrawnObject = /** @class */ (function () {
         return this.cachedBoundingBox;
     };
     StemDrawnObject.prototype.getPixelLength = function () {
+        if (this.points.length == 0) {
+            return 0;
+        }
         var first = this.points[0];
         var last = this.points[this.points.length - 1];
         var width = Math.abs(first.x - last.x);

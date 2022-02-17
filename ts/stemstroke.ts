@@ -39,6 +39,10 @@ class StemDrawnObject {
         return this.cachedBoundingBox;
     }
     getPixelLength(){
+        if(this.points.length == 0)
+        {
+            return 0;
+        }
         let first = this.points[0];
         let last = this.points[this.points.length -1];
 
