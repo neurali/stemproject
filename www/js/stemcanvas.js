@@ -152,7 +152,7 @@ var Stemcanvas = /** @class */ (function () {
             _this.canvasBackgroundSwitch("blank");
         });
         document.getElementById("btnSave").addEventListener("click", function () {
-            _this.saveDataLocally();
+            _this.uploadData();
         });
         //cant use this as ios wont let you push the user to a new location (need to apply the link on load I guess) see below
         document.getElementById("btnNext").addEventListener("click", function () {
@@ -1622,7 +1622,7 @@ var Stemcanvas = /** @class */ (function () {
             timertext.innerText = "".concat(hours, "h  ").concat(minutes, "m  ").concat(seconds, "s");
         }, 2000);
     };
-    Stemcanvas.prototype.saveDataLocally = function () {
+    Stemcanvas.prototype.uploadData = function () {
         var participantDeviceTask = "".concat(this.participant, " - ").concat(this.devicetype, " - ").concat(this.task);
         this.updateDrawing();
         // if (this.isios)
@@ -1653,7 +1653,7 @@ var Stemcanvas = /** @class */ (function () {
         debugger;
         //create post request to send the data to the server:
         var xhr = new XMLHttpRequest();
-        var url = "www.enk.nz/test/upload.php";
+        var url = "/upload.php";
         xhr.open("POST", url, true);
         xhr.setRequestHeader("Content-Type", "application/json");
         xhr.onreadystatechange = function () {
@@ -1699,7 +1699,7 @@ var Stemcanvas = /** @class */ (function () {
         var nextquestion = "q" + (currentquestion + 1) + ".html";
         //document.location.href = (nextquestion);
         window.open(nextquestion);
-        this.saveDataLocally();
+        this.uploadData();
     };
     Stemcanvas.prototype.debugtext = function (input) {
         this.debug.innerText = input;

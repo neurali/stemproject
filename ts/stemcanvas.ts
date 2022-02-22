@@ -220,7 +220,7 @@ class Stemcanvas {
         })
 
         document.getElementById("btnSave").addEventListener("click", () => {
-            this.saveDataLocally();
+            this.uploadData();
         })
         //cant use this as ios wont let you push the user to a new location (need to apply the link on load I guess) see below
         document.getElementById("btnNext").addEventListener("click", () => {
@@ -1296,7 +1296,6 @@ class Stemcanvas {
             this.currentstroke.UpdateBoundingBox("PointerUpEvent 'DRAW'");
             this.currentstroke.strokecolour = this.toolbox.selectedColour;
             this.currentstroke.strokewidth = this.toolbox.selectedDrawSize;
-
             this.drawingdata.push(this.currentstroke);
         }
         else if (this.toolbox.selectedtool == "SELECT") {
@@ -2127,7 +2126,7 @@ class Stemcanvas {
 
     }
 
-    saveDataLocally() {
+    uploadData() {
 
         let participantDeviceTask = `${this.participant} - ${this.devicetype} - ${this.task}`;
         this.updateDrawing();        
@@ -2169,7 +2168,7 @@ class Stemcanvas {
             debugger;
             //create post request to send the data to the server:
             let xhr = new XMLHttpRequest();
-            var url = "www.enk.nz/test/upload.php";
+            var url = "/upload.php";
             xhr.open("POST",url,true);
             xhr.setRequestHeader("Content-Type", "application/json");
             xhr.onreadystatechange = function () {
@@ -2230,7 +2229,7 @@ class Stemcanvas {
          window.open(nextquestion);
         
          
-         this.saveDataLocally()
+         this.uploadData()
     }
 
 
