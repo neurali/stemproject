@@ -2132,7 +2132,7 @@ class Stemcanvas {
         let participantDeviceTask = `${this.participant} - ${this.devicetype} - ${this.task}`;
         this.updateDrawing();        
 
-        if (this.isios) {
+        // if (this.isios)
 
 
             // SAVE PNG IMAGE FILE (will download as unknown - needs to be sent via email or something)
@@ -2148,7 +2148,7 @@ class Stemcanvas {
             session.devicetype = this.devicetype;
             session.task = this.task;
             session.participanttoken = this.participant;
-            let sessionoutputstring = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(session));
+            //let sessionoutputstring = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(session));
             
             
             //////////////////// SAVE THE DRAWING DATA FILE
@@ -2158,43 +2158,60 @@ class Stemcanvas {
             packageoutput.sessioninfo = session;
             packageoutput.imagefile = image;
 
-            let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(packageoutput));
-            window.open(dataStr);
+            // let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(packageoutput));
+            let dataStr = JSON.stringify(packageoutput);
+            //window.open(dataStr);
 
-            var anchor = document.createElement('a');
-            anchor.setAttribute("href", dataStr);
-            anchor.setAttribute("download", `${participantDeviceTask} - packagedSession.json`);
-            anchor.click();
+            // var anchor = document.createElement('a');
+            // anchor.setAttribute("href", dataStr);
+            // anchor.setAttribute("download", `${participantDeviceTask} - packagedSession.json`);
+            // anchor.click();
+            debugger;
+            //create post request to send the data to the server:
+            let xhr = new XMLHttpRequest();
+            var url = "www.enk.nz/test/upload.php";
+            xhr.open("POST",url,true);
+            xhr.setRequestHeader("Content-Type", "application/json");
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    var json = JSON.parse(xhr.responseText);
+                    console.log(json.email + ", " + json.password);
+                }
+            };
             
-        }
-        else {
-            //build image into a json uri
-            let image = this.drawingcanvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
-            var anchor = document.createElement('a');
-            anchor.setAttribute('download', `canvas - .png`);
-            anchor.setAttribute('href', image);
-            anchor.click();
-            //Export JSON
-            var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(this.drawingdata));
-            anchor = document.createElement('a');
-            anchor.setAttribute("href", dataStr);
-            anchor.setAttribute("download", `${participantDeviceTask} - drawingdata.json`);
-            anchor.click();
-            //and session information
-            let session = new Sessioninfo();
-            session.start = this.starttimeclock
-            session.end = new Date().toLocaleString();
-            session.startperf = this.starttimeperf;
-            session.devicetype = this.devicetype;
-            session.task = this.task;
-            session.participanttoken = this.participant;
+            xhr.send(dataStr);
+            console.log(xhr.response);
 
-            let sessionoutputstring = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(session));
-            anchor = document.createElement('a');
-            anchor.setAttribute("href", sessionoutputstring);
-            anchor.setAttribute("download", `${participantDeviceTask} - sessioninfo.json`);
-            anchor.click();
-        }
+            
+        
+        // else {
+        //     //build image into a json uri
+        //     let image = this.drawingcanvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
+        //     var anchor = document.createElement('a');
+        //     anchor.setAttribute('download', `canvas - .png`);
+        //     anchor.setAttribute('href', image);
+        //     anchor.click();
+        //     //Export JSON
+        //     var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(this.drawingdata));
+        //     anchor = document.createElement('a');
+        //     anchor.setAttribute("href", dataStr);
+        //     anchor.setAttribute("download", `${participantDeviceTask} - drawingdata.json`);
+        //     anchor.click();
+        //     //and session information
+        //     let session = new Sessioninfo();
+        //     session.start = this.starttimeclock
+        //     session.end = new Date().toLocaleString();
+        //     session.startperf = this.starttimeperf;
+        //     session.devicetype = this.devicetype;
+        //     session.task = this.task;
+        //     session.participanttoken = this.participant;
+
+        //     let sessionoutputstring = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(session));
+        //     anchor = document.createElement('a');
+        //     anchor.setAttribute("href", sessionoutputstring);
+        //     anchor.setAttribute("download", `${participantDeviceTask} - sessioninfo.json`);
+        //     anchor.click();
+        // }
 
 
 

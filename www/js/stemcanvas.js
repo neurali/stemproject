@@ -1625,58 +1625,72 @@ var Stemcanvas = /** @class */ (function () {
     Stemcanvas.prototype.saveDataLocally = function () {
         var participantDeviceTask = "".concat(this.participant, " - ").concat(this.devicetype, " - ").concat(this.task);
         this.updateDrawing();
-        if (this.isios) {
-            // SAVE PNG IMAGE FILE (will download as unknown - needs to be sent via email or something)
-            var image = this.drawingcanvas.toDataURL("image/png").replace("image/png", "image/octet-stream"); //this is dirty, but it works for now                      
-            //window.open(image);
-            // SAVE THE SESSION INFO FILE
-            var session = new Sessioninfo();
-            session.start = this.starttimeclock;
-            session.end = new Date().toLocaleString();
-            session.startperf = this.starttimeperf;
-            session.devicetype = this.devicetype;
-            session.task = this.task;
-            session.participanttoken = this.participant;
-            var sessionoutputstring = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(session));
-            //////////////////// SAVE THE DRAWING DATA FILE
-            var packageoutput = new FileOutputPackage(); //we package the session info in so we can buddy up the files later on (just in case right. coz all the files will be named unknown!)
-            packageoutput.drawingdata = this.drawingdata;
-            packageoutput.sessioninfo = session;
-            packageoutput.imagefile = image;
-            var dataStr_1 = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(packageoutput));
-            window.open(dataStr_1);
-            var anchor = document.createElement('a');
-            anchor.setAttribute("href", dataStr_1);
-            anchor.setAttribute("download", "".concat(participantDeviceTask, " - packagedSession.json"));
-            anchor.click();
-        }
-        else {
-            //build image into a json uri
-            var image = this.drawingcanvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
-            var anchor = document.createElement('a');
-            anchor.setAttribute('download', "canvas - .png");
-            anchor.setAttribute('href', image);
-            anchor.click();
-            //Export JSON
-            var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(this.drawingdata));
-            anchor = document.createElement('a');
-            anchor.setAttribute("href", dataStr);
-            anchor.setAttribute("download", "".concat(participantDeviceTask, " - drawingdata.json"));
-            anchor.click();
-            //and session information
-            var session = new Sessioninfo();
-            session.start = this.starttimeclock;
-            session.end = new Date().toLocaleString();
-            session.startperf = this.starttimeperf;
-            session.devicetype = this.devicetype;
-            session.task = this.task;
-            session.participanttoken = this.participant;
-            var sessionoutputstring = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(session));
-            anchor = document.createElement('a');
-            anchor.setAttribute("href", sessionoutputstring);
-            anchor.setAttribute("download", "".concat(participantDeviceTask, " - sessioninfo.json"));
-            anchor.click();
-        }
+        // if (this.isios)
+        // SAVE PNG IMAGE FILE (will download as unknown - needs to be sent via email or something)
+        var image = this.drawingcanvas.toDataURL("image/png").replace("image/png", "image/octet-stream"); //this is dirty, but it works for now                      
+        //window.open(image);
+        // SAVE THE SESSION INFO FILE
+        var session = new Sessioninfo();
+        session.start = this.starttimeclock;
+        session.end = new Date().toLocaleString();
+        session.startperf = this.starttimeperf;
+        session.devicetype = this.devicetype;
+        session.task = this.task;
+        session.participanttoken = this.participant;
+        //let sessionoutputstring = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(session));
+        //////////////////// SAVE THE DRAWING DATA FILE
+        var packageoutput = new FileOutputPackage(); //we package the session info in so we can buddy up the files later on (just in case right. coz all the files will be named unknown!)
+        packageoutput.drawingdata = this.drawingdata;
+        packageoutput.sessioninfo = session;
+        packageoutput.imagefile = image;
+        // let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(packageoutput));
+        var dataStr = JSON.stringify(packageoutput);
+        //window.open(dataStr);
+        // var anchor = document.createElement('a');
+        // anchor.setAttribute("href", dataStr);
+        // anchor.setAttribute("download", `${participantDeviceTask} - packagedSession.json`);
+        // anchor.click();
+        debugger;
+        //create post request to send the data to the server:
+        var xhr = new XMLHttpRequest();
+        var url = "www.enk.nz/test/upload.php";
+        xhr.open("POST", url, true);
+        xhr.setRequestHeader("Content-Type", "application/json");
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                var json = JSON.parse(xhr.responseText);
+                console.log(json.email + ", " + json.password);
+            }
+        };
+        xhr.send(dataStr);
+        console.log(xhr.response);
+        // else {
+        //     //build image into a json uri
+        //     let image = this.drawingcanvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
+        //     var anchor = document.createElement('a');
+        //     anchor.setAttribute('download', `canvas - .png`);
+        //     anchor.setAttribute('href', image);
+        //     anchor.click();
+        //     //Export JSON
+        //     var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(this.drawingdata));
+        //     anchor = document.createElement('a');
+        //     anchor.setAttribute("href", dataStr);
+        //     anchor.setAttribute("download", `${participantDeviceTask} - drawingdata.json`);
+        //     anchor.click();
+        //     //and session information
+        //     let session = new Sessioninfo();
+        //     session.start = this.starttimeclock
+        //     session.end = new Date().toLocaleString();
+        //     session.startperf = this.starttimeperf;
+        //     session.devicetype = this.devicetype;
+        //     session.task = this.task;
+        //     session.participanttoken = this.participant;
+        //     let sessionoutputstring = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(session));
+        //     anchor = document.createElement('a');
+        //     anchor.setAttribute("href", sessionoutputstring);
+        //     anchor.setAttribute("download", `${participantDeviceTask} - sessioninfo.json`);
+        //     anchor.click();
+        // }
     };
     Stemcanvas.prototype.NextAndSaveLocally = function () {
         // let participantDeviceTask = `${this.participant} - ${this.devicetype} - ${this.task}`;
