@@ -22,26 +22,63 @@
     <div class="wrapper">
 
         <!-- whole page -->
-        <div class="row notbotmarg teal lighten-4">
-
+        <div class="row notbotmarg teal lighten-4 ">
 
             <!-- Left -->
-            <div class="col s10 teal lighten-5">
+            <div class="col s10 teal lighten-5 flexbox">
 
-                <!-- Question -->
-                <div class="row questionspace">
-                    <div class="col s12 ">
-                        <div class="col s2">
-                            <h5>Question Three</h5>
+
+                <div id="question">
+
+                    <div class="row" id="questioncontainer">
+                        <div class="col s1"> 
+                            <p id="questionheader"><strong>Q3: </strong> </p>
                         </div>
-                        <div class="col s10 question-container ">
-                            <p class="">
-                                A 30 cm ruler is accidently broken into two pieces. The shorter piece is 5 cm less than the longer piece. Solve the equation to find the length of both the pieces. Show all working. 
-                            </p>
-                            
+
+                        <div class="col s10">
+
+                            <div id="questiontext" class="truncate question-hide">
+                                Sam wants to enlarge a rectangle with a width of 5cm and a length of 20cm. The new rectangle has a width of 10cm.  Please draw diagrams and show all working
+
+                                <br>
+                                <div class="col s1">
+                                    <p>(a)</p>
+                                  </div>
+                
+                                  <div class="col s11">
+                                    <p>If these two shapes are similar (similar figures) what is the length of the new rectangle?
+                                    </p>
+                                  </div>
+                
+                                  <div class="col s1">
+                                    <p>(b)</p>
+                                  </div>
+                
+                                  <div class="col s11">
+                                    <p>What is the combined area of both rectangles? 
+                                    </p>
+                                  </div>
+                               
+                            </div>
                         </div>
+                        
+                        <div class="col s1 valign-wrapper">
+                            <br><br><br>
+                            <a id="showmore">+</a>
+                        </div>
+    
+                        
                     </div>
+                    
+
+
+
                 </div>
+
+
+
+
+
 
                 <!-- THE CANVAS OBJECT -->
                 <!-- THE CANVAS OBJECT -->
@@ -118,7 +155,7 @@
                             <i class="icofont-pencil-alt-2 material-icons left"></i>Draw
                         </a>
 
-                        <a class="hidden" id="btnErase" class="waves-effect waves-dark btn tool tooltipped hoverable"
+                        <a id="btnErase" class="waves-effect waves-dark btn tool tooltipped hoverable"
                             data-position="left" data-tooltip="Click to erase objects">
                             <i class="icofont-eraser material-icons left"></i>Erase
                         </a>
@@ -127,7 +164,7 @@
                             data-position="left" data-tooltip="Click to select objects">
                             <i class="material-icons left">select_all</i>Select</a>
 
-                        <a id="btnText" class="waves-effect waves-dark btn tool tooltipped hoverable"
+                        <a class="hidden" id="btnText" class="waves-effect waves-dark btn tool tooltipped hoverable"
                             data-position="left" data-tooltip="Add text">
                             <i class=" material-icons left">title</i>Text</a>
 
@@ -242,44 +279,44 @@
                     </div>
                 </div>
 
-            
-            <br>
 
-            <!-- Save & Next  -->
-            <div class="row center-align fullwidth">
+                <br>
 
-                <div id="btnSave" class="col s6">
-                    <a class="waves-effect waves-dark btn">Save</a>
+                <!-- Save & Next  -->
+                <div class="row center-align fullwidth">
+
+                    <div id="btnSave" class="col s6">
+                        <a class="waves-effect waves-dark btn">Save</a>
+                    </div>
+                    <div id="btnNext" class="col s6">
+                        <a id="nextlink" class="waves-effect waves-light btn">Next</a>
+                    </div>
+
                 </div>
-                <div id="btnNext" class="col s6 ">
-                    <a id="nextlink" class="waves-effect waves-light btn">Next</a>
-                </div>
+
+                <p id="debug" class="hidden">debug</p>
 
             </div>
 
-            <p id="debug" class="hidden">debug</p>
+
+
+
 
         </div>
 
+        <!-- Modal Structure -->
+        <div id="clear-warning" class="modal small-modal">
+            <div class="modal-content">
+                <h4>Clear the canvas</h4>
+                <p>You will lose all your work</p>
+                <p>This <strong>cannot</strong> be undone</p>
+            </div>
+            <div class="modal-footer">
+                <a id="btnConfirmClear" class="modal-close waves-effect  teal btn">Clear canvas</a>
+                <a href="#" class="modal-close waves-effect red btn">Cancel</a>
+            </div>
 
-
-
-
-    </div>
-
-    <!-- Modal Structure -->
-    <div id="clear-warning" class="modal small-modal">
-        <div class="modal-content">
-            <h4>Clear the canvas</h4>
-            <p>You will lose all your work</p>
-            <p>This <strong>cannot</strong> be undone</p>
         </div>
-        <div class="modal-footer">
-            <a id="btnConfirmClear" class="modal-close waves-effect  teal btn">Clear canvas</a>
-            <a href="#" class="modal-close waves-effect red btn">Cancel</a>
-        </div>
-
-    </div>
 
 
     </div>

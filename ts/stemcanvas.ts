@@ -178,6 +178,7 @@ class Stemcanvas {
         this.drawingcanvas.addEventListener("pointerdown", this.PointerDownEvent.bind(this));
         this.drawingcanvas.addEventListener("pointerup", this.PointerUpEvent.bind(this));
         this.drawingcanvas.addEventListener("pointerleave", this.PointerLeaveEvent.bind(this));
+        this.drawingcanvas.addEventListener("touchstart",(e)=>{e.preventDefault()});
 
         this.canvascontainer.addEventListener('scroll', (e) => {
             this.canvascrolly = this.canvascontainer.scrollTop;
@@ -238,6 +239,7 @@ class Stemcanvas {
             let questioncontainer = document.getElementById("questioncontainer") as HTMLElement;
             let viewportheight = window.innerHeight;
             let canvascontainer = document.getElementById("canvas-scroll-container");
+            let showmorelabel = document.getElementById("showmore") as HTMLElement;
             
             if(showingmore == false)
             {
@@ -249,7 +251,9 @@ class Stemcanvas {
                 let questioncontainerbounds = questioncontainer.getBoundingClientRect();
                 let bottom = questioncontainerbounds.bottom;
                 let remainingspace = viewportheight - bottom;
-                canvascontainer.style.height = ""+remainingspace;
+                console.log(remainingspace);
+                canvascontainer.style.height = "" + (remainingspace - 20) + "px";
+                showmorelabel.innerText = "-";
 
                 //now set max height of the canvas container to the remaining space on screen
                 
@@ -262,7 +266,10 @@ class Stemcanvas {
                 //get height of question row
                 let questioncontainerbounds = questioncontainer.getBoundingClientRect();
                 let bottom = questioncontainerbounds.bottom;
-                console.log(bottom);
+                let remainingspace = viewportheight - bottom;
+                console.log(remainingspace);
+                canvascontainer.style.height = "" + (remainingspace - 20) + "px";
+                showmorelabel.innerText = "+";
 
             }
         });
@@ -1075,6 +1082,7 @@ class Stemcanvas {
 
     //canvas interaction events
     PointerEnterEvent(e: PointerEvent) {
+        e.preventDefault();
         this.pen.onCanvas = true;
         // this.pen.X = e.pageX - this.drawingcanvas.offsetLeft + scrollX
         // this.pen.pressure = e.pressure;
@@ -1088,6 +1096,7 @@ class Stemcanvas {
     }
     PointerMoveEvent(e: PointerEvent) {
 
+        e.preventDefault();
         this.pen.X = e.pageX - (this.canvascontainer.offsetLeft) + this.canvasscrollx;
         this.pen.Y = e.pageY - (this.canvascontainer.offsetTop) + this.canvascrolly;
         this.pen.pressure = e.pressure;
@@ -1790,6 +1799,8 @@ class Stemcanvas {
     }
     PointerDownEvent(e: PointerEvent) {
 
+        e.preventDefault();
+        console.log("pointer down");
         this.pen.X = e.pageX - (this.canvascontainer.offsetLeft) + this.canvasscrollx;
         this.pen.Y = e.pageY - (this.canvascontainer.offsetTop) + this.canvascrolly;
 
@@ -2006,6 +2017,7 @@ class Stemcanvas {
         //todo set colour and width        
     }
     PointerLeaveEvent(e: PointerEvent) {
+        e.preventDefault();
         this.pen.onCanvas = false;
     }
 
@@ -2187,7 +2199,7 @@ class Stemcanvas {
             var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
             var seconds = Math.floor((distance % (1000 * 60)) / 1000);
 
-            timertext.innerText = `${hours}h  ${minutes}m  ${seconds}s`;
+            //timertext.innerText = `${hours}h  ${minutes}m  ${seconds}s`;
         }
             , 2000);
 

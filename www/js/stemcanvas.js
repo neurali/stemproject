@@ -118,6 +118,7 @@ var Stemcanvas = /** @class */ (function () {
         this.drawingcanvas.addEventListener("pointerdown", this.PointerDownEvent.bind(this));
         this.drawingcanvas.addEventListener("pointerup", this.PointerUpEvent.bind(this));
         this.drawingcanvas.addEventListener("pointerleave", this.PointerLeaveEvent.bind(this));
+        this.drawingcanvas.addEventListener("touchstart", function (e) { e.preventDefault(); });
         this.canvascontainer.addEventListener('scroll', function (e) {
             _this.canvascrolly = _this.canvascontainer.scrollTop;
             _this.canvasscrollx = _this.canvascontainer.scrollLeft;
@@ -167,6 +168,7 @@ var Stemcanvas = /** @class */ (function () {
             var questioncontainer = document.getElementById("questioncontainer");
             var viewportheight = window.innerHeight;
             var canvascontainer = document.getElementById("canvas-scroll-container");
+            var showmorelabel = document.getElementById("showmore");
             if (showingmore == false) {
                 //remove max-height from question text
                 showingmore = true;
@@ -175,7 +177,9 @@ var Stemcanvas = /** @class */ (function () {
                 var questioncontainerbounds = questioncontainer.getBoundingClientRect();
                 var bottom = questioncontainerbounds.bottom;
                 var remainingspace = viewportheight - bottom;
-                canvascontainer.style.height = "" + remainingspace;
+                console.log(remainingspace);
+                canvascontainer.style.height = "" + (remainingspace - 20) + "px";
+                showmorelabel.innerText = "-";
                 //now set max height of the canvas container to the remaining space on screen
             }
             else {
@@ -185,7 +189,10 @@ var Stemcanvas = /** @class */ (function () {
                 //get height of question row
                 var questioncontainerbounds = questioncontainer.getBoundingClientRect();
                 var bottom = questioncontainerbounds.bottom;
-                console.log(bottom);
+                var remainingspace = viewportheight - bottom;
+                console.log(remainingspace);
+                canvascontainer.style.height = "" + (remainingspace - 20) + "px";
+                showmorelabel.innerText = "+";
             }
         });
         this.cursor = new cursor(this.contextCursor, this.pen);
@@ -817,6 +824,7 @@ var Stemcanvas = /** @class */ (function () {
     };
     //canvas interaction events
     Stemcanvas.prototype.PointerEnterEvent = function (e) {
+        e.preventDefault();
         this.pen.onCanvas = true;
         // this.pen.X = e.pageX - this.drawingcanvas.offsetLeft + scrollX
         // this.pen.pressure = e.pressure;
@@ -828,6 +836,7 @@ var Stemcanvas = /** @class */ (function () {
     };
     Stemcanvas.prototype.PointerMoveEvent = function (e) {
         var _this = this;
+        e.preventDefault();
         this.pen.X = e.pageX - (this.canvascontainer.offsetLeft) + this.canvasscrollx;
         this.pen.Y = e.pageY - (this.canvascontainer.offsetTop) + this.canvascrolly;
         this.pen.pressure = e.pressure;
@@ -1378,6 +1387,8 @@ var Stemcanvas = /** @class */ (function () {
         // //this.redoStack = []; //todo redo stack needs ordering after undoing and then adding more content
     };
     Stemcanvas.prototype.PointerDownEvent = function (e) {
+        e.preventDefault();
+        console.log("pointer down");
         this.pen.X = e.pageX - (this.canvascontainer.offsetLeft) + this.canvasscrollx;
         this.pen.Y = e.pageY - (this.canvascontainer.offsetTop) + this.canvascrolly;
         if (e.pointerType == "touch") {
@@ -1536,6 +1547,7 @@ var Stemcanvas = /** @class */ (function () {
         //todo set colour and width        
     };
     Stemcanvas.prototype.PointerLeaveEvent = function (e) {
+        e.preventDefault();
         this.pen.onCanvas = false;
     };
     Stemcanvas.prototype.crystaliseDrawing = function () {
@@ -1674,7 +1686,7 @@ var Stemcanvas = /** @class */ (function () {
             var hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
             var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
             var seconds = Math.floor((distance % (1000 * 60)) / 1000);
-            timertext.innerText = "".concat(hours, "h  ").concat(minutes, "m  ").concat(seconds, "s");
+            //timertext.innerText = `${hours}h  ${minutes}m  ${seconds}s`;
         }, 2000);
     };
     Stemcanvas.prototype.uploadData = function () {

@@ -22,26 +22,46 @@
     <div class="wrapper">
 
         <!-- whole page -->
-        <div class="row notbotmarg teal lighten-4">
-
+        <div class="row notbotmarg teal lighten-4 ">
 
             <!-- Left -->
-            <div class="col s10 teal lighten-5">
+            <div class="col s10 teal lighten-5 flexbox">
 
-                <!-- Question -->
-                <div class="row questionspace">
-                    <div class="col s12 ">
-                        <div class="col s2">
-                            <h5>Question Three</h5>
+
+                <div id="question">
+
+                    <div class="row" id="questioncontainer">
+                        <div class="col s1"> 
+                            <p id="questionheader"><strong>Q3: </strong> </p>
                         </div>
-                        <div class="col s10 question-container ">
-                            <!-- QUESTION TITLE -->
-                            <p class=""> 
+
+                        <div class="col s10">
+
+                            <div id="questiontext" class="truncate question-hide">
                                 Find a number such that if 3 is added to it and this sum is divided by 3, the result is the same as subtracting 1 from double the number. Show all working. 
-                            </p>
+
+                                <br>
+                                
+                            </div>
                         </div>
+                        
+                        <div class="col s1 valign-wrapper">
+                            <br><br><br>
+                            <a id="showmore">+</a>
+                        </div>
+    
+                        
                     </div>
+                    
+
+
+
                 </div>
+
+
+
+
+
 
                 <!-- THE CANVAS OBJECT -->
                 <!-- THE CANVAS OBJECT -->
@@ -242,44 +262,44 @@
                     </div>
                 </div>
 
-            
-            <br>
 
-            <!-- Save & Next  -->
-            <div class="row center-align fullwidth">
+                <br>
 
-                <div id="btnSave" class="col s6">
-                    <a class="waves-effect waves-dark btn">Save</a>
+                <!-- Save & Next  -->
+                <div class="row center-align fullwidth">
+
+                    <div id="btnSave" class="col s6">
+                        <a class="waves-effect waves-dark btn">Save</a>
+                    </div>
+                    <div id="btnNext" class="col s6">
+                        <a id="nextlink" class="waves-effect waves-light btn">Next</a>
+                    </div>
+
                 </div>
-                <div id="btnNext" class="col s6 ">
-                    <a id="nextlink" class="waves-effect waves-light btn">Next</a>
-                </div>
+
+                <p id="debug" class="hidden">debug</p>
 
             </div>
 
-            <p id="debug" class="hidden">debug</p>
+
+
+
 
         </div>
 
+        <!-- Modal Structure -->
+        <div id="clear-warning" class="modal small-modal">
+            <div class="modal-content">
+                <h4>Clear the canvas</h4>
+                <p>You will lose all your work</p>
+                <p>This <strong>cannot</strong> be undone</p>
+            </div>
+            <div class="modal-footer">
+                <a id="btnConfirmClear" class="modal-close waves-effect  teal btn">Clear canvas</a>
+                <a href="#" class="modal-close waves-effect red btn">Cancel</a>
+            </div>
 
-
-
-
-    </div>
-
-    <!-- Modal Structure -->
-    <div id="clear-warning" class="modal small-modal">
-        <div class="modal-content">
-            <h4>Clear the canvas</h4>
-            <p>You will lose all your work</p>
-            <p>This <strong>cannot</strong> be undone</p>
         </div>
-        <div class="modal-footer">
-            <a id="btnConfirmClear" class="modal-close waves-effect  teal btn">Clear canvas</a>
-            <a href="#" class="modal-close waves-effect red btn">Cancel</a>
-        </div>
-
-    </div>
 
 
     </div>

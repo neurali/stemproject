@@ -15,70 +15,33 @@
 
 <body>
 
-    <p data-participant="" data-tasknumber="q5" id="sessioninfo" class="hide">temp session info</p>
+    <p data-participant="" data-tasknumber="q3" id="sessioninfo" class="hide">temp session info</p>
 
     <a href="#" class="hide" id="lblParticipant">Participant: </a></li>
 
     <div class="wrapper">
 
         <!-- whole page -->
-        <div class="row notbotmarg teal lighten-4 ">
+        <div class="row notbotmarg teal lighten-4">
+
 
             <!-- Left -->
-            <div class="col s10 teal lighten-5 flexbox">
+            <div class="col s10 teal lighten-5">
 
-
-                <div id="question">
-
-                    <div class="row" id="questioncontainer">
-                        <div class="col s1"> 
-                            <p id="questionheader"><strong>Q2: </strong> </p>
+                <!-- Question -->
+                <div class="row questionspace">
+                    <div class="col s12 ">
+                        <div class="col s2">
+                            <h5>Question Three</h5>
                         </div>
-
-                        <div class="col s10">
-
-                            <div id="questiontext" class="truncate question-hide">
-                                An airplane takes off from runway A and reaches its maximum altitude of 10 kilometres. At this point the plane has travelled 30 kilometres east. Please draw a diagram and show all working
-
-                                <br>
-                                <div class="col s1">
-                                    <p>(a)</p>
-                                  </div>
-                
-                                  <div class="col s11">
-                                    <p>What is the actual distance the plane has travelled, from take off to its maximum altitude? 
-                                    </p>
-                                  </div>
-                
-                                  <div class="col s1">
-                                    <p>(b)</p>
-                                  </div>
-                
-                                  <div class="col s11">
-                                    <p>What is the angle that the plane takes off from? (Trigonometry) 
-                                    </p>
-                                  </div>
-                               
-                            </div>
+                        <div class="col s10 question-container ">
+                            <!-- QUESTION TITLE -->
+                            <p class=""> 
+                                Find a number such that if 3 is added to it and this sum is divided by 3, the result is the same as subtracting 1 from double the number. Show all working. 
+                            </p>
                         </div>
-                        
-                        <div class="col s1 valign-wrapper">
-                            <br><br><br>
-                            <a id="showmore">+</a>
-                        </div>
-    
-                        
                     </div>
-                    
-
-
-
                 </div>
-
-
-
-
-
 
                 <!-- THE CANVAS OBJECT -->
                 <!-- THE CANVAS OBJECT -->
@@ -279,44 +242,44 @@
                     </div>
                 </div>
 
+            
+            <br>
 
-                <br>
+            <!-- Save & Next  -->
+            <div class="row center-align fullwidth">
 
-                <!-- Save & Next  -->
-                <div class="row center-align fullwidth">
-
-                    <div id="btnSave" class="col s6">
-                        <a class="waves-effect waves-dark btn">Save</a>
-                    </div>
-                    <div id="btnNext" class="col s6">
-                        <a id="nextlink" class="waves-effect waves-light btn">Next</a>
-                    </div>
-
+                <div id="btnSave" class="col s6">
+                    <a class="waves-effect waves-dark btn">Save</a>
+                </div>
+                <div id="btnNext" class="col s6 ">
+                    <a id="nextlink" class="waves-effect waves-light btn">Next</a>
                 </div>
 
-                <p id="debug" class="hidden">debug</p>
-
             </div>
 
-
-
-
+            <p id="debug" class="hidden">debug</p>
 
         </div>
 
-        <!-- Modal Structure -->
-        <div id="clear-warning" class="modal small-modal">
-            <div class="modal-content">
-                <h4>Clear the canvas</h4>
-                <p>You will lose all your work</p>
-                <p>This <strong>cannot</strong> be undone</p>
-            </div>
-            <div class="modal-footer">
-                <a id="btnConfirmClear" class="modal-close waves-effect  teal btn">Clear canvas</a>
-                <a href="#" class="modal-close waves-effect red btn">Cancel</a>
-            </div>
 
+
+
+
+    </div>
+
+    <!-- Modal Structure -->
+    <div id="clear-warning" class="modal small-modal">
+        <div class="modal-content">
+            <h4>Clear the canvas</h4>
+            <p>You will lose all your work</p>
+            <p>This <strong>cannot</strong> be undone</p>
         </div>
+        <div class="modal-footer">
+            <a id="btnConfirmClear" class="modal-close waves-effect  teal btn">Clear canvas</a>
+            <a href="#" class="modal-close waves-effect red btn">Cancel</a>
+        </div>
+
+    </div>
 
 
     </div>

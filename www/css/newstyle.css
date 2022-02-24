@@ -67,14 +67,7 @@ body{
     overflow-y: scroll;
     background-color: white !important;
 }
-.canvas-container{
-    height: 86vh;    
-    overflow: scroll;
-     background-color: #f1f1f1  !important;
-    position: relative;
-    touch-action: none;
-    
-}
+
 .smallfab{
     height: 40px !important;
     width: 40px !important;
@@ -194,4 +187,22 @@ body{
 }
 #showmore{
     cursor: help;
+}
+.canvas-container{
+    height: 86vh;    
+    overflow: scroll;
+    background-color: #f1f1f1  !important;
+    position: relative;
+    touch-action: none;
+    
+}
+#questionheader{
+    color:#004d40 ;
+    font-size: 20px;
+}
+#showmore{
+    font-size:40px;
+}
+.question-hide{
+    max-height: 25px;
 }
