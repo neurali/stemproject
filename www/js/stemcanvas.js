@@ -161,6 +161,33 @@ var Stemcanvas = /** @class */ (function () {
             // location.href = `q${currentquestion + 1}.html`;
             _this.NextAndSaveLocally();
         });
+        var showingmore = false;
+        document.getElementById("showmore").addEventListener("click", function () {
+            var questiontext = document.getElementById("questiontext");
+            var questioncontainer = document.getElementById("questioncontainer");
+            var viewportheight = window.innerHeight;
+            var canvascontainer = document.getElementById("canvas-scroll-container");
+            if (showingmore == false) {
+                //remove max-height from question text
+                showingmore = true;
+                questiontext.classList.remove("truncate");
+                //get height of question row
+                var questioncontainerbounds = questioncontainer.getBoundingClientRect();
+                var bottom = questioncontainerbounds.bottom;
+                var remainingspace = viewportheight - bottom;
+                canvascontainer.style.height = "" + remainingspace;
+                //now set max height of the canvas container to the remaining space on screen
+            }
+            else {
+                //set it maxheigh back again
+                showingmore = false;
+                questiontext.classList.add("truncate");
+                //get height of question row
+                var questioncontainerbounds = questioncontainer.getBoundingClientRect();
+                var bottom = questioncontainerbounds.bottom;
+                console.log(bottom);
+            }
+        });
         this.cursor = new cursor(this.contextCursor, this.pen);
         this.cursor.currentTool = "DRAW";
         this.selectionManager = new SelectionManager(this.drawingdata, this.contextDebug);
@@ -800,6 +827,7 @@ var Stemcanvas = /** @class */ (function () {
         //todo handle clickdragging off the canvas and then returning in an unclicking state        
     };
     Stemcanvas.prototype.PointerMoveEvent = function (e) {
+        var _this = this;
         this.pen.X = e.pageX - (this.canvascontainer.offsetLeft) + this.canvasscrollx;
         this.pen.Y = e.pageY - (this.canvascontainer.offsetTop) + this.canvascrolly;
         this.pen.pressure = e.pressure;
@@ -901,6 +929,33 @@ var Stemcanvas = /** @class */ (function () {
                 }
                 if (this.toolbox.selectedtool == "CIRCLE") {
                     this.currentstroke.points.push(p);
+                }
+            }
+        }
+        //now we need to check for scribble erase
+        if (this.toolbox.selectedtool == "ERASE") {
+            if (this.pen.penDown) {
+                var erasestrokelength = this.currentstroke.getPixelLength();
+                if (erasestrokelength > Canvasconstants.multiselectMinimumLength) {
+                    var strokestodelete = void 0;
+                    var strokeindex_1 = 0;
+                    this.drawingdata.forEach(function (s) {
+                        s.UpdateBoundingBox("");
+                        var box = s.getCachedBoundingBox();
+                        var lastpointinstroke = _this.currentstroke.points[_this.currentstroke.points.length - 1];
+                        if (box.Intersects(lastpointinstroke.x, lastpointinstroke.y)) {
+                            console.log("intersecting with a stroke");
+                            s.points.forEach(function (p) {
+                                if (_this.selectionManager.getDistanceBetweenTwoPoints(new Vector(p.x, p.y), new Vector(lastpointinstroke.x, lastpointinstroke.y)) > Canvasconstants.multiselectMinimumLength) {
+                                    //so the stroke is close enough to the erase stroke, lets move it into the undo stack
+                                    _this.undoActions.push(new UndoEraseAction(_this.drawingdata[strokeindex_1]));
+                                    _this.drawingdata.splice(strokeindex_1, 1); //remove the entry from the array
+                                    _this.updateDrawing();
+                                }
+                            });
+                        }
+                        strokeindex_1++;
+                    });
                 }
             }
         }
@@ -1086,7 +1141,7 @@ var Stemcanvas = /** @class */ (function () {
         else if (this.toolbox.selectedtool == "ERASE") {
             //is the stroke a line or a point
             if (this.currentstroke.getPixelLength() > Canvasconstants.multiselectMinimumLength) {
-                //line erase
+                //see move event (coz it strokes will be erased 'live' while the user is interacting)
             }
             else {
                 //point
@@ -1645,6 +1700,7 @@ var Stemcanvas = /** @class */ (function () {
         packageoutput.imagefile = image;
         // let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(packageoutput));
         var dataStr = JSON.stringify(packageoutput);
+        console.log(dataStr);
         //window.open(dataStr);
         // var anchor = document.createElement('a');
         // anchor.setAttribute("href", dataStr);
@@ -1653,13 +1709,12 @@ var Stemcanvas = /** @class */ (function () {
         debugger;
         //create post request to send the data to the server:
         var xhr = new XMLHttpRequest();
-        var url = "/upload.php";
+        var url = "../test/upload.php";
         xhr.open("POST", url, true);
         xhr.setRequestHeader("Content-Type", "application/json");
         xhr.onreadystatechange = function () {
             if (xhr.readyState === 4 && xhr.status === 200) {
-                var json = JSON.parse(xhr.responseText);
-                console.log(json.email + ", " + json.password);
+                console.log(xhr.responseText);
             }
         };
         xhr.send(dataStr);
@@ -1746,7 +1801,6 @@ var Stemcanvas = /** @class */ (function () {
     };
     return Stemcanvas;
 }());
-/////////////////////////////////////////
 var Vector = /** @class */ (function () {
     function Vector(x, y) {
         this.x = x;
@@ -2139,7 +2193,6 @@ var Sessioninfo = /** @class */ (function () {
 }());
 var FileOutputPackage = /** @class */ (function () {
     function FileOutputPackage() {
-        this.test = "is this bit showing up at least?";
     }
     return FileOutputPackage;
 }());

@@ -231,7 +231,41 @@ class Stemcanvas {
             this.NextAndSaveLocally();
         })
 
+        var showingmore = false;
 
+        document.getElementById("showmore").addEventListener("click",()=>{
+            let questiontext = document.getElementById("questiontext") as HTMLElement;
+            let questioncontainer = document.getElementById("questioncontainer") as HTMLElement;
+            let viewportheight = window.innerHeight;
+            let canvascontainer = document.getElementById("canvas-scroll-container");
+            
+            if(showingmore == false)
+            {
+                //remove max-height from question text
+                showingmore = true;
+                questiontext.classList.remove("truncate");
+
+                //get height of question row
+                let questioncontainerbounds = questioncontainer.getBoundingClientRect();
+                let bottom = questioncontainerbounds.bottom;
+                let remainingspace = viewportheight - bottom;
+                canvascontainer.style.height = ""+remainingspace;
+
+                //now set max height of the canvas container to the remaining space on screen
+                
+            }
+            else
+            {
+                //set it maxheigh back again
+                showingmore = false;
+                questiontext.classList.add("truncate");
+                //get height of question row
+                let questioncontainerbounds = questioncontainer.getBoundingClientRect();
+                let bottom = questioncontainerbounds.bottom;
+                console.log(bottom);
+
+            }
+        });
 
 
 
@@ -292,8 +326,6 @@ class Stemcanvas {
                 let lastDrawnObject = this.drawingdata.pop();
                 this.redoActions.push(new UndoUndoObject(lastDrawnObject));
             }
-
-
         }
         else {
             let lastactionundone = this.undoActions[this.undoActions.length - 1];
@@ -1198,6 +1230,42 @@ class Stemcanvas {
             }
         }
 
+        //now we need to check for scribble erase
+
+        if(this.toolbox.selectedtool == "ERASE"){
+            if(this.pen.penDown)
+            {
+                let erasestrokelength = this.currentstroke.getPixelLength();
+                if(erasestrokelength > Canvasconstants.multiselectMinimumLength)
+                {
+                    let strokestodelete:Array<number> ;
+                    let strokeindex = 0;
+                    this.drawingdata.forEach(s => {
+                        s.UpdateBoundingBox("");
+                        let box = s.getCachedBoundingBox();
+                        let lastpointinstroke = this.currentstroke.points[this.currentstroke.points.length -1];
+                        if(box.Intersects(lastpointinstroke.x,lastpointinstroke.y))
+                        {
+                            console.log("intersecting with a stroke");                            
+                            s.points.forEach(p => {
+                                if(this.selectionManager.getDistanceBetweenTwoPoints(new Vector(p.x,p.y), new Vector(lastpointinstroke.x,lastpointinstroke.y)) > Canvasconstants.multiselectMinimumLength)
+                                {
+                                    
+                                    //so the stroke is close enough to the erase stroke, lets move it into the undo stack
+                                    this.undoActions.push(new UndoEraseAction(this.drawingdata[strokeindex]));
+
+                                    this.drawingdata.splice(strokeindex, 1); //remove the entry from the array
+                                    this.updateDrawing();
+                                }
+                            });
+                        }
+                        strokeindex++;
+                    });
+                }
+            }
+            
+        }
+
 
 
 
@@ -1420,7 +1488,7 @@ class Stemcanvas {
         else if (this.toolbox.selectedtool == "ERASE") {
             //is the stroke a line or a point
             if (this.currentstroke.getPixelLength() > Canvasconstants.multiselectMinimumLength) {
-                //line erase
+                //see move event (coz it strokes will be erased 'live' while the user is interacting)
             }
             else {
                 //point
@@ -2159,6 +2227,7 @@ class Stemcanvas {
 
             // let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(packageoutput));
             let dataStr = JSON.stringify(packageoutput);
+            console.log(dataStr);
             //window.open(dataStr);
 
             // var anchor = document.createElement('a');
@@ -2168,13 +2237,12 @@ class Stemcanvas {
             debugger;
             //create post request to send the data to the server:
             let xhr = new XMLHttpRequest();
-            var url = "/upload.php";
+            var url = "../test/upload.php";
             xhr.open("POST",url,true);
             xhr.setRequestHeader("Content-Type", "application/json");
             xhr.onreadystatechange = function () {
                 if (xhr.readyState === 4 && xhr.status === 200) {
-                    var json = JSON.parse(xhr.responseText);
-                    console.log(json.email + ", " + json.password);
+                    console.log(xhr.responseText);
                 }
             };
             
@@ -2294,7 +2362,6 @@ class Stemcanvas {
 
 }
 
-/////////////////////////////////////////
 
 
 class Vector {
@@ -2781,9 +2848,7 @@ class FileOutputPackage{
 
     public drawingdata: Stemstroke[];
     public sessioninfo:any;
-    public imagefile:any;
-    public test:string = "is this bit showing up at least?";
-
+    public imagefile:any;    
 
     constructor(){
 
