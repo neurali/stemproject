@@ -1,1 +1,1 @@
-{"version":3,"file":"sevents.js","sourceRoot":"","sources":["../../ts/sevents.ts"],"names":[],"mappings":"AAAA,IAAK,aAEJ;AAFD,WAAK,aAAa;IACd,+CAA8B,CAAA;AAClC,CAAC,EAFI,aAAa,KAAb,aAAa,QAEjB"}
+{"version":3,"file":"sevents.js","sourceRoot":"","sources":["../../ts/sevents.ts"],"names":[],"mappings":"AAAA,IAAK,aAIJ;AAJD,WAAK,aAAa;IACd,+CAA8B,CAAA;IAC9B,+CAA8B,CAAA;IAC9B,mDAAkC,CAAA;AACtC,CAAC,EAJI,aAAa,KAAb,aAAa,QAIjB"}

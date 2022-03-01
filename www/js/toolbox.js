@@ -60,6 +60,7 @@ var Toolbox = /** @class */ (function () {
                 else {
                     _this.selectedColour = "Black";
                 }
+                eventel.dispatchEvent(new Event(toolboxevents.colourchanged));
             });
         };
         var this_2 = this;
@@ -94,6 +95,7 @@ var Toolbox = /** @class */ (function () {
                         _this.selectedDrawSize = 17;
                         break;
                 }
+                eventel.dispatchEvent(new Event(toolboxevents.sizechanged));
             });
         };
         var this_3 = this;

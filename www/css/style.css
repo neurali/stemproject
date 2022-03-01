@@ -177,3 +177,20 @@ input[type="color"]::-webkit-color-swatch {
     max-height: 100px;
     overflow-y: auto;
 }
+.comingsoon{
+    opacity: 0.35;
+    pointer-events: none;
+}
+.historical{
+    opacity: 0.35;
+}
+.collection >a{
+    color:red;
+}
+.collection > a:visited{
+    
+    color:gray !important;
+}
+.disabled{
+    pointer-events: none;
+}

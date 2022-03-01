@@ -91,6 +91,7 @@ class Toolbox {
                 {
                     this.selectedColour = "Black";
                 }
+                eventel.dispatchEvent(new Event(toolboxevents.colourchanged));
                 
 
             })
@@ -129,6 +130,8 @@ class Toolbox {
                     this.selectedDrawSize = 17;                    
                     break;
                 }
+
+                eventel.dispatchEvent(new Event(toolboxevents.sizechanged));
 
             })
         }

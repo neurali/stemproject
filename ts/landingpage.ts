@@ -1,10 +1,11 @@
 window.onload = function () {
+
     //used by observation and sandbox mode (not index.html) 
     function begin() {
-        var tokeninput = document.getElementById("participant-token");
-        var devicetype = document.getElementById("devicetype");
-        var btnTaskA = document.getElementById("btnTaskA");
-        var btnTaskB = document.getElementById("btnTaskB");
+        var tokeninput = document.getElementById("participant-token") as HTMLInputElement;
+        var devicetype = document.getElementById("devicetype") as HTMLInputElement;
+        var btnTaskA = document.getElementById("btnTaskA") as HTMLElement;
+        var btnTaskB = document.getElementById("btnTaskB") as HTMLElement;
         var btnSandbox = document.getElementById("btnSandbox");
         btnTaskA.addEventListener("click", function (e) {
             sessionStorage.setItem("token", tokeninput.value);
@@ -20,7 +21,7 @@ window.onload = function () {
             location.href = "q4.html";
             return false;
         });
-        btnSandbox.addEventListener("click", function () {
+        btnSandbox.addEventListener("click",()=>{
             sessionStorage.setItem("token", tokeninput.value);
             sessionStorage.setItem("devicetype", devicetype.value);
             sessionStorage.setItem("taskset", "b");
@@ -28,16 +29,20 @@ window.onload = function () {
             location.href = "sandbox.html";
             return false;
         });
+
+
         //this javascript is used on the observation.html page (used for observed studies)
-        sessionStorage.setItem("sandbox", "pass");
+        sessionStorage.setItem("sandbox","pass");
+
         var path = window.location.pathname;
         var page = path.split("/").pop();
         console.log(page);
-        if (page == "observation.html") {
-            sessionStorage.setItem("observation", "true");
+        if(page == "observation.html"){
+            sessionStorage.setItem("observation","true");
         }
+        
+
     }
     begin();
 };
-//# sourceMappingURL=landingpage.js.map
 //# sourceMappingURL=landingpage.js.map

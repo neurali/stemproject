@@ -18,6 +18,9 @@
 .notbotmarg{
     margin-bottom: 0 !important;
 }
+.notopmarg{
+    margin-top: 0 !important;
+}
 .palette{
     margin-bottom: 10px;
 }
@@ -183,7 +186,7 @@ body{
 /* #question{   
 } */
 #questiontext{
-    font-size: 20px; 
+    font-size: 18px; 
 }
 #showmore{
     cursor: help;
@@ -203,6 +206,25 @@ body{
 #showmore{
     font-size:40px;
 }
-.question-hide{
+/* .question-hide{
     max-height: 25px;
+} */
+.flexfill{
+    display:flex;
+    /* display:flex; */   
+    justify-content: space-evenly;
+    
+}
+/* .truncate{
+   
+    
+} */
+
+.line-clamp{
+    max-height: 20em;
+    text-overflow: ellipsis;
+    word-wrap:break-word;
+    overflow:hidden;
+    white-space: nowrap;    
+    display: -webkit-box;    
 }

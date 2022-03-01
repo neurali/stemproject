@@ -1,3 +1,5 @@
 enum toolboxevents{
-    toolchanged = "tbetoolchanged"
+    toolchanged = "tbetoolchanged",
+    sizechanged = "tbesizechanged",
+    colourchanged = "tbecolourchanged"
 }
