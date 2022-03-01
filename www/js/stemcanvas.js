@@ -1038,8 +1038,10 @@ var Stemcanvas = /** @class */ (function () {
         // }
     };
     Stemcanvas.prototype.PointerUpEvent = function (e) {
+        console.log("up");
+        console.log(this.toolbox.selectedtool);
         e.preventDefault();
-        if (e.pointerType == "touch") {
+        if (e.pointerType == "touch" || e.pointerType == "pen") {
             this.touchcount--;
             this.debugtext(this.touchcount);
         }
@@ -1056,6 +1058,7 @@ var Stemcanvas = /** @class */ (function () {
             this.drawingdata.push(this.currentstroke);
         }
         else if (this.toolbox.selectedtool == "SELECT") {
+            console.log("selecting");
             //check if there is already a selected object
             if (this.selectionManager.currentlySelected != null) {
                 if (this.cursor.interacting) {
@@ -1081,6 +1084,7 @@ var Stemcanvas = /** @class */ (function () {
                         }
                     }
                     else {
+                        //modifiers with 2 characters are for resize. this is the resize functionality
                         if (this.cursor.selectmodifier.length == 2) {
                         }
                         var resizevector = this.getCurrentStrokeVector();
@@ -1099,6 +1103,7 @@ var Stemcanvas = /** @class */ (function () {
                         ///////////////
                     }
                 }
+                //cursor isnt interacting so we need are doing a normal selection
                 else {
                     if (this.currentstroke.getPixelLength() > Canvasconstants.multiselectMinimumLength) {
                         this.currentstroke.UpdateBoundingBox("");
@@ -1115,7 +1120,17 @@ var Stemcanvas = /** @class */ (function () {
             else if (this.selectionManager.currentlySelectedMulti != null) {
                 //first check if its a drag stroke (T)D)
                 if (this.cursor.interacting) {
+                    //get move/resize vector
+                    var vector_3 = this.getCurrentStrokeVector();
                     if (this.cursor.selectmodifier == "MOVE") {
+                        //move all the objects in that are currently selected
+                        this.selectionManager.currentlySelectedMulti.forEach(function (s) {
+                            s.points.forEach(function (p) {
+                                p.x += vector_3.x;
+                                p.y += vector_3.y;
+                            });
+                        });
+                        this.updateDrawing();
                     }
                     else {
                         if (this.cursor.selectmodifier.length == 2) {
@@ -1140,10 +1155,9 @@ var Stemcanvas = /** @class */ (function () {
                     this.selectionManager.selectInsideBox(selectionbox);
                 }
                 else {
+                    console.log("selecting object at point");
                     this.selectionManager.selectObjectAtPoint(this.pen.X, this.pen.Y);
                 }
-            }
-            else {
             }
             this.currentstroke = null;
         }
@@ -1192,6 +1206,7 @@ var Stemcanvas = /** @class */ (function () {
         this.currentstroke = null;
         this.cursor.interacting = false;
         this.toolbox.isDrawingObject = false;
+        this.cursor.selectmodifier = ""; //reset move/resize modifier (touch specific requirement)
         // else if (this.selectedTool == "TEXT") {
         //     //show text entry pop over 
         //     let customcontainer = document.getElementById("canvas-scroll-container");
@@ -1388,10 +1403,10 @@ var Stemcanvas = /** @class */ (function () {
     };
     Stemcanvas.prototype.PointerDownEvent = function (e) {
         e.preventDefault();
-        console.log("pointer down");
         this.pen.X = e.pageX - (this.canvascontainer.offsetLeft) + this.canvasscrollx;
         this.pen.Y = e.pageY - (this.canvascontainer.offsetTop) + this.canvascrolly;
-        if (e.pointerType == "touch") {
+        console.log(e.pointerType);
+        if (e.pointerType == "touch" || e.pointerType == "pen") {
             this.touchcount++;
             this.debugtext(this.touchcount);
             //set position of cursor right now, (also need to check for interaction points)
@@ -1407,6 +1422,34 @@ var Stemcanvas = /** @class */ (function () {
                 //now we need to start moving the scrollbars around
             }
             else {
+                if (this.toolbox.selectedtool == "SELECT") {
+                    console.log("checking for intersects from touch");
+                    //now need to check if intersecting with any objects
+                    if (this.selectionManager.currentlySelected != null) {
+                        //checking if intersecting single selected item
+                        console.log("single check intersect");
+                        this.selectionManager.currentlySelected.UpdateBoundingBox("");
+                        var box = this.selectionManager.currentlySelected.getCachedBoundingBox();
+                        if (box.Intersects(this.pen.X, this.pen.Y)) {
+                            //now check if its in one of the corners
+                            this.cursor.selectmodifier = box.IntersectsCorner(this.pen.X, this.pen.Y);
+                        }
+                    }
+                    //we need to do both checks so no else here please :D
+                    else if (this.selectionManager.currentlySelectedMulti != null) {
+                        //checking if intersecting a group selection
+                        console.log("group check intersect");
+                        var box = this.selectionManager.getGroupBoundingBox();
+                        if (box.Intersects(this.pen.X, this.pen.Y)) {
+                            //now check if its in one of the corners
+                            this.cursor.selectmodifier = box.IntersectsCorner(this.pen.X, this.pen.Y);
+                        }
+                        else {
+                            this.cursor.selectmodifier = "";
+                        }
+                    }
+                    //now if anything is selected, we check if they are 'deselecting' by tapping off the object
+                }
             }
         }
         this.pen.penDown = true;
@@ -1487,7 +1530,7 @@ var Stemcanvas = /** @class */ (function () {
         // }
         // else if (this.selectedTool == "SELECT") {
         //     //check if pointer down event is coming from touch or not
-        //     if (e.pointerType == "touch") {
+        //     if (e.pointerType == "touch" || e.pointerType == "pen") {
         //         //now check if an object is already selected
         //         if (this.selectedDrawnObject != null) {
         //             //now we need to check if they are current touching a 'control point'
@@ -1718,10 +1761,9 @@ var Stemcanvas = /** @class */ (function () {
         // anchor.setAttribute("href", dataStr);
         // anchor.setAttribute("download", `${participantDeviceTask} - packagedSession.json`);
         // anchor.click();
-        debugger;
         //create post request to send the data to the server:
         var xhr = new XMLHttpRequest();
-        var url = "../test/upload.php";
+        var url = "../upload.php";
         xhr.open("POST", url, true);
         xhr.setRequestHeader("Content-Type", "application/json");
         xhr.onreadystatechange = function () {

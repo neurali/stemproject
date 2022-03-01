@@ -180,8 +180,8 @@ body{
     width:49%;
     padding-right: 10px;
 }
-#question{   
-}
+/* #question{   
+} */
 #questiontext{
     font-size: 20px; 
 }
@@ -193,7 +193,7 @@ body{
     overflow: scroll;
     background-color: #f1f1f1  !important;
     position: relative;
-    touch-action: none;
+    /* touch-action: none; */
     
 }
 #questionheader{

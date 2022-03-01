@@ -114,11 +114,11 @@ class Stemcanvas {
     initialisecanvas() {
 
         //live check:
-        
+
 
         this.canvasbackground.style.minHeight = Canvasconstants.height + "px";
         this.canvasbackground.style.minWidth = Canvasconstants.width + "px";
-        
+
         //initialise
         this.drawingcanvas.width = Canvasconstants.width;
         this.drawingcanvas.height = Canvasconstants.height;
@@ -178,7 +178,7 @@ class Stemcanvas {
         this.drawingcanvas.addEventListener("pointerdown", this.PointerDownEvent.bind(this));
         this.drawingcanvas.addEventListener("pointerup", this.PointerUpEvent.bind(this));
         this.drawingcanvas.addEventListener("pointerleave", this.PointerLeaveEvent.bind(this));
-        this.drawingcanvas.addEventListener("touchstart",(e)=>{e.preventDefault()});
+        this.drawingcanvas.addEventListener("touchstart", (e) => { e.preventDefault() });
 
         this.canvascontainer.addEventListener('scroll', (e) => {
             this.canvascrolly = this.canvascontainer.scrollTop;
@@ -234,15 +234,14 @@ class Stemcanvas {
 
         var showingmore = false;
 
-        document.getElementById("showmore").addEventListener("click",()=>{
+        document.getElementById("showmore").addEventListener("click", () => {
             let questiontext = document.getElementById("questiontext") as HTMLElement;
             let questioncontainer = document.getElementById("questioncontainer") as HTMLElement;
             let viewportheight = window.innerHeight;
             let canvascontainer = document.getElementById("canvas-scroll-container");
             let showmorelabel = document.getElementById("showmore") as HTMLElement;
-            
-            if(showingmore == false)
-            {
+
+            if (showingmore == false) {
                 //remove max-height from question text
                 showingmore = true;
                 questiontext.classList.remove("truncate");
@@ -256,10 +255,9 @@ class Stemcanvas {
                 showmorelabel.innerText = "-";
 
                 //now set max height of the canvas container to the remaining space on screen
-                
+
             }
-            else
-            {
+            else {
                 //set it maxheigh back again
                 showingmore = false;
                 questiontext.classList.add("truncate");
@@ -1241,25 +1239,21 @@ class Stemcanvas {
 
         //now we need to check for scribble erase
 
-        if(this.toolbox.selectedtool == "ERASE"){
-            if(this.pen.penDown)
-            {
+        if (this.toolbox.selectedtool == "ERASE") {
+            if (this.pen.penDown) {
                 let erasestrokelength = this.currentstroke.getPixelLength();
-                if(erasestrokelength > Canvasconstants.multiselectMinimumLength)
-                {
-                    let strokestodelete:Array<number> ;
+                if (erasestrokelength > Canvasconstants.multiselectMinimumLength) {
+                    let strokestodelete: Array<number>;
                     let strokeindex = 0;
                     this.drawingdata.forEach(s => {
                         s.UpdateBoundingBox("");
                         let box = s.getCachedBoundingBox();
-                        let lastpointinstroke = this.currentstroke.points[this.currentstroke.points.length -1];
-                        if(box.Intersects(lastpointinstroke.x,lastpointinstroke.y))
-                        {
-                            console.log("intersecting with a stroke");                            
+                        let lastpointinstroke = this.currentstroke.points[this.currentstroke.points.length - 1];
+                        if (box.Intersects(lastpointinstroke.x, lastpointinstroke.y)) {
+                            console.log("intersecting with a stroke");
                             s.points.forEach(p => {
-                                if(this.selectionManager.getDistanceBetweenTwoPoints(new Vector(p.x,p.y), new Vector(lastpointinstroke.x,lastpointinstroke.y)) > Canvasconstants.multiselectMinimumLength)
-                                {
-                                    
+                                if (this.selectionManager.getDistanceBetweenTwoPoints(new Vector(p.x, p.y), new Vector(lastpointinstroke.x, lastpointinstroke.y)) > Canvasconstants.multiselectMinimumLength) {
+
                                     //so the stroke is close enough to the erase stroke, lets move it into the undo stack
                                     this.undoActions.push(new UndoEraseAction(this.drawingdata[strokeindex]));
 
@@ -1272,7 +1266,7 @@ class Stemcanvas {
                     });
                 }
             }
-            
+
         }
 
 
@@ -1355,10 +1349,12 @@ class Stemcanvas {
         // }
     }
     PointerUpEvent(e: PointerEvent) {
-       
+
+        console.log("up");
+        console.log(this.toolbox.selectedtool);
         e.preventDefault();
 
-        if (e.pointerType == "touch") {
+        if (e.pointerType == "touch" || e.pointerType == "pen") {
             this.touchcount--;
             this.debugtext(this.touchcount);
         }
@@ -1376,7 +1372,8 @@ class Stemcanvas {
             this.drawingdata.push(this.currentstroke);
         }
         else if (this.toolbox.selectedtool == "SELECT") {
-            
+
+            console.log("selecting");
             //check if there is already a selected object
             if (this.selectionManager.currentlySelected != null) {
 
@@ -1409,6 +1406,7 @@ class Stemcanvas {
                     }
                     else {
 
+                        //modifiers with 2 characters are for resize. this is the resize functionality
                         if (this.cursor.selectmodifier.length == 2) {
 
                         }
@@ -1435,6 +1433,7 @@ class Stemcanvas {
 
                     }
                 }
+                //cursor isnt interacting so we need are doing a normal selection
                 else {
                     if (this.currentstroke.getPixelLength() > Canvasconstants.multiselectMinimumLength) {
 
@@ -1455,7 +1454,18 @@ class Stemcanvas {
                 //first check if its a drag stroke (T)D)
 
                 if (this.cursor.interacting) {
+                    //get move/resize vector
+                    let vector = this.getCurrentStrokeVector();
                     if (this.cursor.selectmodifier == "MOVE") {
+
+                        //move all the objects in that are currently selected
+                        this.selectionManager.currentlySelectedMulti.forEach(s => {
+                            s.points.forEach(p => {
+                                p.x += vector.x;
+                                p.y += vector.y;
+                            });
+                        });
+                        this.updateDrawing();
                     }
                     else {
                         if (this.cursor.selectmodifier.length == 2) {
@@ -1484,12 +1494,11 @@ class Stemcanvas {
                     this.selectionManager.selectInsideBox(selectionbox);
                 }
                 else {
+                    console.log("selecting object at point");
                     this.selectionManager.selectObjectAtPoint(this.pen.X, this.pen.Y);
                 }
             }
-            else {
 
-            }
 
 
             this.currentstroke = null;
@@ -1541,6 +1550,7 @@ class Stemcanvas {
         this.currentstroke = null;
         this.cursor.interacting = false;
         this.toolbox.isDrawingObject = false;
+        this.cursor.selectmodifier = ""; //reset move/resize modifier (touch specific requirement)
 
         // else if (this.selectedTool == "TEXT") {
         //     //show text entry pop over 
@@ -1800,15 +1810,15 @@ class Stemcanvas {
     PointerDownEvent(e: PointerEvent) {
 
         e.preventDefault();
-        console.log("pointer down");
         this.pen.X = e.pageX - (this.canvascontainer.offsetLeft) + this.canvasscrollx;
         this.pen.Y = e.pageY - (this.canvascontainer.offsetTop) + this.canvascrolly;
 
-        
 
 
-        if (e.pointerType == "touch") {
+        console.log(e.pointerType);
+        if (e.pointerType == "touch" || e.pointerType == "pen") {
 
+            
             this.touchcount++;
             this.debugtext(this.touchcount);
             //set position of cursor right now, (also need to check for interaction points)
@@ -1827,6 +1837,41 @@ class Stemcanvas {
                 //now we need to start moving the scrollbars around
             }
             else {
+
+                if (this.toolbox.selectedtool == "SELECT") {
+                    console.log("checking for intersects from touch");
+                    //now need to check if intersecting with any objects
+
+                    if (this.selectionManager.currentlySelected != null) {
+                        //checking if intersecting single selected item
+                        console.log("single check intersect")
+                        this.selectionManager.currentlySelected.UpdateBoundingBox("");
+                        let box = this.selectionManager.currentlySelected.getCachedBoundingBox();
+                        if (box.Intersects(this.pen.X, this.pen.Y)) {
+                            //now check if its in one of the corners
+                            this.cursor.selectmodifier = box.IntersectsCorner(this.pen.X, this.pen.Y);
+                        }
+                    }
+                    //we need to do both checks so no else here please :D
+                    else if(this.selectionManager.currentlySelectedMulti != null)
+                    {
+                        //checking if intersecting a group selection
+                        console.log("group check intersect")
+
+                        let box = this.selectionManager.getGroupBoundingBox();
+                        if (box.Intersects(this.pen.X, this.pen.Y)) {
+                            //now check if its in one of the corners
+                            this.cursor.selectmodifier = box.IntersectsCorner(this.pen.X, this.pen.Y);
+                        }
+                        else {
+                            this.cursor.selectmodifier = "";
+                        }
+                    }
+                    //now if anything is selected, we check if they are 'deselecting' by tapping off the object
+
+                    
+                }
+
 
             }
         }
@@ -1950,7 +1995,7 @@ class Stemcanvas {
         // else if (this.selectedTool == "SELECT") {
 
         //     //check if pointer down event is coming from touch or not
-        //     if (e.pointerType == "touch") {
+        //     if (e.pointerType == "touch" || e.pointerType == "pen") {
         //         //now check if an object is already selected
         //         if (this.selectedDrawnObject != null) {
         //             //now we need to check if they are current touching a 'control point'
@@ -2209,60 +2254,59 @@ class Stemcanvas {
     uploadData() {
 
         let participantDeviceTask = `${this.participant} - ${this.devicetype} - ${this.task}`;
-        this.updateDrawing();        
+        this.updateDrawing();
 
         // if (this.isios)
 
 
-            // SAVE PNG IMAGE FILE (will download as unknown - needs to be sent via email or something)
-            let image = this.drawingcanvas.toDataURL("image/png").replace("image/png", "image/octet-stream");  //this is dirty, but it works for now                      
-            //window.open(image);
+        // SAVE PNG IMAGE FILE (will download as unknown - needs to be sent via email or something)
+        let image = this.drawingcanvas.toDataURL("image/png").replace("image/png", "image/octet-stream");  //this is dirty, but it works for now                      
+        //window.open(image);
 
 
-            // SAVE THE SESSION INFO FILE
-            let session = new Sessioninfo();
-            session.start = this.starttimeclock
-            session.end = new Date().toLocaleString();
-            session.startperf = this.starttimeperf;
-            session.devicetype = this.devicetype;
-            session.task = this.task;
-            session.participanttoken = this.participant;
-            //let sessionoutputstring = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(session));
-            
-            
-            //////////////////// SAVE THE DRAWING DATA FILE
-            let packageoutput = new FileOutputPackage(); //we package the session info in so we can buddy up the files later on (just in case right. coz all the files will be named unknown!)
-            
-            packageoutput.drawingdata = this.drawingdata;
-            packageoutput.sessioninfo = session;
-            packageoutput.imagefile = image;
+        // SAVE THE SESSION INFO FILE
+        let session = new Sessioninfo();
+        session.start = this.starttimeclock
+        session.end = new Date().toLocaleString();
+        session.startperf = this.starttimeperf;
+        session.devicetype = this.devicetype;
+        session.task = this.task;
+        session.participanttoken = this.participant;
+        //let sessionoutputstring = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(session));
 
-            // let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(packageoutput));
-            let dataStr = JSON.stringify(packageoutput);
-            console.log(dataStr);
-            //window.open(dataStr);
 
-            // var anchor = document.createElement('a');
-            // anchor.setAttribute("href", dataStr);
-            // anchor.setAttribute("download", `${participantDeviceTask} - packagedSession.json`);
-            // anchor.click();
-            debugger;
-            //create post request to send the data to the server:
-            let xhr = new XMLHttpRequest();
-            var url = "../test/upload.php";
-            xhr.open("POST",url,true);
-            xhr.setRequestHeader("Content-Type", "application/json");
-            xhr.onreadystatechange = function () {
-                if (xhr.readyState === 4 && xhr.status === 200) {
-                    console.log(xhr.responseText);
-                }
-            };
-            
-            xhr.send(dataStr);
-            console.log(xhr.response);
+        //////////////////// SAVE THE DRAWING DATA FILE
+        let packageoutput = new FileOutputPackage(); //we package the session info in so we can buddy up the files later on (just in case right. coz all the files will be named unknown!)
 
-            
-        
+        packageoutput.drawingdata = this.drawingdata;
+        packageoutput.sessioninfo = session;
+        packageoutput.imagefile = image;
+
+        // let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(packageoutput));
+        let dataStr = JSON.stringify(packageoutput);
+        console.log(dataStr);
+        //window.open(dataStr);
+
+        // var anchor = document.createElement('a');
+        // anchor.setAttribute("href", dataStr);
+        // anchor.setAttribute("download", `${participantDeviceTask} - packagedSession.json`);
+        // anchor.click();
+        //create post request to send the data to the server:
+        let xhr = new XMLHttpRequest();
+        var url = "../upload.php";
+        xhr.open("POST", url, true);
+        xhr.setRequestHeader("Content-Type", "application/json");
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                console.log(xhr.responseText);
+            }
+        };
+
+        xhr.send(dataStr);
+        console.log(xhr.response);
+
+
+
         // else {
         //     //build image into a json uri
         //     let image = this.drawingcanvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
@@ -2300,16 +2344,16 @@ class Stemcanvas {
     NextAndSaveLocally() {
         // let participantDeviceTask = `${this.participant} - ${this.devicetype} - ${this.task}`;
 
-         
 
-         let currentquestionarray = this.task.split('q');
-         let currentquestion = parseInt(currentquestionarray[1]);
-         let nextquestion = "q" +(currentquestion +1 ) + ".html";
-         //document.location.href = (nextquestion);
-         window.open(nextquestion);
-        
-         
-         this.uploadData()
+
+        let currentquestionarray = this.task.split('q');
+        let currentquestion = parseInt(currentquestionarray[1]);
+        let nextquestion = "q" + (currentquestion + 1) + ".html";
+        //document.location.href = (nextquestion);
+        window.open(nextquestion);
+
+
+        this.uploadData()
     }
 
 
@@ -2856,15 +2900,15 @@ class Sessioninfo {
     public end: string;
 
 }
-class FileOutputPackage{
+class FileOutputPackage {
 
     public drawingdata: Stemstroke[];
-    public sessioninfo:any;
-    public imagefile:any;    
+    public sessioninfo: any;
+    public imagefile: any;
 
-    constructor(){
+    constructor() {
 
-        
+
     }
 }
 
