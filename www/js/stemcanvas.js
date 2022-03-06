@@ -484,7 +484,6 @@ var Stemcanvas = /** @class */ (function () {
                 this.contextSelection.lineTo(box.maxX, box.maxY);
                 this.contextSelection.lineTo(box.originx, box.maxY);
                 this.contextSelection.lineTo(box.originx, box.originy);
-                //this.contextSelection.stroke();
                 this.stroke("selection");
                 //this.contextSelection.closePath();
                 this.contextSelection.setLineDash([9]);
@@ -495,9 +494,7 @@ var Stemcanvas = /** @class */ (function () {
                 this.contextSelection.lineTo(box.maxX, box.maxY);
                 this.contextSelection.lineTo(box.originx, box.maxY);
                 this.contextSelection.lineTo(box.originx, box.originy);
-                //this.contextSelection.stroke();
                 this.stroke("selection");
-                //this.contextSelection.closePath();
                 //now draw the interactionboxes
                 this.contextSelection.fillStyle = "white";
                 this.contextSelection.strokeStyle = "black";
@@ -529,17 +526,13 @@ var Stemcanvas = /** @class */ (function () {
                                         previewstroke_1.points.forEach(function (p) {
                                             _this.contextSelection.lineTo(p.x, p.y);
                                         });
-                                        //this.contextSelection.stroke();
                                         this.stroke("selection");
-                                        //this.contextSelection.closePath();
                                     }
                                     else if (this.selectionManager.currentlySelected.objecttype == "LINE") {
                                         this.contextSelection.beginPath();
                                         this.contextSelection.moveTo(previewstroke_1.points[0].x, previewstroke_1.points[0].y);
                                         this.contextSelection.lineTo(previewstroke_1.points[previewstroke_1.points.length - 1].x, previewstroke_1.points[previewstroke_1.points.length - 1].y);
-                                        //this.contextSelection.stroke();
                                         this.stroke("selection");
-                                        //this.contextSelection.closePath();
                                     }
                                     else if (this.selectionManager.currentlySelected.objecttype == "RECTANGLE") {
                                         previewstroke_1.objecttype = "RECTANGLE";
@@ -1940,10 +1933,16 @@ var UndoUndoObject = /** @class */ (function (_super) {
     }
     return UndoUndoObject;
 }(UndoAction));
-var undoManager = /** @class */ (function () {
-    function undoManager() {
+var StateManager = /** @class */ (function () {
+    function StateManager() {
     }
-    return undoManager;
+    StateManager.prototype.save = function () {
+    };
+    StateManager.prototype.undo = function () {
+    };
+    StateManager.prototype.redo = function () {
+    };
+    return StateManager;
 }());
 var Canvasconstants = /** @class */ (function () {
     function Canvasconstants() {

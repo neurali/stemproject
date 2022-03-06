@@ -228,3 +228,6 @@ body{
     white-space: nowrap;    
     display: -webkit-box;    
 }
+.equation{
+    vertical-align: top;
+}

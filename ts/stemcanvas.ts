@@ -392,11 +392,13 @@ class Stemcanvas {
     }
     undo() {
 
+        
         if (this.undoActions.length < 1) {
             if (this.drawingdata.length > 0) {
                 //pop last drawing object into the redo stack
                 let lastDrawnObject = this.drawingdata.pop();
                 this.redoActions.push(new UndoUndoObject(lastDrawnObject));
+                
             }
         }
         else {
@@ -647,7 +649,6 @@ class Stemcanvas {
                 this.contextSelection.lineTo(box.maxX, box.maxY);
                 this.contextSelection.lineTo(box.originx, box.maxY);
                 this.contextSelection.lineTo(box.originx, box.originy);
-                //this.contextSelection.stroke();
                 this.stroke("selection");
                 //this.contextSelection.closePath();
 
@@ -659,9 +660,7 @@ class Stemcanvas {
                 this.contextSelection.lineTo(box.maxX, box.maxY);
                 this.contextSelection.lineTo(box.originx, box.maxY);
                 this.contextSelection.lineTo(box.originx, box.originy);
-                //this.contextSelection.stroke();
                 this.stroke("selection");
-                //this.contextSelection.closePath();
 
 
                 //now draw the interactionboxes
@@ -706,17 +705,13 @@ class Stemcanvas {
                                         previewstroke.points.forEach(p => {
                                             this.contextSelection.lineTo(p.x, p.y);
                                         });
-                                        //this.contextSelection.stroke();
                                         this.stroke("selection");
-                                        //this.contextSelection.closePath();
                                     }
                                     else if (this.selectionManager.currentlySelected.objecttype == "LINE") {
                                         this.contextSelection.beginPath();
                                         this.contextSelection.moveTo(previewstroke.points[0].x, previewstroke.points[0].y);
                                         this.contextSelection.lineTo(previewstroke.points[previewstroke.points.length - 1].x, previewstroke.points[previewstroke.points.length - 1].y);
-                                        //this.contextSelection.stroke();
                                         this.stroke("selection");
-                                        //this.contextSelection.closePath();
                                     }
                                     else if (this.selectionManager.currentlySelected.objecttype == "RECTANGLE") {
 
@@ -2519,8 +2514,17 @@ class UndoUndoObject extends UndoAction { //this object is used to redo objects 
         this.thestroke = strokeobject;
     }
 }
-class undoManager{
+class StateManager{
     constructor(){
+        
+    }
+    save(){
+
+    }
+    undo(){
+
+    }
+    redo(){
         
     }
 }
