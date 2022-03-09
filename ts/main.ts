@@ -4,12 +4,6 @@ window.onload = () => {
     //btn.addEventListener
 //@ts-ignore 
 M.AutoInit(); //load materialize 
-var tooltippedelements = document.getElementsByClassName("tooltipped");
-let options = { enterDelay: 900, exitDelay: 10 };
-    //@ts-ignore
-var instances = M.Tooltip.init(tooltippedelements, options);
-
-
 
 let drawingcanvas = new Stemcanvas("canvasdrawing")
 
