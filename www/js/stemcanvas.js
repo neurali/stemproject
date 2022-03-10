@@ -110,6 +110,7 @@ var Stemcanvas = /** @class */ (function () {
         this.drawingcanvas.appendChild(this.eventel);
         this.toolbox = new Toolbox(this.eventel);
         this.eventel.addEventListener(toolboxevents.toolchanged, function () {
+            console.log("toolchanged");
             _this.cursor.currentTool = _this.toolbox.selectedtool;
             _this.selectionManager.currentSelectionID = "";
             _this.selectionManager.currentlySelected = null;
@@ -119,25 +120,47 @@ var Stemcanvas = /** @class */ (function () {
             _this.touchcount = 0; //reset touch count (as a quick fix)
         });
         this.eventel.addEventListener(toolboxevents.sizechanged, function () {
+            console.log("sizechanged");
             var size = _this.toolbox.selectedDrawSize;
             if (_this.selectionManager.currentlySelected != null) {
+                var widthundo = new UndoAction(UndoActionTypes.widthsingle);
+                widthundo.setWidthSingle(_this.selectionManager.currentlySelected, _this.selectionManager.currentlySelected.strokewidth, size);
                 _this.selectionManager.currentlySelected.strokewidth = size;
+                _this.undoredo.save(widthundo);
             }
             else if (_this.selectionManager.currentlySelectedMulti != null) {
+                var previouswidths = new Array();
+                for (var i = 0; i < _this.selectionManager.currentlySelectedMulti.length; i++) {
+                    previouswidths.push(_this.selectionManager.currentlySelectedMulti[i].strokewidth);
+                }
+                var multiwidthundo = new UndoAction(UndoActionTypes.widthmulti);
+                multiwidthundo.setWidthMulti(_this.selectionManager.currentlySelectedMulti, previouswidths, _this.toolbox.selectedDrawSize);
                 for (var i = 0; i < _this.selectionManager.currentlySelectedMulti.length; i++) {
                     _this.selectionManager.currentlySelectedMulti[i].strokewidth = _this.toolbox.selectedDrawSize;
                 }
+                _this.undoredo.save(multiwidthundo);
             }
             _this.updateDrawing();
         });
         this.eventel.addEventListener(toolboxevents.colourchanged, function () {
+            console.log("colourchanged");
             if (_this.selectionManager.currentlySelected != null) {
+                var colourundo = new UndoAction(UndoActionTypes.coloursingle);
+                colourundo.setColourSingle(_this.selectionManager.currentlySelected, _this.selectionManager.currentlySelected.strokecolour, _this.toolbox.selectedColour);
                 _this.selectionManager.currentlySelected.strokecolour = _this.toolbox.selectedColour;
+                _this.undoredo.save(colourundo);
             }
             else if (_this.selectionManager.currentlySelectedMulti != null) {
+                var prevcolours = new Array();
+                for (var i = 0; i < _this.selectionManager.currentlySelectedMulti.length; i++) {
+                    prevcolours.push(_this.selectionManager.currentlySelectedMulti[i].strokecolour);
+                }
+                var colourmultiundo = new UndoAction(UndoActionTypes.colourmulti);
+                colourmultiundo.setColourMulti(_this.selectionManager.currentlySelectedMulti, prevcolours, _this.toolbox.selectedColour);
                 for (var i = 0; i < _this.selectionManager.currentlySelectedMulti.length; i++) {
                     _this.selectionManager.currentlySelectedMulti[i].strokecolour = _this.toolbox.selectedColour;
                 }
+                _this.undoredo.save(colourmultiundo);
             }
             _this.updateDrawing();
         });
@@ -250,10 +273,14 @@ var Stemcanvas = /** @class */ (function () {
     };
     Stemcanvas.prototype.undo = function () {
         this.undoredo.undo();
+        this.selectionManager.currentlySelected = null;
+        this.selectionManager.currentlySelectedMulti = null;
         this.updateDrawing();
     };
     Stemcanvas.prototype.redo = function () {
         this.undoredo.redo();
+        this.selectionManager.currentlySelected = null;
+        this.selectionManager.currentlySelectedMulti = null;
         this.updateDrawing();
     };
     Stemcanvas.prototype.copy = function () {
@@ -758,6 +785,7 @@ var Stemcanvas = /** @class */ (function () {
         //todo handle clickdragging off the canvas and then returning in an unclicking state        
     };
     Stemcanvas.prototype.PointerMoveEvent = function (e) {
+        var _this = this;
         e.preventDefault();
         this.pen.X = e.pageX - (this.canvascontainer.offsetLeft) + this.canvasscrollx;
         this.pen.Y = e.pageY - (this.canvascontainer.offsetTop) + this.canvascrolly;
@@ -866,27 +894,30 @@ var Stemcanvas = /** @class */ (function () {
         if (this.toolbox.selectedtool == "ERASE") {
             if (this.pen.penDown) {
                 var erasestrokelength = this.currentstroke.getPixelLength();
-                // if (erasestrokelength > Canvasconstants.multiselectMinimumLength) {
-                //     let strokestodelete: Array<number>;
-                //     let strokeindex = 0;
-                //     this.drawingdata.forEach(s => {
-                //         s.UpdateBoundingBox("");
-                //         let box = s.getCachedBoundingBox();
-                //         let lastpointinstroke = this.currentstroke.points[this.currentstroke.points.length - 1];
-                //         if (box.Intersects(lastpointinstroke.x, lastpointinstroke.y)) {
-                //             s.points.forEach(p => {
-                //                 if (this.selectionManager.getDistanceBetweenTwoPoints(new Vector(p.x, p.y), new Vector(lastpointinstroke.x, lastpointinstroke.y)) > Canvasconstants.multiselectMinimumLength) {
-                //                     //so the stroke is close enough to the erase stroke, lets move it into the undo stack
-                //                     this.undoActions.push(new UndoEraseAction(this.drawingdata[strokeindex]));
-                //                     this.redoActions = [];
-                //                     this.drawingdata.splice(strokeindex, 1); //remove the entry from the array
-                //                     this.updateDrawing();
-                //                 }
-                //             });
-                //         }
-                //         strokeindex++;
-                //     });
-                // }
+                if (erasestrokelength > Canvasconstants.multiselectMinimumLength) {
+                    var strokestodelete_1 = new Array();
+                    var strokeindex_1 = 0;
+                    this.drawingdata.forEach(function (s) {
+                        s.UpdateBoundingBox("");
+                        var box = s.getCachedBoundingBox();
+                        var lastpointinstroke = _this.currentstroke.points[_this.currentstroke.points.length - 1];
+                        if (box.Intersects(lastpointinstroke.x, lastpointinstroke.y)) {
+                            s.points.forEach(function (p) {
+                                if (_this.selectionManager.getDistanceBetweenTwoPoints(new Vector(p.x, p.y), new Vector(lastpointinstroke.x, lastpointinstroke.y)) < Canvasconstants.multiselectMinimumLength) {
+                                    strokestodelete_1.push(s);
+                                    _this.drawingdata.splice(strokeindex_1);
+                                    _this.updateDrawing();
+                                    //so the stroke is close enough to the erase stroke, lets move it into the undo stack
+                                    // this.undoActions.push(new UndoEraseAction(this.drawingdata[strokeindex]));
+                                    // this.redoActions = [];
+                                    // this.drawingdata.splice(strokeindex, 1); //remove the entry from the array
+                                    // this.updateDrawing();
+                                }
+                            });
+                        }
+                        strokeindex_1++;
+                    });
+                }
             }
         }
         // //now check if the cursor is over a selection-hover-point
@@ -1041,12 +1072,12 @@ var Stemcanvas = /** @class */ (function () {
                                     invertingx = true;
                                 }
                             }
-                            var undoaction = new UndoAction(UndoActionTypes.resizesingle);
-                            undoaction.setResizeSingle(this.selectionManager.currentlySelected, resizevector, this.cursor.selectmodifier, invertingx, invertingy);
-                            console.log(undoaction);
+                            var singlemoveaction = new UndoAction(UndoActionTypes.resizesingle);
+                            singlemoveaction.setResizeSingle(this.selectionManager.currentlySelected, resizevector, this.cursor.selectmodifier, invertingx, invertingy);
+                            console.log(singlemoveaction);
                             this.selectionManager.currentlySelected.UpdateBoundingBox("");
                             this.selectionManager.fresh = false;
-                            this.undoredo.save(undoaction);
+                            this.undoredo.save(singlemoveaction);
                             this.updateDrawing();
                             ///////////////
                         }
@@ -1086,6 +1117,41 @@ var Stemcanvas = /** @class */ (function () {
                         if (this.cursor.selectmodifier.length == 2) {
                             var bounds = this.selectionManager.getGroupBoundingBox();
                             var resizepreview = this.resizeMulti(this.selectionManager.currentlySelectedMulti, bounds, vector_3, this.cursor.selectmodifier);
+                            var action = new UndoAction(UndoActionTypes.resizemulti);
+                            var resizevector = this.getCurrentStrokeVector();
+                            var invertingx = false;
+                            var invertingy = false;
+                            var ns = this.cursor.selectmodifier.substring(0, 1);
+                            var ew = this.cursor.selectmodifier.substring(1, 2);
+                            var width = bounds.maxX - bounds.originx;
+                            var height = bounds.maxY - bounds.originy;
+                            //
+                            if (ns == 'N') {
+                                if (resizevector.y > height) {
+                                    //is inverting the y
+                                    invertingy = true;
+                                }
+                            }
+                            else if (ns == 'S') {
+                                if (-resizevector.y > height) {
+                                    //is inverting the y
+                                    invertingy = true;
+                                }
+                            }
+                            if (ew == "E") {
+                                if (-resizevector.x > width) {
+                                    //is inverting x
+                                    invertingx = true;
+                                }
+                            }
+                            else if (ew == "W") {
+                                if (resizevector.x > width) {
+                                    //inverting x
+                                    invertingx = true;
+                                }
+                            }
+                            action.setResizeMulti(this.selectionManager.currentlySelectedMulti, vector_3, this.cursor.selectmodifier, invertingx, invertingy);
+                            this.undoredo.save(action);
                             for (var i = 0; i < resizepreview.length; i++) {
                                 var strokeobj = this.selectionManager.currentlySelectedMulti[i];
                                 var changedstroke = resizepreview[i];
@@ -1518,33 +1584,6 @@ var Stemcanvas = /** @class */ (function () {
         else {
             window.location.href = "index.html?q=nextquestion";
         }
-        // else {
-        //     //build image into a json uri
-        //     let image = this.drawingcanvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
-        //     var anchor = document.createElement('a');
-        //     anchor.setAttribute('download', `canvas - .png`);
-        //     anchor.setAttribute('href', image);
-        //     anchor.click();
-        //     //Export JSON
-        //     var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(this.drawingdata));
-        //     anchor = document.createElement('a');
-        //     anchor.setAttribute("href", dataStr);
-        //     anchor.setAttribute("download", `${participantDeviceTask} - drawingdata.json`);
-        //     anchor.click();
-        //     //and session information
-        //     let session = new Sessioninfo();
-        //     session.start = this.starttimeclock
-        //     session.end = new Date().toLocaleString();
-        //     session.startperf = this.starttimeperf;
-        //     session.devicetype = this.devicetype;
-        //     session.task = this.task;
-        //     session.participanttoken = this.participant;
-        //     let sessionoutputstring = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(session));
-        //     anchor = document.createElement('a');
-        //     anchor.setAttribute("href", sessionoutputstring);
-        //     anchor.setAttribute("download", `${participantDeviceTask} - sessioninfo.json`);
-        //     anchor.click();
-        // }
     };
     Stemcanvas.prototype.NextAndUpload = function () {
         // let participantDeviceTask = `${this.participant} - ${this.devicetype} - ${this.task}`;
@@ -1612,17 +1651,34 @@ var UndoAction = /** @class */ (function () {
         this.invertingx = invertingx;
         this.invertingy = invertingy;
     };
-    UndoAction.prototype.setResizeMulti = function (strokes, vector, direction) {
+    UndoAction.prototype.setResizeMulti = function (strokes, vector, direction, invertingx, invertingy) {
+        this.multistrokes = strokes;
+        this.vector = vector;
+        this.direction = direction;
+        this.invertingx = invertingx;
+        this.invertingy = invertingy;
     };
     UndoAction.prototype.setColourSingle = function (stroke, previouscolour, newcolour) {
+        this.stroke = stroke;
+        this.previouscolour = previouscolour;
+        this.newcolour = newcolour;
     };
-    UndoAction.prototype.setColourMulti = function (strokes, previouscolours, newcolours) {
-    };
-    UndoAction.prototype.setErase = function (stroke) {
+    UndoAction.prototype.setColourMulti = function (strokes, previouscolours, newcolour) {
+        this.multistrokes = strokes;
+        this.previouscolours = previouscolours;
+        this.newcolour = newcolour;
     };
     UndoAction.prototype.setWidthSingle = function (stroke, previouswidth, newwidth) {
+        this.stroke = stroke;
+        this.previouswidth = previouswidth;
+        this.newwidth = newwidth;
     };
-    UndoAction.prototype.setWidthMulti = function (strokes, previouswidths, newwidths) {
+    UndoAction.prototype.setWidthMulti = function (strokes, previouswidths, newwidth) {
+        this.multistrokes = strokes;
+        this.previouswidths = previouswidths;
+        this.newwidth = newwidth;
+    };
+    UndoAction.prototype.setErase = function (stroke) {
     };
     return UndoAction;
 }());
@@ -1647,8 +1703,17 @@ var StateManager = /** @class */ (function () {
             this.redostack.push(action); //pop undo action off the undo stack into the redo stack
         }
         else if (lastaction.actiontype == UndoActionTypes.colourmulti) {
+            var action = this.undostack.pop();
+            for (var i = 0; i < action.multistrokes.length; i++) {
+                var currenstroke = action.multistrokes[i];
+                currenstroke.strokecolour = action.previouscolours[i];
+            }
+            this.redostack.push(action);
         }
         else if (lastaction.actiontype == UndoActionTypes.coloursingle) {
+            var action = this.undostack.pop();
+            action.stroke.strokecolour = lastaction.previouscolour;
+            this.redostack.push(action);
         }
         else if (lastaction.actiontype == UndoActionTypes.erase) {
         }
@@ -1671,17 +1736,12 @@ var StateManager = /** @class */ (function () {
             this.redostack.push(action_2);
         }
         else if (lastaction.actiontype == UndoActionTypes.resizemulti) {
-        }
-        else if (lastaction.actiontype == UndoActionTypes.resizesingle) {
             var action = this.undostack.pop();
             var invertedVector = this.invertVector(action.vector.x, action.vector.y);
-            console.log("stop");
-            //
             var direction = action.direction;
             var ns = direction.substring(0, 1);
             var ew = direction.substring(1, 2);
             var invertcheckeddirection = "";
-            debugger;
             if (lastaction.invertingy) {
                 if (ns == "N") {
                     invertcheckeddirection += "S";
@@ -1704,7 +1764,80 @@ var StateManager = /** @class */ (function () {
             else {
                 invertcheckeddirection += ew;
             }
-            console.log(invertcheckeddirection);
+            var box = new StemstrokeBox();
+            for (var i = 0; i < action.multistrokes.length; i++) {
+                var s = action.multistrokes[i];
+                var lowestx = s.points.reduce(function (prev, curr) {
+                    return prev.x < curr.x ? prev : curr;
+                });
+                var heighestx = s.points.reduce(function (prev, curr) {
+                    return prev.x > curr.x ? prev : curr;
+                });
+                var lowesty = s.points.reduce(function (prev, curr) {
+                    return prev.y < curr.y ? prev : curr;
+                });
+                var heighesty = s.points.reduce(function (prev, curr) {
+                    return prev.y > curr.y ? prev : curr;
+                });
+                if (i == 0) {
+                    box.originx = lowestx.x;
+                    box.originy = lowesty.y;
+                    box.maxX = heighestx.x;
+                    box.maxY = heighesty.y;
+                }
+                else {
+                    if (lowestx.x < box.originx) {
+                        box.originx = lowestx.x;
+                    }
+                    if (lowesty.y < box.originy) {
+                        box.originy = lowesty.y;
+                    }
+                    if (heighestx.x > box.maxX) {
+                        box.maxX = heighestx.x;
+                    }
+                    if (heighesty.y > box.maxY) {
+                        box.maxY = heighesty.y;
+                    }
+                }
+            }
+            var resizedstrokes = this.resizeMulti(action.multistrokes, box, invertedVector, invertcheckeddirection);
+            for (var i = 0; i < action.multistrokes.length; i++) {
+                for (var y = 0; y < action.multistrokes[i].points.length; y++) {
+                    action.multistrokes[i].points[y].x = resizedstrokes[i].points[y].x;
+                    action.multistrokes[i].points[y].y = resizedstrokes[i].points[y].y;
+                }
+            }
+            this.redostack.push(action);
+        }
+        else if (lastaction.actiontype == UndoActionTypes.resizesingle) {
+            var action = this.undostack.pop();
+            var invertedVector = this.invertVector(action.vector.x, action.vector.y);
+            var direction = action.direction;
+            var ns = direction.substring(0, 1);
+            var ew = direction.substring(1, 2);
+            var invertcheckeddirection = "";
+            if (lastaction.invertingy) {
+                if (ns == "N") {
+                    invertcheckeddirection += "S";
+                }
+                else if (ns == "S") {
+                    invertcheckeddirection += "N";
+                }
+            }
+            else {
+                invertcheckeddirection += ns;
+            }
+            if (lastaction.invertingx) {
+                if (ew == "E") {
+                    invertcheckeddirection += "W";
+                }
+                else if (ew == "W") {
+                    invertcheckeddirection += "E";
+                }
+            }
+            else {
+                invertcheckeddirection += ew;
+            }
             //check invert for vector now:
             var temp = this.resizeStroke(action.stroke, invertedVector, invertcheckeddirection);
             for (var i = 0; i < action.stroke.points.length; i++) {
@@ -1713,8 +1846,15 @@ var StateManager = /** @class */ (function () {
             this.redostack.push(action);
         }
         else if (lastaction.actiontype == UndoActionTypes.widthmulti) {
+            var action = this.undostack.pop();
+            for (var i = 0; i < action.multistrokes.length; i++) {
+                action.multistrokes[i].strokewidth = action.previouswidths[i];
+            }
+            this.redostack.push(action);
         }
         else if (lastaction.actiontype == UndoActionTypes.widthsingle) {
+            lastaction.stroke.strokewidth = lastaction.previouswidth;
+            this.redostack.push(this.undostack.pop());
         }
     };
     StateManager.prototype.redo = function () {
@@ -1748,6 +1888,78 @@ var StateManager = /** @class */ (function () {
                 lastaction.stroke.points[i] = temp.points[i];
             }
             this.undostack.push(this.redostack.pop()); //pop undo action off the undo stack into the redo stack
+        }
+        else if (lastaction.actiontype == UndoActionTypes.resizemulti) {
+            var box = new StemstrokeBox();
+            for (var i = 0; i < lastaction.multistrokes.length; i++) {
+                var s = lastaction.multistrokes[i];
+                var lowestx = s.points.reduce(function (prev, curr) {
+                    return prev.x < curr.x ? prev : curr;
+                });
+                var heighestx = s.points.reduce(function (prev, curr) {
+                    return prev.x > curr.x ? prev : curr;
+                });
+                var lowesty = s.points.reduce(function (prev, curr) {
+                    return prev.y < curr.y ? prev : curr;
+                });
+                var heighesty = s.points.reduce(function (prev, curr) {
+                    return prev.y > curr.y ? prev : curr;
+                });
+                if (i == 0) {
+                    box.originx = lowestx.x;
+                    box.originy = lowesty.y;
+                    box.maxX = heighestx.x;
+                    box.maxY = heighesty.y;
+                }
+                else {
+                    if (lowestx.x < box.originx) {
+                        box.originx = lowestx.x;
+                    }
+                    if (lowesty.y < box.originy) {
+                        box.originy = lowesty.y;
+                    }
+                    if (heighestx.x > box.maxX) {
+                        box.maxX = heighestx.x;
+                    }
+                    if (heighesty.y > box.maxY) {
+                        box.maxY = heighesty.y;
+                    }
+                }
+            }
+            var temp = this.resizeMulti(lastaction.multistrokes, box, lastaction.vector, lastaction.direction);
+            for (var i = 0; i < lastaction.multistrokes.length; i++) {
+                for (var y = 0; y < lastaction.multistrokes[i].points.length; y++) {
+                    lastaction.multistrokes[i].points[y].x = temp[i].points[y].x;
+                    lastaction.multistrokes[i].points[y].y = temp[i].points[y].y;
+                }
+            }
+            this.undostack.push(this.redostack.pop()); //pop undo action off the undo stack into the redo stack
+        }
+        else if (lastaction.actiontype == UndoActionTypes.coloursingle) {
+            var action = this.redostack.pop();
+            action.stroke.strokecolour = action.newcolour;
+            this.undostack.push(action);
+        }
+        else if (lastaction.actiontype == UndoActionTypes.widthsingle) {
+            var action = this.redostack.pop();
+            action.stroke.strokewidth = action.newwidth;
+            this.undostack.push(action);
+        }
+        else if (lastaction.actiontype == UndoActionTypes.colourmulti) {
+            var action = this.redostack.pop();
+            for (var i = 0; i < action.multistrokes.length; i++) {
+                var cur = action.multistrokes[i];
+                cur.strokecolour = action.newcolour;
+            }
+            this.undostack.push(action);
+        }
+        else if (lastaction.actiontype == UndoActionTypes.widthmulti) {
+            var action = this.redostack.pop();
+            for (var i = 0; i < action.multistrokes.length; i++) {
+                var cur = action.multistrokes[i];
+                cur.strokewidth = action.newwidth;
+            }
+            this.undostack.push(action);
         }
     };
     StateManager.prototype.clear = function () {
@@ -1805,20 +2017,52 @@ var StateManager = /** @class */ (function () {
         }
         return outputstroke;
     };
-    // invertDirection(direction: string) {
-    //     if (direction == "NE") {
-    //         return "SW";
-    //     }
-    //     else if (direction == "SE") {
-    //         return "NW";
-    //     }
-    //     else if (direction == "SW") {
-    //         return "NE";
-    //     }
-    //     else if (direction == "NW") {
-    //         return "SE";
-    //     }
-    // }
+    StateManager.prototype.resizeMulti = function (inputstrokes, boundingbox, resizevector, modifier) {
+        var _this = this;
+        var output = new Array();
+        inputstrokes.forEach(function (inputstroke) {
+            var outputstroke = new Stemstroke();
+            outputstroke.objecttype = inputstroke.objecttype;
+            if (modifier == "NW") {
+                var resizefactor_13 = new Vector(1 + ((resizevector.x / (boundingbox.maxX - boundingbox.originx)) * -1), 1 + ((resizevector.y / (boundingbox.maxY - boundingbox.originy)) * -1));
+                inputstroke.points.forEach(function (p) {
+                    var resizedpoint = _this.resizePoint(p.x - boundingbox.originx, p.y - boundingbox.originy, resizefactor_13.x, 0, 0, resizefactor_13.y);
+                    resizedpoint.x += boundingbox.originx + resizevector.x;
+                    resizedpoint.y += boundingbox.originy + resizevector.y;
+                    outputstroke.points.push(resizedpoint);
+                });
+            }
+            else if (modifier == "NE") {
+                var resizefactor_14 = new Vector(1 + (resizevector.x / (boundingbox.maxX - boundingbox.originx)), 1 + ((resizevector.y / (boundingbox.maxY - boundingbox.originy)) * -1));
+                inputstroke.points.forEach(function (p) {
+                    var resizedpoint = _this.resizePoint(p.x - boundingbox.originx, p.y - boundingbox.originy, resizefactor_14.x, 0, 0, resizefactor_14.y);
+                    resizedpoint.x += boundingbox.originx;
+                    resizedpoint.y += boundingbox.originy + resizevector.y;
+                    outputstroke.points.push(resizedpoint);
+                });
+            }
+            else if (modifier == "SE") {
+                var resizefactor_15 = new Vector(1 + (resizevector.x / (boundingbox.maxX - boundingbox.originx)), 1 + (resizevector.y / (boundingbox.maxY - boundingbox.originy)));
+                inputstroke.points.forEach(function (p) {
+                    var resizedpoint = _this.resizePoint(p.x - boundingbox.originx, p.y - boundingbox.originy, resizefactor_15.x, 0, 0, resizefactor_15.y);
+                    resizedpoint.x += boundingbox.originx;
+                    resizedpoint.y += boundingbox.originy;
+                    outputstroke.points.push(resizedpoint);
+                });
+            }
+            else if (modifier == "SW") {
+                var resizefactor_16 = new Vector(1 + ((resizevector.x / (boundingbox.maxX - boundingbox.originx)) * -1), 1 + (resizevector.y / (boundingbox.maxY - boundingbox.originy)));
+                inputstroke.points.forEach(function (p) {
+                    var resizedpoint = _this.resizePoint(p.x - boundingbox.originx, p.y - boundingbox.originy, resizefactor_16.x, 0, 0, resizefactor_16.y);
+                    resizedpoint.x += boundingbox.originx + resizevector.x;
+                    resizedpoint.y += boundingbox.originy;
+                    outputstroke.points.push(resizedpoint);
+                });
+            }
+            output.push(outputstroke);
+        });
+        return output;
+    };
     StateManager.prototype.invertVector = function (x, y) {
         return new Vector(-x, -y);
     };

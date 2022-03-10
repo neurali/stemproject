@@ -188,6 +188,7 @@ class Stemcanvas {
         this.drawingcanvas.appendChild(this.eventel);
         this.toolbox = new Toolbox(this.eventel);
         this.eventel.addEventListener(toolboxevents.toolchanged, () => {
+            console.log("toolchanged");
             this.cursor.currentTool = this.toolbox.selectedtool;
             this.selectionManager.currentSelectionID = "";
             this.selectionManager.currentlySelected = null;
@@ -197,26 +198,57 @@ class Stemcanvas {
             this.touchcount = 0; //reset touch count (as a quick fix)
         });
         this.eventel.addEventListener(toolboxevents.sizechanged, () => {
+            console.log("sizechanged");
             let size = this.toolbox.selectedDrawSize;
             if (this.selectionManager.currentlySelected != null) {
-                this.selectionManager.currentlySelected.strokewidth = size;
-
+                let widthundo = new UndoAction(UndoActionTypes.widthsingle);
+                widthundo.setWidthSingle(this.selectionManager.currentlySelected, this.selectionManager.currentlySelected.strokewidth,size);
+                this.selectionManager.currentlySelected.strokewidth = size;  
+                this.undoredo.save(widthundo);
+                
             }
             else if (this.selectionManager.currentlySelectedMulti != null) {
+                
+                let previouswidths:number[] = new Array();
+
+                for(let i = 0; i < this.selectionManager.currentlySelectedMulti.length; i++){
+                    previouswidths.push(this.selectionManager.currentlySelectedMulti[i].strokewidth);
+                }
+
+                let multiwidthundo = new UndoAction(UndoActionTypes.widthmulti);
+
+                multiwidthundo.setWidthMulti(this.selectionManager.currentlySelectedMulti,previouswidths,this.toolbox.selectedDrawSize);
+
                 for (let i = 0; i < this.selectionManager.currentlySelectedMulti.length; i++) {
                     this.selectionManager.currentlySelectedMulti[i].strokewidth = this.toolbox.selectedDrawSize;
                 }
+                this.undoredo.save(multiwidthundo);
             }
             this.updateDrawing();
         })
         this.eventel.addEventListener(toolboxevents.colourchanged, () => {
+            console.log("colourchanged");
             if (this.selectionManager.currentlySelected != null) {
+
+                let colourundo = new UndoAction(UndoActionTypes.coloursingle);
+                colourundo.setColourSingle(this.selectionManager.currentlySelected,this.selectionManager.currentlySelected.strokecolour,this.toolbox.selectedColour);                
                 this.selectionManager.currentlySelected.strokecolour = this.toolbox.selectedColour;
+                this.undoredo.save(colourundo);
+                
             }
             else if (this.selectionManager.currentlySelectedMulti != null) {
+
+                let prevcolours:string[] = new Array();
+                for (let i = 0; i < this.selectionManager.currentlySelectedMulti.length; i++) {
+                    prevcolours.push(this.selectionManager.currentlySelectedMulti[i].strokecolour);
+                }
+                let colourmultiundo = new UndoAction(UndoActionTypes.colourmulti);
+                colourmultiundo.setColourMulti(this.selectionManager.currentlySelectedMulti,prevcolours,this.toolbox.selectedColour);
+
                 for (let i = 0; i < this.selectionManager.currentlySelectedMulti.length; i++) {
                     this.selectionManager.currentlySelectedMulti[i].strokecolour = this.toolbox.selectedColour;
                 }
+                this.undoredo.save(colourmultiundo);
             }
             this.updateDrawing();
 
@@ -369,11 +401,15 @@ class Stemcanvas {
     undo() {
 
         this.undoredo.undo();
+        this.selectionManager.currentlySelected = null;
+        this.selectionManager.currentlySelectedMulti = null;
         this.updateDrawing();
 
     }
     redo() {
         this.undoredo.redo();
+        this.selectionManager.currentlySelected = null;
+        this.selectionManager.currentlySelectedMulti = null;
         this.updateDrawing();
     }
     copy() {
@@ -1176,28 +1212,34 @@ class Stemcanvas {
         if (this.toolbox.selectedtool == "ERASE") {
             if (this.pen.penDown) {
                 let erasestrokelength = this.currentstroke.getPixelLength();
-                // if (erasestrokelength > Canvasconstants.multiselectMinimumLength) {
-                //     let strokestodelete: Array<number>;
-                //     let strokeindex = 0;
-                //     this.drawingdata.forEach(s => {
-                //         s.UpdateBoundingBox("");
-                //         let box = s.getCachedBoundingBox();
-                //         let lastpointinstroke = this.currentstroke.points[this.currentstroke.points.length - 1];
-                //         if (box.Intersects(lastpointinstroke.x, lastpointinstroke.y)) {
-                //             s.points.forEach(p => {
-                //                 if (this.selectionManager.getDistanceBetweenTwoPoints(new Vector(p.x, p.y), new Vector(lastpointinstroke.x, lastpointinstroke.y)) > Canvasconstants.multiselectMinimumLength) {
 
-                //                     //so the stroke is close enough to the erase stroke, lets move it into the undo stack
-                //                     this.undoActions.push(new UndoEraseAction(this.drawingdata[strokeindex]));
-                //                     this.redoActions = [];
-                //                     this.drawingdata.splice(strokeindex, 1); //remove the entry from the array
-                //                     this.updateDrawing();
-                //                 }
-                //             });
-                //         }
-                //         strokeindex++;
-                //     });
-                // }
+                if (erasestrokelength > Canvasconstants.multiselectMinimumLength) {
+                    let strokestodelete:Stemstroke[] = new Array<Stemstroke>();
+                    let strokeindex = 0;
+                    this.drawingdata.forEach(s => {
+                        s.UpdateBoundingBox("");
+                        let box = s.getCachedBoundingBox();
+
+                        let lastpointinstroke = this.currentstroke.points[this.currentstroke.points.length - 1];
+
+                        if (box.Intersects(lastpointinstroke.x, lastpointinstroke.y)) {
+                            s.points.forEach(p => {
+                                if (this.selectionManager.getDistanceBetweenTwoPoints(new Vector(p.x, p.y), new Vector(lastpointinstroke.x, lastpointinstroke.y)) < Canvasconstants.multiselectMinimumLength) {
+
+                                    strokestodelete.push(s);
+                                    this.drawingdata.splice(strokeindex);
+                                    this.updateDrawing();
+                                    //so the stroke is close enough to the erase stroke, lets move it into the undo stack
+                                    // this.undoActions.push(new UndoEraseAction(this.drawingdata[strokeindex]));
+                                    // this.redoActions = [];
+                                    // this.drawingdata.splice(strokeindex, 1); //remove the entry from the array
+                                    // this.updateDrawing();
+                                }
+                            });
+                        }
+                        strokeindex++;
+                    });
+                }
             }
 
         }
@@ -1361,7 +1403,7 @@ class Stemcanvas {
                             let ns = this.cursor.selectmodifier.substring(0, 1);
                             let ew = this.cursor.selectmodifier.substring(1, 2);
 
-                           //
+                            //
                             if (ns == 'N') {
                                 if (resizevector.y > this.selectionManager.currentlySelected.getPerfectStrokeHeight()) {
                                     //is inverting the y
@@ -1386,15 +1428,15 @@ class Stemcanvas {
                                     invertingx = true;
                                 }
                             }
-                            let undoaction = new UndoAction(UndoActionTypes.resizesingle);
+                            let singlemoveaction = new UndoAction(UndoActionTypes.resizesingle);
 
-                            undoaction.setResizeSingle(this.selectionManager.currentlySelected, resizevector, this.cursor.selectmodifier, invertingx, invertingy);
+                            singlemoveaction.setResizeSingle(this.selectionManager.currentlySelected, resizevector, this.cursor.selectmodifier, invertingx, invertingy);
 
-                            console.log(undoaction);
+                            console.log(singlemoveaction);
                             this.selectionManager.currentlySelected.UpdateBoundingBox("");
                             this.selectionManager.fresh = false;
 
-                            this.undoredo.save(undoaction);
+                            this.undoredo.save(singlemoveaction);
                             this.updateDrawing();
 
 
@@ -1443,6 +1485,50 @@ class Stemcanvas {
                         if (this.cursor.selectmodifier.length == 2) {
                             let bounds = this.selectionManager.getGroupBoundingBox();
                             let resizepreview = this.resizeMulti(this.selectionManager.currentlySelectedMulti, bounds, vector, this.cursor.selectmodifier);
+                            let action = new UndoAction(UndoActionTypes.resizemulti);
+                            let resizevector = this.getCurrentStrokeVector();
+                            
+                            let invertingx = false;
+                            let invertingy = false;
+
+                            let ns = this.cursor.selectmodifier.substring(0, 1);
+                            let ew = this.cursor.selectmodifier.substring(1, 2);
+
+                            let width = bounds.maxX - bounds.originx;
+                            let height = bounds.maxY - bounds.originy;
+                            
+
+                            //
+                            if (ns == 'N') {
+                                if (resizevector.y > height) {
+                                    //is inverting the y
+                                    invertingy = true;
+                                }
+                            }
+                            else if (ns == 'S') {
+                                if (-resizevector.y > height) {
+                                    //is inverting the y
+                                    invertingy = true;
+                                }
+                            }
+                            if (ew == "E") {
+                                if (-resizevector.x > width) {
+                                    //is inverting x
+                                    invertingx = true;
+                                }
+                            }
+                            else if (ew == "W") {
+                                if (resizevector.x > width) {
+                                    //inverting x
+                                    invertingx = true;
+                                }
+                            }
+
+
+
+
+                            action.setResizeMulti(this.selectionManager.currentlySelectedMulti, vector, this.cursor.selectmodifier,invertingx,invertingy);
+                            this.undoredo.save(action);
 
                             for (let i = 0; i < resizepreview.length; i++) {
                                 let strokeobj = this.selectionManager.currentlySelectedMulti[i];
@@ -1992,40 +2078,6 @@ class Stemcanvas {
         else {
             window.location.href = "index.html?q=nextquestion";
         }
-
-
-        // else {
-        //     //build image into a json uri
-        //     let image = this.drawingcanvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
-        //     var anchor = document.createElement('a');
-        //     anchor.setAttribute('download', `canvas - .png`);
-        //     anchor.setAttribute('href', image);
-        //     anchor.click();
-        //     //Export JSON
-        //     var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(this.drawingdata));
-        //     anchor = document.createElement('a');
-        //     anchor.setAttribute("href", dataStr);
-        //     anchor.setAttribute("download", `${participantDeviceTask} - drawingdata.json`);
-        //     anchor.click();
-        //     //and session information
-        //     let session = new Sessioninfo();
-        //     session.start = this.starttimeclock
-        //     session.end = new Date().toLocaleString();
-        //     session.startperf = this.starttimeperf;
-        //     session.devicetype = this.devicetype;
-        //     session.task = this.task;
-        //     session.participanttoken = this.participant;
-
-        //     let sessionoutputstring = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(session));
-        //     anchor = document.createElement('a');
-        //     anchor.setAttribute("href", sessionoutputstring);
-        //     anchor.setAttribute("download", `${participantDeviceTask} - sessioninfo.json`);
-        //     anchor.click();
-        // }
-
-
-
-
     }
     NextAndUpload() {
         // let participantDeviceTask = `${this.participant} - ${this.devicetype} - ${this.task}`;
@@ -2089,8 +2141,11 @@ class UndoAction {
     direction: string;
     previouscolour: string;
     newcolour: string;
-    previouswidth: string;
-    newwidth: string;
+    previouswidth: number;
+    newwidth: number;
+    previouscolours:string[];    
+    previouswidths:number[];
+    
 
     //resize specifics:
     invertingx: boolean;
@@ -2117,21 +2172,35 @@ class UndoAction {
     setResizeSingle(stroke: Stemstroke, vector: Vector, direction: string, invertingx: boolean, invertingy: boolean) {
         this.stroke = stroke; this.vector = vector; this.direction = direction; this.invertingx = invertingx; this.invertingy = invertingy;
     }
-    setResizeMulti(strokes: Stemstroke[], vector: Vector, direction: string) {
-
+    setResizeMulti(strokes: Stemstroke[], vector: Vector, direction: string, invertingx:boolean, invertingy:boolean) {
+        this.multistrokes = strokes;
+        this.vector = vector;
+        this.direction = direction;
+        this.invertingx = invertingx;
+        this.invertingy = invertingy;
     }
     setColourSingle(stroke: Stemstroke, previouscolour: string, newcolour: string) {
-
+        this.stroke = stroke;
+        this.previouscolour = previouscolour;
+        this.newcolour = newcolour;
     }
-    setColourMulti(strokes: Stemstroke[], previouscolours: string[], newcolours: string[]) {
-
+    setColourMulti(strokes: Stemstroke[], previouscolours: string[], newcolour:string) {
+        this.multistrokes = strokes;
+        this.previouscolours = previouscolours;
+        this.newcolour = newcolour;
+    }    
+    setWidthSingle(stroke: Stemstroke, previouswidth: number, newwidth: number) {
+        this.stroke = stroke;
+        this.previouswidth = previouswidth;
+        this.newwidth = newwidth;
+    }
+    setWidthMulti(strokes: Stemstroke[], previouswidths: number[], newwidth:number) {
+        this.multistrokes = strokes;
+        this.previouswidths = previouswidths;
+        this.newwidth = newwidth;
     }
     setErase(stroke: Stemstroke) {
 
-    }
-    setWidthSingle(stroke: Stemstroke, previouswidth: string, newwidth: string) {
-    }
-    setWidthMulti(strokes: Stemstroke[], previouswidths: string[], newwidths: string[]) {
     }
 }
 
@@ -2155,6 +2224,7 @@ class StateManager {
 
     undo() {
 
+        
         if (this.undostack.length < 1) {
             return;
         }
@@ -2167,9 +2237,21 @@ class StateManager {
         }
         else if (lastaction.actiontype == UndoActionTypes.colourmulti) {
 
+            let action = this.undostack.pop();
+
+           for(let i = 0; i < action.multistrokes.length; i++)
+           {
+               let currenstroke = action.multistrokes[i];
+               currenstroke.strokecolour = action.previouscolours[i];
+           }
+           this.redostack.push(action);
+
         }
         else if (lastaction.actiontype == UndoActionTypes.coloursingle) {
+            let action = this.undostack.pop();
 
+            action.stroke.strokecolour = lastaction.previouscolour;
+            this.redostack.push(action);
         }
         else if (lastaction.actiontype == UndoActionTypes.erase) {
 
@@ -2196,14 +2278,10 @@ class StateManager {
         }
         else if (lastaction.actiontype == UndoActionTypes.resizemulti) {
 
-        }
-        else if (lastaction.actiontype == UndoActionTypes.resizesingle) {
             let action = this.undostack.pop();
 
             let invertedVector = this.invertVector(action.vector.x, action.vector.y);
 
-            console.log("stop");
-            //
             let direction = action.direction;
 
             let ns = direction.substring(0, 1);
@@ -2211,7 +2289,6 @@ class StateManager {
 
             let invertcheckeddirection = "";
 
-            debugger;
             if (lastaction.invertingy) {
                 if (ns == "N") {
                     invertcheckeddirection += "S";
@@ -2220,7 +2297,7 @@ class StateManager {
                     invertcheckeddirection += "N";
                 }
             }
-            else{
+            else {
                 invertcheckeddirection += ns;
             }
             if (lastaction.invertingx) {
@@ -2231,12 +2308,107 @@ class StateManager {
                     invertcheckeddirection += "E";
                 }
             }
-            else{
+            else {
                 invertcheckeddirection += ew;
             }
+            let box = new StemstrokeBox();
+            for (let i = 0; i < action.multistrokes.length; i++) {
+                let s = action.multistrokes[i];
+
+
+                let lowestx = s.points.reduce(function (prev, curr) {
+                    return prev.x < curr.x ? prev : curr;
+                })
+                let heighestx = s.points.reduce(function (prev, curr) {
+                    return prev.x > curr.x ? prev : curr;
+                })
+                let lowesty = s.points.reduce(function (prev, curr) {
+                    return prev.y < curr.y ? prev : curr;
+                })
+                let heighesty = s.points.reduce(function (prev, curr) {
+                    return prev.y > curr.y ? prev : curr;
+                })
+
+                if (i == 0) {
+                    box.originx = lowestx.x;
+                    box.originy = lowesty.y;
+                    box.maxX = heighestx.x;
+                    box.maxY = heighesty.y;
+                }
+                else {
+
+                    if (lowestx.x < box.originx) {
+                        box.originx = lowestx.x;
+                    }
+                    if (lowesty.y < box.originy) {
+                        box.originy = lowesty.y;
+                    }
+                    if(heighestx.x > box.maxX)
+                    {
+                        box.maxX = heighestx.x;
+                    }
+                    if(heighesty.y > box.maxY)
+                    {
+                        box.maxY = heighesty.y;
+                    }
+                }
+
+            }
+
+            let resizedstrokes = this.resizeMulti(action.multistrokes,box,invertedVector,invertcheckeddirection);
+
             
 
-            console.log(invertcheckeddirection);
+
+
+
+            for(let i = 0; i < action.multistrokes.length; i++){
+                for(let y = 0; y < action.multistrokes[i].points.length; y++)
+                {
+                    action.multistrokes[i].points[y].x = resizedstrokes[i].points[y].x;
+                    action.multistrokes[i].points[y].y = resizedstrokes[i].points[y].y;
+                }
+            }
+
+            this.redostack.push(action);
+
+
+        }
+        else if (lastaction.actiontype == UndoActionTypes.resizesingle) {
+            let action = this.undostack.pop();
+
+            let invertedVector = this.invertVector(action.vector.x, action.vector.y);
+
+            let direction = action.direction;
+
+            let ns = direction.substring(0, 1);
+            let ew = direction.substring(1, 2);
+
+            let invertcheckeddirection = "";
+
+            if (lastaction.invertingy) {
+                if (ns == "N") {
+                    invertcheckeddirection += "S";
+                }
+                else if (ns == "S") {
+                    invertcheckeddirection += "N";
+                }
+            }
+            else {
+                invertcheckeddirection += ns;
+            }
+            if (lastaction.invertingx) {
+                if (ew == "E") {
+                    invertcheckeddirection += "W";
+                }
+                else if (ew == "W") {
+                    invertcheckeddirection += "E";
+                }
+            }
+            else {
+                invertcheckeddirection += ew;
+            }
+
 
             //check invert for vector now:
 
@@ -2249,9 +2421,16 @@ class StateManager {
         }
         else if (lastaction.actiontype == UndoActionTypes.widthmulti) {
 
+            let action = this.undostack.pop();
+            for(let i = 0; i < action.multistrokes.length; i++)
+            {
+                action.multistrokes[i].strokewidth = action.previouswidths[i];
+            }
+            this.redostack.push(action);
         }
         else if (lastaction.actiontype == UndoActionTypes.widthsingle) {
-
+            lastaction.stroke.strokewidth = lastaction.previouswidth;
+            this.redostack.push(this.undostack.pop());
         }
 
 
@@ -2296,6 +2475,103 @@ class StateManager {
             this.undostack.push(this.redostack.pop()); //pop undo action off the undo stack into the redo stack
 
         }
+        else if(lastaction.actiontype == UndoActionTypes.resizemulti)
+        {
+            
+            let box = new StemstrokeBox();
+            for (let i = 0; i < lastaction.multistrokes.length; i++) {
+                let s = lastaction.multistrokes[i];
+
+
+                let lowestx = s.points.reduce(function (prev, curr) {
+                    return prev.x < curr.x ? prev : curr;
+                })
+                let heighestx = s.points.reduce(function (prev, curr) {
+                    return prev.x > curr.x ? prev : curr;
+                })
+                let lowesty = s.points.reduce(function (prev, curr) {
+                    return prev.y < curr.y ? prev : curr;
+                })
+                let heighesty = s.points.reduce(function (prev, curr) {
+                    return prev.y > curr.y ? prev : curr;
+                })
+
+                if (i == 0) {
+                    box.originx = lowestx.x;
+                    box.originy = lowesty.y;
+                    box.maxX = heighestx.x;
+                    box.maxY = heighesty.y;
+                }
+                else {
+
+                    if (lowestx.x < box.originx) {
+                        box.originx = lowestx.x;
+                    }
+                    if (lowesty.y < box.originy) {
+                        box.originy = lowesty.y;
+                    }
+                    if(heighestx.x > box.maxX)
+                    {
+                        box.maxX = heighestx.x;
+                    }
+                    if(heighesty.y > box.maxY)
+                    {
+                        box.maxY = heighesty.y;
+                    }
+                }
+
+            }
+
+            let temp = this.resizeMulti(lastaction.multistrokes,box,lastaction.vector,lastaction.direction);
+
+            for(let i = 0; i < lastaction.multistrokes.length; i++)
+            {
+                for(let y = 0; y< lastaction.multistrokes[i].points.length; y++)
+                {
+                    lastaction.multistrokes[i].points[y].x = temp[i].points[y].x;
+                    lastaction.multistrokes[i].points[y].y = temp[i].points[y].y;
+                }
+            }
+
+            this.undostack.push(this.redostack.pop()); //pop undo action off the undo stack into the redo stack
+        }
+        else if(lastaction.actiontype == UndoActionTypes.coloursingle)
+        {
+            let action = this.redostack.pop();
+
+            action.stroke.strokecolour = action.newcolour;
+            this.undostack.push(action);
+        }
+        else if(lastaction.actiontype == UndoActionTypes.widthsingle)
+        {
+            let action = this.redostack.pop();
+
+            action.stroke.strokewidth = action.newwidth;
+            this.undostack.push(action);
+        }
+        else if(lastaction.actiontype == UndoActionTypes.colourmulti)
+        {
+            let action = this.redostack.pop();
+            for(let i = 0; i < action.multistrokes.length; i++)
+            {
+                let cur = action.multistrokes[i];
+                cur.strokecolour = action.newcolour;
+            }
+            this.undostack.push(action);
+        }
+        else if(lastaction.actiontype == UndoActionTypes.widthmulti)
+        {
+            let action = this.redostack.pop();
+            for(let i =0; i < action.multistrokes.length; i++)
+            {
+                let cur = action.multistrokes[i];
+                cur.strokewidth = action.newwidth;
+            }
+            this.undostack.push(action);
+
+        }
+
+
 
 
 
@@ -2377,20 +2653,69 @@ class StateManager {
 
         return outputstroke;
     }
-    // invertDirection(direction: string) {
-    //     if (direction == "NE") {
-    //         return "SW";
-    //     }
-    //     else if (direction == "SE") {
-    //         return "NW";
-    //     }
-    //     else if (direction == "SW") {
-    //         return "NE";
-    //     }
-    //     else if (direction == "NW") {
-    //         return "SE";
-    //     }
-    // }
+    resizeMulti(inputstrokes: Stemstroke[], boundingbox: StemstrokeBox, resizevector: Vector, modifier: string) {
+
+        let output: Stemstroke[] = new Array<Stemstroke>();
+        inputstrokes.forEach(inputstroke => {
+            let outputstroke = new Stemstroke();
+            outputstroke.objecttype = inputstroke.objecttype;
+
+            if (modifier == "NW") {
+                let resizefactor = new Vector(
+                    1 + ((resizevector.x / (boundingbox.maxX - boundingbox.originx)) * -1),
+                    1 + ((resizevector.y / (boundingbox.maxY - boundingbox.originy)) * -1));
+
+                inputstroke.points.forEach(p => {
+                    let resizedpoint = this.resizePoint(p.x - boundingbox.originx, p.y - boundingbox.originy, resizefactor.x, 0, 0, resizefactor.y)
+                    resizedpoint.x += boundingbox.originx + resizevector.x;
+                    resizedpoint.y += boundingbox.originy + resizevector.y;
+                    outputstroke.points.push(resizedpoint);
+                });
+            }
+            else if (modifier == "NE") {
+                let resizefactor = new Vector(
+                    1 + (resizevector.x / (boundingbox.maxX - boundingbox.originx)),
+                    1 + ((resizevector.y / (boundingbox.maxY - boundingbox.originy)) * -1));
+
+                inputstroke.points.forEach(p => {
+                    let resizedpoint = this.resizePoint(p.x - boundingbox.originx, p.y - boundingbox.originy, resizefactor.x, 0, 0, resizefactor.y)
+                    resizedpoint.x += boundingbox.originx;
+                    resizedpoint.y += boundingbox.originy + resizevector.y;
+                    outputstroke.points.push(resizedpoint);
+                });
+            }
+            else if (modifier == "SE") {
+                let resizefactor = new Vector(
+                    1 + (resizevector.x / (boundingbox.maxX - boundingbox.originx)),
+                    1 + (resizevector.y / (boundingbox.maxY - boundingbox.originy)));
+
+                inputstroke.points.forEach(p => {
+                    let resizedpoint = this.resizePoint(p.x - boundingbox.originx, p.y - boundingbox.originy, resizefactor.x, 0, 0, resizefactor.y)
+                    resizedpoint.x += boundingbox.originx;
+                    resizedpoint.y += boundingbox.originy;
+                    outputstroke.points.push(resizedpoint);
+                });
+            }
+            else if (modifier == "SW") {
+                let resizefactor = new Vector(
+                    1 + ((resizevector.x / (boundingbox.maxX - boundingbox.originx)) * -1),
+                    1 + (resizevector.y / (boundingbox.maxY - boundingbox.originy)));
+
+                inputstroke.points.forEach(p => {
+                    let resizedpoint = this.resizePoint(p.x - boundingbox.originx, p.y - boundingbox.originy, resizefactor.x, 0, 0, resizefactor.y)
+                    resizedpoint.x += boundingbox.originx + resizevector.x;
+                    resizedpoint.y += boundingbox.originy;
+                    outputstroke.points.push(resizedpoint);
+                });
+            }
+            output.push(outputstroke);
+        });
+
+        return output;
+
+
+    }
+    
     invertVector(x, y) {
 
         return new Vector(-x, -y);
