@@ -35,10 +35,33 @@ var StemDrawnObject = /** @class */ (function () {
             return this.points[this.points.length - 1];
         }
     };
+    StemDrawnObject.prototype.getPerfectStrokeWidth = function () {
+        var lowestx = this.points.reduce(function (prev, curr) {
+            return prev.x < curr.x ? prev : curr;
+        });
+        var heighestx = this.points.reduce(function (prev, curr) {
+            return prev.x > curr.x ? prev : curr;
+        });
+        return heighestx.x - lowestx.x;
+    };
+    StemDrawnObject.prototype.getPerfectStrokeHeight = function () {
+        var lowesty = this.points.reduce(function (prev, curr) {
+            return prev.y < curr.y ? prev : curr;
+        });
+        var heighesty = this.points.reduce(function (prev, curr) {
+            return prev.y > curr.y ? prev : curr;
+        });
+        return heighesty.y - lowesty.y;
+    };
     //gets previously created cached drawing box (for quicker access)
     StemDrawnObject.prototype.getCachedBoundingBox = function () {
         //should only be called during operations that dont actually update the drawing box
-        return this.cachedBoundingBox;
+        try {
+            return this.cachedBoundingBox;
+        }
+        catch (_a) {
+            return null;
+        }
     };
     StemDrawnObject.prototype.getPixelLength = function () {
         if (this.points.length == 0) {

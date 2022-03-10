@@ -32,11 +32,43 @@ class StemDrawnObject {
             return this.points[this.points.length - 1];
         }
     }
+    getPerfectStrokeWidth(){
+
+        let lowestx = this.points.reduce(function(prev,curr){
+            return prev.x < curr.x ? prev : curr;            
+        })
+        let heighestx = this.points.reduce(function(prev,curr){
+            return prev.x > curr.x ? prev : curr;            
+        })
+
+        return heighestx.x - lowestx.x;
+    }
+    getPerfectStrokeHeight(){
+
+        
+        
+        let lowesty = this.points.reduce(function(prev,curr){
+            return prev.y < curr.y ? prev : curr;            
+        })
+        let heighesty = this.points.reduce(function(prev,curr){
+            return prev.y > curr.y ? prev : curr;            
+        })
+
+        return heighesty.y - lowesty.y;
+    }
 
     //gets previously created cached drawing box (for quicker access)
     getCachedBoundingBox() {
         //should only be called during operations that dont actually update the drawing box
-        return this.cachedBoundingBox;
+        try
+        {
+            return this.cachedBoundingBox;
+        }
+        catch
+        {
+            return null;
+        }
+        
     }
     getPixelLength(){
         if(this.points.length == 0)
