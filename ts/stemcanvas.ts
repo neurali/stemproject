@@ -58,6 +58,9 @@ class Stemcanvas {
     //session end time clock
     endtimeclock: string = "";
 
+    multierasing:boolean = false;
+    multierasedstrokes:Stemstroke[] = new Array();
+
     constructor(id: string) {
 
 
@@ -1214,114 +1217,54 @@ class Stemcanvas {
                 let erasestrokelength = this.currentstroke.getPixelLength();
 
                 if (erasestrokelength > Canvasconstants.multiselectMinimumLength) {
-                    let strokestodelete:Stemstroke[] = new Array<Stemstroke>();
-                    let strokeindex = 0;
-                    this.drawingdata.forEach(s => {
+
+
+                    //this code is whack (this needs to be refactored for release)
+                    this.multierasing = true;
+
+                    let toerase:number[] = [];
+                    
+                    for(let i = 0; i < this.drawingdata.length; i++)
+                    {
+                        let s = this.drawingdata[i];                    
+
                         s.UpdateBoundingBox("");
                         let box = s.getCachedBoundingBox();
-
                         let lastpointinstroke = this.currentstroke.points[this.currentstroke.points.length - 1];
 
                         if (box.Intersects(lastpointinstroke.x, lastpointinstroke.y)) {
-                            s.points.forEach(p => {
-                                if (this.selectionManager.getDistanceBetweenTwoPoints(new Vector(p.x, p.y), new Vector(lastpointinstroke.x, lastpointinstroke.y)) < Canvasconstants.multiselectMinimumLength) {
+                            
+                            let shouldbreak = false;
+                            for(let y = 0; y < s.points.length; y++)
+                            {
+                                let p = s.points[y]; 
 
-                                    strokestodelete.push(s);
-                                    this.drawingdata.splice(strokeindex);
-                                    this.updateDrawing();
-                                    //so the stroke is close enough to the erase stroke, lets move it into the undo stack
-                                    // this.undoActions.push(new UndoEraseAction(this.drawingdata[strokeindex]));
-                                    // this.redoActions = [];
-                                    // this.drawingdata.splice(strokeindex, 1); //remove the entry from the array
-                                    // this.updateDrawing();
+                                if (this.selectionManager.getDistanceBetweenTwoPoints(new Vector(p.x, p.y), new Vector(lastpointinstroke.x, lastpointinstroke.y)) < Canvasconstants.multiselectMinimumLength) {                                    
+                                    this.multierasedstrokes.push(s);
+                                    toerase.push(i);                                    
+                                    shouldbreak = true;
+                                    break;
                                 }
-                            });
-                        }
-                        strokeindex++;
-                    });
+                            }
+                            if(shouldbreak)
+                            {
+                                console.log("stopped looking through the drawing");
+                                break;
+                            }
+                        }                        
+
+                    };    
+                    console.log(`removing ${toerase.length} items`);
+                    for(let i = 0; i < toerase.length; i++)
+                    {                        
+                        console.log(`removing ${toerase[i]}`);
+                        this.drawingdata.splice(toerase[i],1);
+                        this.updateDrawing(); 
+                    }                
                 }
             }
 
         }
-
-
-
-
-        // //now check if the cursor is over a selection-hover-point
-        // if (this.selectedDrawnObject != null) {
-        //     if (this.pendetails.penDown) {
-        //         return;
-        //     }
-        //     let box = this.selectedDrawnObject.getCachedBoundingBox();
-
-        //     //check if pen is near the selected object:
-
-        //     //it does, so now check if the cursor is actuall on top of one of the interaction elements:
-        //     //get center point of box:
-        //     let centerx = (box.maxX + box.originx) / 2;
-        //     let centery = (box.maxY + box.originy) / 2;
-
-        //     if (helper.IsPointInsideBoxAtPoint(this.pendetails.X, this.pendetails.Y, box.originx, box.originy, this.selectionHoverBoxSize)) {
-        //         this.hoveredSelectionPoint = "NW";
-        //     }
-        //     else if (helper.IsPointInsideBoxAtPoint(this.pendetails.X, this.pendetails.Y, box.maxX, box.originy, this.selectionHoverBoxSize)) {
-        //         this.hoveredSelectionPoint = "NE"; //not near any selection points
-        //     }
-        //     else if (helper.IsPointInsideBoxAtPoint(this.pendetails.X, this.pendetails.Y, box.maxX, box.maxY, this.selectionHoverBoxSize)) {
-        //         this.hoveredSelectionPoint = "SE"; //not near any selection points
-        //     }
-        //     else if (helper.IsPointInsideBoxAtPoint(this.pendetails.X, this.pendetails.Y, box.originx, box.maxY, this.selectionHoverBoxSize)) {
-        //         this.hoveredSelectionPoint = "SW";
-        //     }
-        //     else if (box.DoesIntersect(this.pendetails.X, this.pendetails.Y)) {
-        //         this.hoveredSelectionPoint = "C";
-        //     }
-        //     else {
-        //         this.hoveredSelectionPoint = "";
-        //     }
-
-        //     if (this.selectedDrawnObject.objecttype == "CIRCLE") {
-        //         let lastpoint = this.selectedDrawnObject.points[this.selectedDrawnObject.points.length - 1];
-        //         if (helper.IsPointInsideBoxAtPoint(this.pendetails.X, this.pendetails.Y, lastpoint.x, lastpoint.y, 16)) {
-        //             this.hoveredSelectionPoint = "P"; //not near any selection points                        
-        //         }
-        //         else if (helper.IsPointInsideBoxAtPoint(this.pendetails.X, this.pendetails.Y, centerx, centery, this.selectionHoverBoxSize)) {
-        //             this.hoveredSelectionPoint = "C";
-        //         }
-        //         else { this.hoveredSelectionPoint = ""; }
-
-        //     }
-
-        //     if (this.ismovingobject) {
-        //         let endpoint = new Stempoint(this.pendetails.X, this.pendetails.Y);
-        //         this.currentMove.endPoint = endpoint;
-        //     }
-        //     if (this.isresizingobject) {
-        //         let endpoint = new Stempoint(this.pendetails.X, this.pendetails.Y);
-        //         this.currentResize.endPoint = endpoint;
-        //     }
-        // }
-        // if (this.selectedMultiDrawnObjects != null) {
-
-        //     if (this.selectedMultiDrawnObjects.doesIntersect(this.pendetails.X, this.pendetails.Y)) {
-        //         this.hoveredSelectionPoint = "C";
-        //     }
-        //     else {
-        //         this.hoveredSelectionPoint = "";
-        //     }
-        //     if (helper.IsPointInsideBoxAtPoint(this.pendetails.X, this.pendetails.Y, this.selectedMultiDrawnObjects.minx, this.selectedMultiDrawnObjects.miny, this.selectionHoverBoxSize)) {
-        //         this.hoveredSelectionPoint = "NW";
-        //     }
-        //     else if (helper.IsPointInsideBoxAtPoint(this.pendetails.X, this.pendetails.Y, this.selectedMultiDrawnObjects.maxx, this.selectedMultiDrawnObjects.miny, this.selectionHoverBoxSize)) {
-        //         this.hoveredSelectionPoint = "NE"; //not near any selection points
-        //     }
-        //     else if (helper.IsPointInsideBoxAtPoint(this.pendetails.X, this.pendetails.Y, this.selectedMultiDrawnObjects.maxx, this.selectedMultiDrawnObjects.maxy, this.selectionHoverBoxSize)) {
-        //         this.hoveredSelectionPoint = "SE"; //not near any selection points
-        //     }
-        //     else if (helper.IsPointInsideBoxAtPoint(this.pendetails.X, this.pendetails.Y, this.selectedMultiDrawnObjects.minx, this.selectedMultiDrawnObjects.maxy, this.selectionHoverBoxSize)) {
-        //         this.hoveredSelectionPoint = "SW"; //not near any selection points
-        //     }
-        // }
     }
     PointerUpEvent(e: PointerEvent) {
 
@@ -1586,19 +1529,30 @@ class Stemcanvas {
             //is the stroke a line or a point
             if (this.currentstroke.getPixelLength() > Canvasconstants.multiselectMinimumLength) {
                 //see move event (coz it strokes will be erased 'live' while the user is interacting)
+                //strokes have allready been popped, now put them into undostack
+                let multierase = new UndoAction(UndoActionTypes.erasemulti);
+                this.multierasedstrokes = this.removeduplicates(this.multierasedstrokes,"strokeid");                
+                multierase.setEraseMulti(this.multierasedstrokes);
+                //this.undoredo.save(multierase);
+                this.multierasing = false;
+                this.multierasedstrokes = [];
             }
             else {
-                //point
-                let underpointerid = this.selectionManager.IDObjectAtPoint(this.currentstroke.points[this.currentstroke.points.length - 1].x, this.currentstroke.points[this.currentstroke.points.length - 1].y);
-                //
-                let indexunderpointer = this.selectionManager.indexAtID(underpointerid);
-                if (indexunderpointer == null) {
-                    return;
+                if(!this.multierasing)
+                {
+                    //point
+                    let underpointerid = this.selectionManager.IDObjectAtPoint(this.currentstroke.points[this.currentstroke.points.length - 1].x, this.currentstroke.points[this.currentstroke.points.length - 1].y);
+                    //
+                    let indexunderpointer = this.selectionManager.indexAtID(underpointerid);
+                    if (indexunderpointer == null) {
+                        return;
+                    }
+                    // this.undoActions.push(new UndoEraseAction(this.drawingdata[indexunderpointer]));
+                    // this.redoActions = [];
+                    this.drawingdata.splice(indexunderpointer, 1); //remove the entry from the array
+                    this.updateDrawing();
                 }
-                // this.undoActions.push(new UndoEraseAction(this.drawingdata[indexunderpointer]));
-                // this.redoActions = [];
-                this.drawingdata.splice(indexunderpointer, 1); //remove the entry from the array
-                this.updateDrawing();
+                
 
             }
         }
@@ -2119,6 +2073,13 @@ class Stemcanvas {
             this.contextDebug.closePath();
         }
     }
+    removeduplicates(array:Stemstroke[],prop:string)
+    {
+        return array.filter((s,i,arr)=>{
+            return arr.map(mapobj=>mapobj[prop]).indexOf(s[prop]) == i;
+        });
+        
+    }
 
 }
 
@@ -2202,6 +2163,10 @@ class UndoAction {
     setErase(stroke: Stemstroke) {
 
     }
+    setEraseMulti(strokes:Stemstroke[])
+    {
+        this.multistrokes = strokes;
+    }
 }
 
 class StateManager {
@@ -2223,7 +2188,6 @@ class StateManager {
     }
 
     undo() {
-
         
         if (this.undostack.length < 1) {
             return;
@@ -2432,6 +2396,55 @@ class StateManager {
             lastaction.stroke.strokewidth = lastaction.previouswidth;
             this.redostack.push(this.undostack.pop());
         }
+        else if(lastaction.actiontype == UndoActionTypes.erasemulti){
+
+             let action = this.undostack.pop(); //get last undo action
+
+            // let temp = action.multistrokes.sort((a:Stemstroke,b:Stemstroke) => (a.points[0].timestamp > b.points[0].timestamp) ? 1: -1) //sort the array by timestamp
+
+            // debugger;
+            // let undoiterator = 0;
+           
+            // for(let i = 0; i < this.data.length; i++)
+            // {
+            //     let currentTime  = this.data[i].points[0].timestamp; 
+
+            //     if( i== this.data.length - 1)
+            //     {
+            //         if(currentTime < temp[undoiterator].points[0].timestamp)
+            //         {
+            //             this.data.splice(i,0,temp[undoiterator]);
+            //         }
+            //         else{
+            //             break;
+            //         }
+
+            //     }
+                               
+            //     let nextTime = this.data[i+1].points[0].timestamp;
+            //     if(currentTime < temp[undoiterator].points[0].timestamp && nextTime > temp[undoiterator].points[0].timestamp)
+            //     {
+            //         this.data.splice(i,0,temp[undoiterator]);
+            //         undoiterator++;
+            //         if(undoiterator == temp.length)
+            //         {
+            //             break;
+            //         }
+            //     }
+            // }
+
+            // // for(let i =0; i < action.multistrokes.length; i++)
+            // // {                
+            // //     this.data.push(action.multistrokes[i]);                
+            // // }            
+
+            // this.redostack.push(action);
+        }
+
+        else if(lastaction.actiontype == UndoActionTypes.erase)
+        {
+
+        }
 
 
 
@@ -2570,6 +2583,37 @@ class StateManager {
             this.undostack.push(action);
 
         }
+        else if(lastaction.actiontype == UndoActionTypes.erasemulti){
+            debugger;
+            this.redostack.pop();
+        }
+        // else if(lastaction.actiontype == UndoActionTypes.erasemulti){
+        //     let action = this.redostack.pop();
+            
+        //     let remove:number[] = [];
+
+        //     for(let i =0; i < this.data.length; i++)
+        //     {
+        //         for(let y = 0; y < action.multistrokes.length; y++)
+        //         {
+        //             if(this.data[i].strokeid == action.multistrokes[y].strokeid)
+        //             {
+        //                 remove.push(i);
+        //                 break;
+        //             }
+        //         }
+        //     }
+        //     debugger;
+        //     for(let i = 0; i < remove.length; i++)
+        //     {
+        //         console.log(`removing at index: ${remove[i]} length is ${this.data.length}`);
+        //         this.data.splice(remove[i],1);
+        //     }
+
+        //     this.undostack.push(action);
+
+            
+        // }
 
 
 
@@ -2722,7 +2766,7 @@ class StateManager {
     }
 }
 enum UndoActionTypes {
-    movesingle, movemulti, resizesingle, resizemulti, coloursingle, colourmulti, newdraw, erase,
+    movesingle, movemulti, resizesingle, resizemulti, coloursingle, colourmulti, newdraw, erase, erasemulti,
     widthsingle, widthmulti
 }
 class Canvasconstants {
@@ -3020,6 +3064,9 @@ class SelectionManager {
 
         let selected = new Array<Stemstroke>();
         this.drawingData.forEach(s => {
+
+            s.UpdateBoundingBox("");
+
             let first = s.points[0];
             let last = s.points[s.points.length - 1];
 
@@ -3131,7 +3178,7 @@ class SelectionManager {
 
     }
 
-
+   
 
 
 

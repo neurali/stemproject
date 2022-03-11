@@ -12,6 +12,8 @@ var Stemcanvas = /** @class */ (function () {
         this.starttimeperf = "";
         //session end time clock
         this.endtimeclock = "";
+        this.multierasing = false;
+        this.multierasedstrokes = new Array();
         var isIOS = /iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent);
         if (isIOS) {
             this.isios = true;
@@ -785,7 +787,6 @@ var Stemcanvas = /** @class */ (function () {
         //todo handle clickdragging off the canvas and then returning in an unclicking state        
     };
     Stemcanvas.prototype.PointerMoveEvent = function (e) {
-        var _this = this;
         e.preventDefault();
         this.pen.X = e.pageX - (this.canvascontainer.offsetLeft) + this.canvasscrollx;
         this.pen.Y = e.pageY - (this.canvascontainer.offsetTop) + this.canvascrolly;
@@ -895,99 +896,41 @@ var Stemcanvas = /** @class */ (function () {
             if (this.pen.penDown) {
                 var erasestrokelength = this.currentstroke.getPixelLength();
                 if (erasestrokelength > Canvasconstants.multiselectMinimumLength) {
-                    var strokestodelete_1 = new Array();
-                    var strokeindex_1 = 0;
-                    this.drawingdata.forEach(function (s) {
+                    //this code is whack (this needs to be refactored for release)
+                    this.multierasing = true;
+                    var toerase = [];
+                    for (var i = 0; i < this.drawingdata.length; i++) {
+                        var s = this.drawingdata[i];
                         s.UpdateBoundingBox("");
                         var box = s.getCachedBoundingBox();
-                        var lastpointinstroke = _this.currentstroke.points[_this.currentstroke.points.length - 1];
+                        var lastpointinstroke = this.currentstroke.points[this.currentstroke.points.length - 1];
                         if (box.Intersects(lastpointinstroke.x, lastpointinstroke.y)) {
-                            s.points.forEach(function (p) {
-                                if (_this.selectionManager.getDistanceBetweenTwoPoints(new Vector(p.x, p.y), new Vector(lastpointinstroke.x, lastpointinstroke.y)) < Canvasconstants.multiselectMinimumLength) {
-                                    strokestodelete_1.push(s);
-                                    _this.drawingdata.splice(strokeindex_1);
-                                    _this.updateDrawing();
-                                    //so the stroke is close enough to the erase stroke, lets move it into the undo stack
-                                    // this.undoActions.push(new UndoEraseAction(this.drawingdata[strokeindex]));
-                                    // this.redoActions = [];
-                                    // this.drawingdata.splice(strokeindex, 1); //remove the entry from the array
-                                    // this.updateDrawing();
+                            var shouldbreak = false;
+                            for (var y = 0; y < s.points.length; y++) {
+                                var p = s.points[y];
+                                if (this.selectionManager.getDistanceBetweenTwoPoints(new Vector(p.x, p.y), new Vector(lastpointinstroke.x, lastpointinstroke.y)) < Canvasconstants.multiselectMinimumLength) {
+                                    this.multierasedstrokes.push(s);
+                                    toerase.push(i);
+                                    shouldbreak = true;
+                                    break;
                                 }
-                            });
+                            }
+                            if (shouldbreak) {
+                                console.log("stopped looking through the drawing");
+                                break;
+                            }
                         }
-                        strokeindex_1++;
-                    });
+                    }
+                    ;
+                    console.log("removing ".concat(toerase.length, " items"));
+                    for (var i = 0; i < toerase.length; i++) {
+                        console.log("removing ".concat(toerase[i]));
+                        this.drawingdata.splice(toerase[i], 1);
+                        this.updateDrawing();
+                    }
                 }
             }
         }
-        // //now check if the cursor is over a selection-hover-point
-        // if (this.selectedDrawnObject != null) {
-        //     if (this.pendetails.penDown) {
-        //         return;
-        //     }
-        //     let box = this.selectedDrawnObject.getCachedBoundingBox();
-        //     //check if pen is near the selected object:
-        //     //it does, so now check if the cursor is actuall on top of one of the interaction elements:
-        //     //get center point of box:
-        //     let centerx = (box.maxX + box.originx) / 2;
-        //     let centery = (box.maxY + box.originy) / 2;
-        //     if (helper.IsPointInsideBoxAtPoint(this.pendetails.X, this.pendetails.Y, box.originx, box.originy, this.selectionHoverBoxSize)) {
-        //         this.hoveredSelectionPoint = "NW";
-        //     }
-        //     else if (helper.IsPointInsideBoxAtPoint(this.pendetails.X, this.pendetails.Y, box.maxX, box.originy, this.selectionHoverBoxSize)) {
-        //         this.hoveredSelectionPoint = "NE"; //not near any selection points
-        //     }
-        //     else if (helper.IsPointInsideBoxAtPoint(this.pendetails.X, this.pendetails.Y, box.maxX, box.maxY, this.selectionHoverBoxSize)) {
-        //         this.hoveredSelectionPoint = "SE"; //not near any selection points
-        //     }
-        //     else if (helper.IsPointInsideBoxAtPoint(this.pendetails.X, this.pendetails.Y, box.originx, box.maxY, this.selectionHoverBoxSize)) {
-        //         this.hoveredSelectionPoint = "SW";
-        //     }
-        //     else if (box.DoesIntersect(this.pendetails.X, this.pendetails.Y)) {
-        //         this.hoveredSelectionPoint = "C";
-        //     }
-        //     else {
-        //         this.hoveredSelectionPoint = "";
-        //     }
-        //     if (this.selectedDrawnObject.objecttype == "CIRCLE") {
-        //         let lastpoint = this.selectedDrawnObject.points[this.selectedDrawnObject.points.length - 1];
-        //         if (helper.IsPointInsideBoxAtPoint(this.pendetails.X, this.pendetails.Y, lastpoint.x, lastpoint.y, 16)) {
-        //             this.hoveredSelectionPoint = "P"; //not near any selection points                        
-        //         }
-        //         else if (helper.IsPointInsideBoxAtPoint(this.pendetails.X, this.pendetails.Y, centerx, centery, this.selectionHoverBoxSize)) {
-        //             this.hoveredSelectionPoint = "C";
-        //         }
-        //         else { this.hoveredSelectionPoint = ""; }
-        //     }
-        //     if (this.ismovingobject) {
-        //         let endpoint = new Stempoint(this.pendetails.X, this.pendetails.Y);
-        //         this.currentMove.endPoint = endpoint;
-        //     }
-        //     if (this.isresizingobject) {
-        //         let endpoint = new Stempoint(this.pendetails.X, this.pendetails.Y);
-        //         this.currentResize.endPoint = endpoint;
-        //     }
-        // }
-        // if (this.selectedMultiDrawnObjects != null) {
-        //     if (this.selectedMultiDrawnObjects.doesIntersect(this.pendetails.X, this.pendetails.Y)) {
-        //         this.hoveredSelectionPoint = "C";
-        //     }
-        //     else {
-        //         this.hoveredSelectionPoint = "";
-        //     }
-        //     if (helper.IsPointInsideBoxAtPoint(this.pendetails.X, this.pendetails.Y, this.selectedMultiDrawnObjects.minx, this.selectedMultiDrawnObjects.miny, this.selectionHoverBoxSize)) {
-        //         this.hoveredSelectionPoint = "NW";
-        //     }
-        //     else if (helper.IsPointInsideBoxAtPoint(this.pendetails.X, this.pendetails.Y, this.selectedMultiDrawnObjects.maxx, this.selectedMultiDrawnObjects.miny, this.selectionHoverBoxSize)) {
-        //         this.hoveredSelectionPoint = "NE"; //not near any selection points
-        //     }
-        //     else if (helper.IsPointInsideBoxAtPoint(this.pendetails.X, this.pendetails.Y, this.selectedMultiDrawnObjects.maxx, this.selectedMultiDrawnObjects.maxy, this.selectionHoverBoxSize)) {
-        //         this.hoveredSelectionPoint = "SE"; //not near any selection points
-        //     }
-        //     else if (helper.IsPointInsideBoxAtPoint(this.pendetails.X, this.pendetails.Y, this.selectedMultiDrawnObjects.minx, this.selectedMultiDrawnObjects.maxy, this.selectionHoverBoxSize)) {
-        //         this.hoveredSelectionPoint = "SW"; //not near any selection points
-        //     }
-        // }
     };
     Stemcanvas.prototype.PointerUpEvent = function (e) {
         e.preventDefault();
@@ -1191,19 +1134,28 @@ var Stemcanvas = /** @class */ (function () {
             //is the stroke a line or a point
             if (this.currentstroke.getPixelLength() > Canvasconstants.multiselectMinimumLength) {
                 //see move event (coz it strokes will be erased 'live' while the user is interacting)
+                //strokes have allready been popped, now put them into undostack
+                var multierase = new UndoAction(UndoActionTypes.erasemulti);
+                this.multierasedstrokes = this.removeduplicates(this.multierasedstrokes, "strokeid");
+                multierase.setEraseMulti(this.multierasedstrokes);
+                //this.undoredo.save(multierase);
+                this.multierasing = false;
+                this.multierasedstrokes = [];
             }
             else {
-                //point
-                var underpointerid = this.selectionManager.IDObjectAtPoint(this.currentstroke.points[this.currentstroke.points.length - 1].x, this.currentstroke.points[this.currentstroke.points.length - 1].y);
-                //
-                var indexunderpointer = this.selectionManager.indexAtID(underpointerid);
-                if (indexunderpointer == null) {
-                    return;
+                if (!this.multierasing) {
+                    //point
+                    var underpointerid = this.selectionManager.IDObjectAtPoint(this.currentstroke.points[this.currentstroke.points.length - 1].x, this.currentstroke.points[this.currentstroke.points.length - 1].y);
+                    //
+                    var indexunderpointer = this.selectionManager.indexAtID(underpointerid);
+                    if (indexunderpointer == null) {
+                        return;
+                    }
+                    // this.undoActions.push(new UndoEraseAction(this.drawingdata[indexunderpointer]));
+                    // this.redoActions = [];
+                    this.drawingdata.splice(indexunderpointer, 1); //remove the entry from the array
+                    this.updateDrawing();
                 }
-                // this.undoActions.push(new UndoEraseAction(this.drawingdata[indexunderpointer]));
-                // this.redoActions = [];
-                this.drawingdata.splice(indexunderpointer, 1); //remove the entry from the array
-                this.updateDrawing();
             }
         }
         else if (this.toolbox.selectedtool == "LINE") {
@@ -1619,6 +1571,11 @@ var Stemcanvas = /** @class */ (function () {
             this.contextDebug.closePath();
         }
     };
+    Stemcanvas.prototype.removeduplicates = function (array, prop) {
+        return array.filter(function (s, i, arr) {
+            return arr.map(function (mapobj) { return mapobj[prop]; }).indexOf(s[prop]) == i;
+        });
+    };
     return Stemcanvas;
 }());
 var Vector = /** @class */ (function () {
@@ -1679,6 +1636,9 @@ var UndoAction = /** @class */ (function () {
         this.newwidth = newwidth;
     };
     UndoAction.prototype.setErase = function (stroke) {
+    };
+    UndoAction.prototype.setEraseMulti = function (strokes) {
+        this.multistrokes = strokes;
     };
     return UndoAction;
 }());
@@ -1856,6 +1816,43 @@ var StateManager = /** @class */ (function () {
             lastaction.stroke.strokewidth = lastaction.previouswidth;
             this.redostack.push(this.undostack.pop());
         }
+        else if (lastaction.actiontype == UndoActionTypes.erasemulti) {
+            var action = this.undostack.pop(); //get last undo action
+            // let temp = action.multistrokes.sort((a:Stemstroke,b:Stemstroke) => (a.points[0].timestamp > b.points[0].timestamp) ? 1: -1) //sort the array by timestamp
+            // debugger;
+            // let undoiterator = 0;
+            // for(let i = 0; i < this.data.length; i++)
+            // {
+            //     let currentTime  = this.data[i].points[0].timestamp; 
+            //     if( i== this.data.length - 1)
+            //     {
+            //         if(currentTime < temp[undoiterator].points[0].timestamp)
+            //         {
+            //             this.data.splice(i,0,temp[undoiterator]);
+            //         }
+            //         else{
+            //             break;
+            //         }
+            //     }
+            //     let nextTime = this.data[i+1].points[0].timestamp;
+            //     if(currentTime < temp[undoiterator].points[0].timestamp && nextTime > temp[undoiterator].points[0].timestamp)
+            //     {
+            //         this.data.splice(i,0,temp[undoiterator]);
+            //         undoiterator++;
+            //         if(undoiterator == temp.length)
+            //         {
+            //             break;
+            //         }
+            //     }
+            // }
+            // // for(let i =0; i < action.multistrokes.length; i++)
+            // // {                
+            // //     this.data.push(action.multistrokes[i]);                
+            // // }            
+            // this.redostack.push(action);
+        }
+        else if (lastaction.actiontype == UndoActionTypes.erase) {
+        }
     };
     StateManager.prototype.redo = function () {
         if (this.redostack.length < 1) {
@@ -1961,6 +1958,32 @@ var StateManager = /** @class */ (function () {
             }
             this.undostack.push(action);
         }
+        else if (lastaction.actiontype == UndoActionTypes.erasemulti) {
+            debugger;
+            this.redostack.pop();
+        }
+        // else if(lastaction.actiontype == UndoActionTypes.erasemulti){
+        //     let action = this.redostack.pop();
+        //     let remove:number[] = [];
+        //     for(let i =0; i < this.data.length; i++)
+        //     {
+        //         for(let y = 0; y < action.multistrokes.length; y++)
+        //         {
+        //             if(this.data[i].strokeid == action.multistrokes[y].strokeid)
+        //             {
+        //                 remove.push(i);
+        //                 break;
+        //             }
+        //         }
+        //     }
+        //     debugger;
+        //     for(let i = 0; i < remove.length; i++)
+        //     {
+        //         console.log(`removing at index: ${remove[i]} length is ${this.data.length}`);
+        //         this.data.splice(remove[i],1);
+        //     }
+        //     this.undostack.push(action);
+        // }
     };
     StateManager.prototype.clear = function () {
         this.undostack = [];
@@ -2078,8 +2101,9 @@ var UndoActionTypes;
     UndoActionTypes[UndoActionTypes["colourmulti"] = 5] = "colourmulti";
     UndoActionTypes[UndoActionTypes["newdraw"] = 6] = "newdraw";
     UndoActionTypes[UndoActionTypes["erase"] = 7] = "erase";
-    UndoActionTypes[UndoActionTypes["widthsingle"] = 8] = "widthsingle";
-    UndoActionTypes[UndoActionTypes["widthmulti"] = 9] = "widthmulti";
+    UndoActionTypes[UndoActionTypes["erasemulti"] = 8] = "erasemulti";
+    UndoActionTypes[UndoActionTypes["widthsingle"] = 9] = "widthsingle";
+    UndoActionTypes[UndoActionTypes["widthmulti"] = 10] = "widthmulti";
 })(UndoActionTypes || (UndoActionTypes = {}));
 var Canvasconstants = /** @class */ (function () {
     function Canvasconstants() {
@@ -2319,6 +2343,7 @@ var SelectionManager = /** @class */ (function () {
         this.currentlySelected = null;
         var selected = new Array();
         this.drawingData.forEach(function (s) {
+            s.UpdateBoundingBox("");
             var first = s.points[0];
             var last = s.points[s.points.length - 1];
             var firstorlastinside = false;
