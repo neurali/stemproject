@@ -14,6 +14,11 @@ var Stemcanvas = /** @class */ (function () {
         this.endtimeclock = "";
         this.multierasing = false;
         this.multierasedstrokes = new Array();
+        var path = window.location.pathname;
+        var page = path.split("/").pop();
+        if (page == "sandbox.html") {
+            sessionStorage.setItem("sandbox", "pass");
+        }
         var isIOS = /iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent);
         if (isIOS) {
             this.isios = true;
@@ -31,6 +36,7 @@ var Stemcanvas = /** @class */ (function () {
         if (regex.test(this.participant)) {
             //get values from the participant token
             this.taskset = "longitudinal";
+            debugger;
             var split = this.participant.charAt(2); //A == Apple W== Wacom
             if (split == "A") {
                 this.devicetype = "iPad";

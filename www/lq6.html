@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0" />
+    <title>Inke - Q1</title>
+    <!-- CSS  -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="./css/icofont.css" rel="stylesheet">
+    <link href="css/materialize.css" type="text/css" rel="stylesheet" media="screen,projection" />
+    <link href="css/newstyle.css" type="text/css" rel="stylesheet" media="screen,projection" />
+</head>
+
+<body>
+
+    <p data-participant="" data-tasknumber="q6" id="sessioninfo" class="hide">temp session info</p>
+
+    <a href="#" class="hide" id="lblParticipant">Participant: </a></li>
+
+    <div class="wrapper">
+
+        <!-- whole page -->
+        <div class="row notbotmarg teal lighten-4 ">
+
+            <!-- Left -->
+            <div class="col s10 teal lighten-5 flexbox">
+
+
+                <div id="question">
+
+                    <div class="row notbotmarg" id="questioncontainer">
+                        <div class="col s1">
+                            <p id="questionheader"><strong>Q5: </strong> </p>
+                        </div>
+
+                        <div class="col s10">
+
+                            <div id="questiontext" class="unclamp">
+
+                                <p class="nomargintop qpad">
+                                    Three people are sitting on a bus. Vince is seated 4 metres directly behind Edward and 3
+                                metres directly left of Bryan. How far is Edward from Bryan? 
+                                    <div class="col s1">
+                                    <p>(a)</p>
+                                </div>
+
+                                <div class="col s11">
+                                    <p>
+                                        Please draw a diagram and
+                                        show all working.                     </p>
+                                </div>
+
+                               
+
+                            </div>
+                        </div>
+
+                        <div class="col s1 valign-wrapper">
+                            <br><br><br>
+                            <a id="showmore">-</a>
+                        </div>
+
+
+                    </div>
+
+
+
+
+                </div>
+
+
+
+
+
+
+                <!-- THE CANVAS OBJECT -->
+                <!-- THE CANVAS OBJECT -->
+                <!-- THE CANVAS OBJECT -->
+                <!-- THE CANVAS OBJECT -->
+                <div class="canvas-container white" id="canvas-scroll-container">
+
+                    <div class="canvasbackground" id="canvasbackground" width="1500" height="1000"></div>
+                    <canvas class="drawingcanvas" id="canvasdrawing" width="444" height="444"></canvas>
+                    <canvas class="aligncanvases" id="selectioncanvas" width="444" height="444"></canvas>
+                    <canvas class="aligncanvases" id="interfacecanvas" width="444" height="444"></canvas>
+                    <canvas class="aligncanvases" id="cursorcanvas" width="444" height="444"></canvas>
+                    <canvas class="aligncanvases" id="debugcanvas" width="444" height="444"></canvas>
+
+                </div>
+                <!-- THE CANVAS OBJECT -->
+                <!-- THE CANVAS OBJECT -->
+                <!-- THE CANVAS OBJECT -->
+                <!-- THE CANVAS OBJECT -->
+
+            </div>
+
+
+            <!-- Right -->
+            <div class="col s2 sidebar teal lighten-4">
+
+                <!-- Page tools  -->
+                <div class="row nopadbot toptoolspace ">
+
+                    <div class="width25">
+                        <a id="btnUndo"
+                            class="btn-floating btn-large waves-effect waves-light teal darken-4  smallfab tooltipped undoredotools"
+                            data-position="left" data-tooltip="Undo"><i class="material-icons smallfabicon">undo</i></a>
+                    </div>
+                    <div class="width25">
+                        <a id="btnRedo"
+                            class="btn-floating btn-large waves-effect waves-light  teal darken-4  smallfab tooltipped undoredotools"
+                            data-position="left" data-tooltip="Redo"><i class="material-icons smallfabicon">redo</i></a>
+                    </div>
+                    <div class="width25">
+                        <a id="btnCopy"
+                            class="btn-floating btn-large waves-effect waves-light  teal darken-4  smallfab tooltipped undoredotools" 
+                            data-position="left" data-tooltip="Copy selected"><i
+                                class="material-icons smallfabicon">content_copy</i></a>
+
+                    </div>
+                    <div class="">
+                        <a id="btnPaste"
+                            class="btn-floating btn-large waves-effect waves-light  teal darken-4 smallfab tooltipped undoredotools"
+                            data-position="left" data-tooltip="Paste selected"><i
+                                class="material-icons smallfabicon">content_paste</i></a>
+                    </div>
+
+                    <div class="clearbutton">
+                        <a id="btnClear"
+                            class="waves-effect waves-light btn teal darken-4 fullwidth tooltipped modal-trigger"
+                            data-position="left" data-tooltip="Draw freehand" data-target="clear-warning"> Clear
+                            canvas</a>
+                    </div>
+
+                </div>
+                <br>
+
+
+
+
+                <!-- Drawing tools -->
+                <div class="row lighten-3 ">
+
+                    <div class="col s12">
+
+                        <a id="btnDraw" class="waves-effect waves-dark teal darken-3 btn tool tooltipped hoverable"
+                            data-position="left" data-tooltip="Draw freehand">
+                            <i class="icofont-pencil-alt-2  left"></i>Draw
+                        </a>
+
+                        <a id="btnErase" class="waves-effect waves-dark btn tool tooltipped hoverable"
+                            data-position="left" data-tooltip="Click to erase objects">
+                            <i class="icofont-eraser left"></i>Erase
+                        </a>
+
+                        <a id="btnSelect" class="waves-effect waves-dark btn tool tooltipped hoverable"
+                            data-position="left" data-tooltip="Click to select objects">
+                            <i class="icofont-hand-up left"></i>Select</a>
+
+                        <a class="hidden" id="btnText" class="waves-effect waves-dark btn tool tooltipped hoverable"
+                            data-position="left" data-tooltip="Add text">
+                            <i class=" left">title</i>Text</a>
+
+                        <a id="btnLine" class="waves-effect waves-dark btn tool tooltipped  hoverable"
+                            data-position="left" data-tooltip="Draw straight lines">
+                            <i class="icofont-ruler left"></i>Line</a>
+
+                        <a id="btnRectangle" class="waves-effect waves-dark btn tool tooltipped hoverable"
+                            data-position="left" data-tooltip="Draw rectangles">
+                            <i class="icofont-square material-icons left"></i>Rectangle</a>
+
+                        <a id="btnCircle" class="waves-effect waves-dark btn tool tooltipped hoverable"
+                            data-position="left" data-tooltip="Draw circles">
+                            <i class="icofont-spinner-alt-4 material-icons left"></i>Circle</a>
+                    </div>
+
+                </div>
+
+                <!-- Size & Colour -->
+                <div class="row fullwidth notbotmarg notopmarg">
+
+                    <div class="col s12 card colourtoolspace notopmarg" id="colourtools">
+                        <strong>Size and Colour:</strong>
+                        <!-- <div class="row center-align padtop">
+                            <div class="drawsize" > <img src="media/brush/11.png" class="selectedbrushsize"></div>
+                            <div class="drawsize"><img src="media/brush/14.png"></div>
+                            <div class="drawsize"><img src="media/brush/18.png"></div>
+                            <div class="drawsize"><img src="media/brush/22.png"></div>
+                            <div class="drawsize"><img src="media/brush/26.png"></div>
+                            
+
+                        </div> -->
+                        <div class=" center-align padtop space-betweencontainer scale-transition" id="">
+                            <a id="btnSize1"
+                                class="btn-floating btn-large waves-effect waves-dark grey sizebutton sizefab1 sizebtn z-depth-2 darken-4"></a>
+                            <a id="btnSize2"
+                                class="btn-floating btn-large waves-effect waves-dark grey sizebutton sizefab2 sizebtn"></a>
+                            <a id="btnSize3"
+                                class="btn-floating btn-large waves-effect waves-dark grey sizebutton sizefab3 sizebtn"></a>
+                            <a id="btnSize4"
+                                class="btn-floating btn-large waves-effect waves-dark grey sizebutton sizefab4 sizebtn"></a>
+                            <a id="btnSize5"
+                                class="btn-floating btn-large waves-effect waves-dark grey sizebutton sizefab5 sizebtn"></a>
+                        </div>
+
+
+
+                        <div class="row nopad center-align">
+                            <div class="col s4 ">
+                                <a id="btnColGreen"
+                                    class="btn-floating btn-large waves-effect waves-light green darken-2 palette colourfab"></a>
+                                <a id="btnColBlue"
+                                    class="btn-floating btn-large waves-effect waves-light blue darken-2 palette colourfab"><i
+                                        class="material-icons"></i></a>
+                            </div>
+
+                            <div class="col s4 ">
+                                <a id="btnColBlack"
+                                    class="btn-floating btn-large waves-effect waves-light black darken-2 palette colourfab z-depth-3"><i
+                                        class="material-icons"></i></a>
+                                <a id="btnColPurple"
+                                    class="btn-floating btn-large waves-effect waves-light purple darken-2 palette colourfab"><i
+                                        class="material-icons"></i></a>
+
+                            </div>
+                            <div class="col s4 ">
+                                <a id="btnColRed"
+                                    class="btn-floating btn-large waves-effect waves-light red darken-1 palette colourfab"><i
+                                        class="material-icons"></i></a>
+                                <a id="btnColOrange"
+                                    class="btn-floating btn-large waves-effect waves-light orange palette colourfab"><i
+                                        class="material-icons"></i></a>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row fullwidth ">
+                    <div class="card col s12 colourtoolspace notopmarg">
+                        <strong>Canvas Background:</strong>
+                        <div class="flexfill">
+
+                            <a id="btnGrid"
+                                class="flexitem btn-floating btn-large waves-effect waves-light teal darken-4 palette smallfab tooltipped "
+                                data-position="left" data-tooltip="Grid">
+                                <i class="material-icons smallfabicon">grid_on</i>
+                            </a>
+
+                            <a id="btnLines"
+                                class="flexitem btn-floating btn-large waves-effect waves-light  teal darken-4 palette smallfab tooltipped"
+                                data-position="left" data-tooltip="Lines"><i
+                                    class="material-icons smallfabicon">reorder</i></a>
+
+                            <a id="btnBlank"
+                                class="flexitem btn-floating btn-large waves-effect waves-light  teal darken-4 palette smallfab tooltipped"
+                                data-position="left" data-tooltip="No Background"><i
+                                    class="material-icons smallfabicon">check_box_outline_blank</i></a>
+                        </div>
+
+
+                    </div>
+
+                </div>
+                <!-- Save & Next  -->
+                <div class="row ">
+
+
+                    <p id="debug" class="hidden">debug</p>
+                    <div class="col s12">
+                        <div id="btnSave" class="col s12">
+                            <a class="waves-effect waves-dark btn">Save</a>
+                        </div>
+                        <!-- <div id="btnNext" class="col s6">
+                                <a id="nextlink" class="waves-effect waves-light btn">Next</a>
+                            </div> -->
+                    </div>
+
+
+                </div>
+
+            </div>
+
+
+
+
+
+
+
+
+
+
+        </div>
+
+
+
+
+
+    </div>
+
+    <!-- Modal Structure -->
+    <div id="clear-warning" class="modal small-modal">
+        <div class="modal-content">
+            <h4>Clear the canvas</h4>
+            <p>You will lose all your work</p>
+            <p>This <strong>cannot</strong> be undone</p>
+        </div>
+        <div class="modal-footer">
+            <a id="btnConfirmClear" class="modal-close waves-effect  teal btn">Clear canvas</a>
+            <a href="#" class="modal-close waves-effect red btn">Cancel</a>
+        </div>
+
+    </div>
+
+
+    </div>
+
+
+
+
+    <script src="js/pen.js"></script>
+    <script src="js/toolbox.js"></script>
+    <script src="js/sevents.js"></script>
+    <script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+    <script src="js/materialize.js"></script>
+    <script src="js/init.js"></script>
+    <script src="js/stemcanvas.js"></script>
+    <script src="js/stemstroke.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/cursor.js"></script>
+    <script src="js/helper.js"></script>
+
+    <!-- <script src="js/stempen.js"></script>
+    <script src="js/stemdrawnobject.js"></script>
+    <script src="js/stempoint.js"></script>
+    <script src="js/helper.js"></script>
+    <script src="js/multiselectcontainer.js"></script>
+    <script src="js/sessioninfo.js"></script> -->
+
+
+</body>
