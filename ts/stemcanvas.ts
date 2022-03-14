@@ -60,6 +60,7 @@ class Stemcanvas {
 
     multierasing:boolean = false;
     multierasedstrokes:Stemstroke[] = new Array();
+    multierasedindexs:number[] = [];
 
     constructor(id: string) {
 
@@ -211,10 +212,10 @@ class Stemcanvas {
             console.log("sizechanged");
             let size = this.toolbox.selectedDrawSize;
             if (this.selectionManager.currentlySelected != null) {
-                let widthundo = new UndoAction(UndoActionTypes.widthsingle);
-                widthundo.setWidthSingle(this.selectionManager.currentlySelected, this.selectionManager.currentlySelected.strokewidth,size);
+                let singlewidthundo = new UndoAction(UndoActionTypes.widthsingle);
+                singlewidthundo.setWidthSingle(this.selectionManager.currentlySelected, this.selectionManager.currentlySelected.strokewidth,size);
                 this.selectionManager.currentlySelected.strokewidth = size;  
-                this.undoredo.save(widthundo);
+                this.undoredo.save(singlewidthundo);
                 
             }
             else if (this.selectionManager.currentlySelectedMulti != null) {
@@ -240,10 +241,10 @@ class Stemcanvas {
             console.log("colourchanged");
             if (this.selectionManager.currentlySelected != null) {
 
-                let colourundo = new UndoAction(UndoActionTypes.coloursingle);
-                colourundo.setColourSingle(this.selectionManager.currentlySelected,this.selectionManager.currentlySelected.strokecolour,this.toolbox.selectedColour);                
+                let singlecolourundo = new UndoAction(UndoActionTypes.coloursingle);
+                singlecolourundo.setColourSingle(this.selectionManager.currentlySelected,this.selectionManager.currentlySelected.strokecolour,this.toolbox.selectedColour);                
                 this.selectionManager.currentlySelected.strokecolour = this.toolbox.selectedColour;
-                this.undoredo.save(colourundo);
+                this.undoredo.save(singlecolourundo);
                 
             }
             else if (this.selectionManager.currentlySelectedMulti != null) {
@@ -252,13 +253,13 @@ class Stemcanvas {
                 for (let i = 0; i < this.selectionManager.currentlySelectedMulti.length; i++) {
                     prevcolours.push(this.selectionManager.currentlySelectedMulti[i].strokecolour);
                 }
-                let colourmultiundo = new UndoAction(UndoActionTypes.colourmulti);
-                colourmultiundo.setColourMulti(this.selectionManager.currentlySelectedMulti,prevcolours,this.toolbox.selectedColour);
+                let multicolourundo = new UndoAction(UndoActionTypes.colourmulti);
+                multicolourundo.setColourMulti(this.selectionManager.currentlySelectedMulti,prevcolours,this.toolbox.selectedColour);
 
                 for (let i = 0; i < this.selectionManager.currentlySelectedMulti.length; i++) {
                     this.selectionManager.currentlySelectedMulti[i].strokecolour = this.toolbox.selectedColour;
                 }
-                this.undoredo.save(colourmultiundo);
+                this.undoredo.save(multicolourundo);
             }
             this.updateDrawing();
 
@@ -1228,7 +1229,6 @@ class Stemcanvas {
 
                     //this code is whack (this needs to be refactored for release)
                     this.multierasing = true;
-
                     let toerase:number[] = [];
                     
                     for(let i = 0; i < this.drawingdata.length; i++)
@@ -1248,7 +1248,13 @@ class Stemcanvas {
 
                                 if (this.selectionManager.getDistanceBetweenTwoPoints(new Vector(p.x, p.y), new Vector(lastpointinstroke.x, lastpointinstroke.y)) < Canvasconstants.multiselectMinimumLength) {                                    
                                     this.multierasedstrokes.push(s);
-                                    toerase.push(i);                                    
+                                    this.multierasedindexs.push(this.drawingdata.indexOf(s));
+                                    let index = this.drawingdata.indexOf(s);
+                                    if(index != -1)
+                                    {
+                                        this.drawingdata.splice(index,1);
+                                    }
+                                    this.updateDrawing();
                                     shouldbreak = true;
                                     break;
                                 }
@@ -1256,25 +1262,26 @@ class Stemcanvas {
                             if(shouldbreak)
                             {
                                 console.log("stopped looking through the drawing");
+                                
                                 break;
                             }
                         }                        
 
                     };    
-                    console.log(`removing ${toerase.length} items`);
-                    for(let i = 0; i < toerase.length; i++)
-                    {                        
-                        console.log(`removing ${toerase[i]}`);
-                        this.drawingdata.splice(toerase[i],1);
-                        this.updateDrawing(); 
-                    }                
+
+
+                    // for(let i = 0; i < toerase.length; i++)
+                    // {                        
+                    //     this.drawingdata.splice(toerase[i],1);
+                    //     this.updateDrawing(); 
+                    // }         
                 }
             }
 
         }
     }
     PointerUpEvent(e: PointerEvent) {
-
+ 
         e.preventDefault();
 
         if (e.pointerType == "touch" || e.pointerType == "pen") {
@@ -1288,9 +1295,9 @@ class Stemcanvas {
             this.currentstroke.strokecolour = this.toolbox.selectedColour;
             this.currentstroke.strokewidth = this.toolbox.selectedDrawSize;
             this.drawingdata.push(this.currentstroke);
-            let action = new UndoAction(UndoActionTypes.newdraw);
-            action.setNewDrawnObject(this.currentstroke, this.toolbox.selectedtool);
-            this.undoredo.save(action);
+            let drawundo = new UndoAction(UndoActionTypes.newdraw);
+            drawundo.setNewDrawnObject(this.currentstroke, this.toolbox.selectedtool);
+            this.undoredo.save(drawundo);
         }
         else if (this.toolbox.selectedtool == "SELECT") {
 
@@ -1313,11 +1320,11 @@ class Stemcanvas {
                                 p.y += y;
                             });
 
-                            let undomoveaction = new UndoAction(UndoActionTypes.movesingle)
-                            console.log(undomoveaction);
+                            let singlemoveundo = new UndoAction(UndoActionTypes.movesingle)
+                            console.log(singlemoveundo);
 
-                            undomoveaction.setMoveSingle(this.selectionManager.currentlySelected, new Vector(x, y));
-                            this.undoredo.save(undomoveaction);
+                            singlemoveundo.setMoveSingle(this.selectionManager.currentlySelected, new Vector(x, y));
+                            this.undoredo.save(singlemoveundo);
 
                             this.selectionManager.currentlySelected.UpdateBoundingBox("");
                             this.selectionManager.fresh = false;
@@ -1378,15 +1385,15 @@ class Stemcanvas {
                                     invertingx = true;
                                 }
                             }
-                            let singlemoveaction = new UndoAction(UndoActionTypes.resizesingle);
+                            let singleresizeundo = new UndoAction(UndoActionTypes.resizesingle);
 
-                            singlemoveaction.setResizeSingle(this.selectionManager.currentlySelected, resizevector, this.cursor.selectmodifier, invertingx, invertingy);
+                            singleresizeundo.setResizeSingle(this.selectionManager.currentlySelected, resizevector, this.cursor.selectmodifier, invertingx, invertingy);
 
-                            console.log(singlemoveaction);
+                            console.log(singleresizeundo);
                             this.selectionManager.currentlySelected.UpdateBoundingBox("");
                             this.selectionManager.fresh = false;
 
-                            this.undoredo.save(singlemoveaction);
+                            this.undoredo.save(singleresizeundo);
                             this.updateDrawing();
 
 
@@ -1419,9 +1426,9 @@ class Stemcanvas {
 
                     if (this.cursor.selectmodifier == "MOVE") {
 
-                        let multimoveaction = new UndoAction(UndoActionTypes.movemulti);
-                        multimoveaction.setMoveMulti(this.selectionManager.currentlySelectedMulti, vector);
-                        this.undoredo.save(multimoveaction);
+                        let multimoveundo = new UndoAction(UndoActionTypes.movemulti);
+                        multimoveundo.setMoveMulti(this.selectionManager.currentlySelectedMulti, vector);
+                        this.undoredo.save(multimoveundo);
                         //move all the objects in that are currently selected
                         this.selectionManager.currentlySelectedMulti.forEach(s => {
                             s.points.forEach(p => {
@@ -1435,7 +1442,7 @@ class Stemcanvas {
                         if (this.cursor.selectmodifier.length == 2) {
                             let bounds = this.selectionManager.getGroupBoundingBox();
                             let resizepreview = this.resizeMulti(this.selectionManager.currentlySelectedMulti, bounds, vector, this.cursor.selectmodifier);
-                            let action = new UndoAction(UndoActionTypes.resizemulti);
+                            let multimoveundo = new UndoAction(UndoActionTypes.resizemulti);
                             let resizevector = this.getCurrentStrokeVector();
                             
                             let invertingx = false;
@@ -1477,8 +1484,8 @@ class Stemcanvas {
 
 
 
-                            action.setResizeMulti(this.selectionManager.currentlySelectedMulti, vector, this.cursor.selectmodifier,invertingx,invertingy);
-                            this.undoredo.save(action);
+                            multimoveundo.setResizeMulti(this.selectionManager.currentlySelectedMulti, vector, this.cursor.selectmodifier,invertingx,invertingy);
+                            this.undoredo.save(multimoveundo);
 
                             for (let i = 0; i < resizepreview.length; i++) {
                                 let strokeobj = this.selectionManager.currentlySelectedMulti[i];
@@ -1538,24 +1545,27 @@ class Stemcanvas {
                 //see move event (coz it strokes will be erased 'live' while the user is interacting)
                 //strokes have allready been popped, now put them into undostack
                 let multierase = new UndoAction(UndoActionTypes.erasemulti);
-                this.multierasedstrokes = this.removeduplicates(this.multierasedstrokes,"strokeid");                
-                multierase.setEraseMulti(this.multierasedstrokes);
-                //this.undoredo.save(multierase);
+                this.multierasedstrokes = this.removeduplicates(this.multierasedstrokes,"strokeid");       
+                this.multierasedstrokes.sort((a,b) => (a.points[0].timestamp > b.points[0].timestamp) ? 1 : -1);    
+                multierase.setEraseMulti(this.multierasedstrokes, this.multierasedindexs);
+                this.undoredo.save(multierase);
+                console.log
                 this.multierasing = false;
                 this.multierasedstrokes = [];
+                this.multierasedindexs = [];
             }
             else {
                 if(!this.multierasing)
                 {
-                    //point
+                    debugger;
                     let underpointerid = this.selectionManager.IDObjectAtPoint(this.currentstroke.points[this.currentstroke.points.length - 1].x, this.currentstroke.points[this.currentstroke.points.length - 1].y);
-                    //
                     let indexunderpointer = this.selectionManager.indexAtID(underpointerid);
                     if (indexunderpointer == null) {
                         return;
                     }
-                    // this.undoActions.push(new UndoEraseAction(this.drawingdata[indexunderpointer]));
-                    // this.redoActions = [];
+                    let undosingleerase = new UndoAction(UndoActionTypes.erase);
+                    undosingleerase.setErase(this.drawingdata[indexunderpointer],indexunderpointer);
+                    this.undoredo.save(undosingleerase);
                     this.drawingdata.splice(indexunderpointer, 1); //remove the entry from the array
                     this.updateDrawing();
                 }
@@ -1568,10 +1578,10 @@ class Stemcanvas {
             this.currentstroke.strokecolour = this.toolbox.selectedColour;
             this.currentstroke.strokewidth = this.toolbox.selectedDrawSize;
             this.drawingdata.push(this.currentstroke);
-            let undo = new UndoAction(UndoActionTypes.newdraw);
-            undo.stroke = this.currentstroke;
-            undo.drawtype = this.toolbox.selectedtool;
-            this.undoredo.save(undo);
+            let singledrawlineundo = new UndoAction(UndoActionTypes.newdraw);
+            singledrawlineundo.stroke = this.currentstroke;
+            singledrawlineundo.drawtype = this.toolbox.selectedtool;
+            this.undoredo.save(singledrawlineundo);
             this.updateDrawing();
             this.currentstroke = null;
 
@@ -1582,10 +1592,10 @@ class Stemcanvas {
             this.currentstroke.strokecolour = this.toolbox.selectedColour;
             this.currentstroke.strokewidth = this.toolbox.selectedDrawSize;
             this.drawingdata.push(this.currentstroke);
-            let undo = new UndoAction(UndoActionTypes.newdraw);
-            undo.stroke = this.currentstroke;
-            undo.drawtype = this.toolbox.selectedtool;
-            this.undoredo.save(undo);
+            let singledrawrectangleundo = new UndoAction(UndoActionTypes.newdraw);
+            singledrawrectangleundo.stroke = this.currentstroke;
+            singledrawrectangleundo.drawtype = this.toolbox.selectedtool;
+            this.undoredo.save(singledrawrectangleundo);
             this.updateDrawing();
             this.currentstroke = null;
         }
@@ -1594,10 +1604,10 @@ class Stemcanvas {
             this.currentstroke.strokecolour = this.toolbox.selectedColour;
             this.currentstroke.strokewidth = this.toolbox.selectedDrawSize;
             this.drawingdata.push(this.currentstroke);
-            let undo = new UndoAction(UndoActionTypes.newdraw);
-            undo.stroke = this.currentstroke;
-            undo.drawtype = this.toolbox.selectedtool;
-            this.undoredo.save(undo);
+            let singledrawcircleundo = new UndoAction(UndoActionTypes.newdraw);
+            singledrawcircleundo.stroke = this.currentstroke;
+            singledrawcircleundo.drawtype = this.toolbox.selectedtool;
+            this.undoredo.save(singledrawcircleundo);
             this.updateDrawing();
             this.currentstroke = null;
         }
@@ -2113,6 +2123,8 @@ class UndoAction {
     newwidth: number;
     previouscolours:string[];    
     previouswidths:number[];
+    reinsertindexes:number[];
+    reinsertindex:number;
     
 
     //resize specifics:
@@ -2167,12 +2179,14 @@ class UndoAction {
         this.previouswidths = previouswidths;
         this.newwidth = newwidth;
     }
-    setErase(stroke: Stemstroke) {
-
+    setErase(stroke: Stemstroke, index:number) {
+        this.stroke = stroke;
+        this.reinsertindex = index;
     }
-    setEraseMulti(strokes:Stemstroke[])
+    setEraseMulti(strokes:Stemstroke[],indexes:number[])
     {
         this.multistrokes = strokes;
+        this.reinsertindexes = indexes;
     }
 }
 
@@ -2223,10 +2237,7 @@ class StateManager {
 
             action.stroke.strokecolour = lastaction.previouscolour;
             this.redostack.push(action);
-        }
-        else if (lastaction.actiontype == UndoActionTypes.erase) {
-
-        }
+        }        
         else if (lastaction.actiontype == UndoActionTypes.movemulti) {
             let action = this.undostack.pop();
             action.multistrokes.forEach(s => {
@@ -2405,52 +2416,23 @@ class StateManager {
         }
         else if(lastaction.actiontype == UndoActionTypes.erasemulti){
 
-             let action = this.undostack.pop(); //get last undo action
+            let action = this.undostack.pop(); //get last undo action
+            let strokes = action.multistrokes;
+            let indexes = action.reinsertindexes;
 
-            // let temp = action.multistrokes.sort((a:Stemstroke,b:Stemstroke) => (a.points[0].timestamp > b.points[0].timestamp) ? 1: -1) //sort the array by timestamp
-
-            // debugger;
-            // let undoiterator = 0;
-           
-            // for(let i = 0; i < this.data.length; i++)
-            // {
-            //     let currentTime  = this.data[i].points[0].timestamp; 
-
-            //     if( i== this.data.length - 1)
-            //     {
-            //         if(currentTime < temp[undoiterator].points[0].timestamp)
-            //         {
-            //             this.data.splice(i,0,temp[undoiterator]);
-            //         }
-            //         else{
-            //             break;
-            //         }
-
-            //     }
-                               
-            //     let nextTime = this.data[i+1].points[0].timestamp;
-            //     if(currentTime < temp[undoiterator].points[0].timestamp && nextTime > temp[undoiterator].points[0].timestamp)
-            //     {
-            //         this.data.splice(i,0,temp[undoiterator]);
-            //         undoiterator++;
-            //         if(undoiterator == temp.length)
-            //         {
-            //             break;
-            //         }
-            //     }
-            // }
-
-            // // for(let i =0; i < action.multistrokes.length; i++)
-            // // {                
-            // //     this.data.push(action.multistrokes[i]);                
-            // // }            
-
-            // this.redostack.push(action);
+            debugger;
+            for(let i = 0; i < strokes.length; i++)
+            {
+                this.data.splice(indexes[i],0,strokes[i]);
+            }   
+            this.redostack.push(action);
         }
-
         else if(lastaction.actiontype == UndoActionTypes.erase)
         {
-
+            debugger;
+            let action = this.undostack.pop();
+            this.data.splice(action.reinsertindex,0,action.stroke);
+            this.redostack.push(action);            
         }
 
 
@@ -2591,37 +2573,24 @@ class StateManager {
 
         }
         else if(lastaction.actiontype == UndoActionTypes.erasemulti){
-            debugger;
-            this.redostack.pop();
+            let action = this.redostack.pop();
+           action.multistrokes.sort((a,b)=>(a.points[0].timestamp > b.points[0].timestamp) ? 1:-1);
+            for(let i = 0; i < action.multistrokes.length; i++)
+            {
+                this.data.splice(action.reinsertindexes[i],1);
+            }
+
+            this.undostack.push(action);
+
         }
-        // else if(lastaction.actiontype == UndoActionTypes.erasemulti){
-        //     let action = this.redostack.pop();
-            
-        //     let remove:number[] = [];
+        else if(lastaction.actiontype == UndoActionTypes.erase)
+        {
+            let action = this.redostack.pop();
+            let index = this.data.indexOf(action.stroke);
+            this.data.splice(index,1);
+            this.undostack.push(action);
 
-        //     for(let i =0; i < this.data.length; i++)
-        //     {
-        //         for(let y = 0; y < action.multistrokes.length; y++)
-        //         {
-        //             if(this.data[i].strokeid == action.multistrokes[y].strokeid)
-        //             {
-        //                 remove.push(i);
-        //                 break;
-        //             }
-        //         }
-        //     }
-        //     debugger;
-        //     for(let i = 0; i < remove.length; i++)
-        //     {
-        //         console.log(`removing at index: ${remove[i]} length is ${this.data.length}`);
-        //         this.data.splice(remove[i],1);
-        //     }
-
-        //     this.undostack.push(action);
-
-            
-        // }
-
+        }
 
 
 
