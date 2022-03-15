@@ -107,6 +107,15 @@ var Toolbox = /** @class */ (function () {
     Toolbox.prototype.on = function () {
     };
     Toolbox.prototype.dispatch = function () { };
+    Toolbox.prototype.reset = function () {
+        for (var i = 0; i < this.drawtools.length; i++) {
+            this.drawtools[i].classList.remove("darken-3");
+            this.drawtools[i].classList.remove("teal");
+            this.btnDraw.classList.add("teal");
+            this.btnDraw.classList.add("darken-3");
+            this.selectedtool = "DRAW";
+        }
+    };
     Toolbox.prototype.assignelements = function () {
         this.btnUndo = document.getElementById("btnUndo");
         this.btnRedo = document.getElementById("btnRedo");

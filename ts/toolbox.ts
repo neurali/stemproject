@@ -136,6 +136,8 @@ class Toolbox {
             })
         }
 
+        
+
     }
 
 
@@ -143,6 +145,21 @@ class Toolbox {
     }
     dispatch()
     {}
+
+    reset(){
+        for (let i = 0; i < this.drawtools.length; i++) {
+            
+            this.drawtools[i].classList.remove("darken-3");
+            this.drawtools[i].classList.remove("teal");
+
+            this.btnDraw.classList.add("teal");
+            this.btnDraw.classList.add("darken-3");
+
+            this.selectedtool = "DRAW";
+            
+          
+        }
+    }
 
     assignelements(){
         this.btnUndo = document.getElementById("btnUndo");

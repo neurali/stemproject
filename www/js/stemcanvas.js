@@ -279,6 +279,14 @@ var Stemcanvas = /** @class */ (function () {
         this.selectionManager.FlushSelection();
         this.selectionManager = new SelectionManager(this.drawingdata, this.contextDebug);
         this.updateDrawing();
+        this.toolbox.reset();
+        this.cursor.currentTool = this.toolbox.selectedtool;
+        this.selectionManager.currentSelectionID = "";
+        this.selectionManager.currentlySelected = null;
+        this.selectionManager.FlushSelection();
+        this.selectionManager.fresh = false;
+        this.contextInterface.clearRect(0, 0, Canvasconstants.width, Canvasconstants.height);
+        this.touchcount = 0; //reset touch count (as a quick fix)
     };
     Stemcanvas.prototype.undo = function () {
         this.undoredo.undo();
@@ -1966,8 +1974,9 @@ var StateManager = /** @class */ (function () {
         }
     };
     StateManager.prototype.clear = function () {
-        this.undostack = this.undostack.splice(0, this.undostack.length);
-        this.redostack = this.redostack.splice(0, this.redostack.length);
+        debugger;
+        this.undostack.splice(0, this.undostack.length);
+        this.redostack.splice(0, this.redostack.length);
     };
     StateManager.prototype.resizePoint = function (inputx, inputy, a, b, c, d) {
         // how to use: currentpoint.x - (strokebox.originx), currentpoint.y - (strokebox.originy), xfactor, 0, 0, yfactor, 0, 0
