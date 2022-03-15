@@ -403,7 +403,8 @@ class Stemcanvas {
 
     }
     clearcanvas() {
-        this.drawingdata = new Array();
+
+        this.drawingdata.splice(0,this.drawingdata.length);
         this.undoredo.clear();
         this.selectionManager.FlushSelection();
         this.selectionManager = new SelectionManager(this.drawingdata, this.contextDebug);
@@ -1546,7 +1547,7 @@ class Stemcanvas {
                 //strokes have allready been popped, now put them into undostack
                 let multierase = new UndoAction(UndoActionTypes.erasemulti);
                 this.multierasedstrokes = this.removeduplicates(this.multierasedstrokes,"strokeid");       
-                this.multierasedstrokes.sort((a,b) => (a.points[0].timestamp > b.points[0].timestamp) ? 1 : -1);    
+                // this.multierasedstrokes.sort((a,b) => (a.points[0].timestamp > b.points[0].timestamp) ? 1 : -1);    
                 multierase.setEraseMulti(this.multierasedstrokes, this.multierasedindexs);
                 this.undoredo.save(multierase);
                 console.log
@@ -2420,11 +2421,13 @@ class StateManager {
             let strokes = action.multistrokes;
             let indexes = action.reinsertindexes;
 
-            debugger;
-            for(let i = 0; i < strokes.length; i++)
+         
+            for(let i = strokes.length - 1; i >= 0; i--)
             {
                 this.data.splice(indexes[i],0,strokes[i]);
             }   
+
+
             this.redostack.push(action);
         }
         else if(lastaction.actiontype == UndoActionTypes.erase)
@@ -2574,7 +2577,7 @@ class StateManager {
         }
         else if(lastaction.actiontype == UndoActionTypes.erasemulti){
             let action = this.redostack.pop();
-           action.multistrokes.sort((a,b)=>(a.points[0].timestamp > b.points[0].timestamp) ? 1:-1);
+
             for(let i = 0; i < action.multistrokes.length; i++)
             {
                 this.data.splice(action.reinsertindexes[i],1);
@@ -2600,8 +2603,9 @@ class StateManager {
 
 
     clear() {
-        this.undostack = [];
-        this.redostack = [];
+
+        this.undostack = this.undostack.splice(0,this.undostack.length);
+        this.redostack = this.redostack.splice(0,this.redostack.length);
     }
 
     resizePoint(inputx, inputy, a, b, c, d) {
