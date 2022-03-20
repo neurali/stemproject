@@ -94,10 +94,13 @@ class Stemcanvas {
             this.taskset = "longitudinal";
             debugger;
             let split = this.participant.charAt(2); //A == Apple W== Wacom
-            if (split == "A") {
+
+            let last = this.participant.charAt(this.participant.length - 1);
+            let secondlast = this.participant.charAt(this.participant.length - 2);
+            if (secondlast == "A") {
                 this.devicetype = "iPad";
             }
-            else if (split == "W") {
+            else if (secondlast == "W") {
                 this.devicetype = "Wacom";
             }
             else {
@@ -1999,14 +2002,11 @@ class Stemcanvas {
     uploadData() {
 
         let participantDeviceTask = `${this.participant} - ${this.devicetype} - ${this.task}`;
+
         this.updateDrawing();
 
-        // if (this.isios)
 
-
-        // SAVE PNG IMAGE FILE (will download as unknown - needs to be sent via email or something)
         let image = this.drawingcanvas.toDataURL("image/png").replace("image/png", "image/octet-stream");  //this is dirty, but it works for now                      
-        //window.open(image);
 
 
         // SAVE THE SESSION INFO FILE
@@ -2017,7 +2017,6 @@ class Stemcanvas {
         session.devicetype = this.devicetype;
         session.task = this.task;
         session.participanttoken = this.participant;
-        //let sessionoutputstring = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(session));
 
 
         //////////////////// SAVE THE DRAWING DATA FILE
@@ -2046,18 +2045,16 @@ class Stemcanvas {
                 if (xhr.responseText == "Success") {
                     //@ts-ignore 
                     M.toast({ html: 'Drawing submitted' });
+                   
+                    
+                        window.location.href = "index.html?q=nextquestion";
+                    
                 }
             }
         };
 
         xhr.send(dataStr);
-        if (this.observation) {
-            //for now, nothing happens window remains open
-
-        }
-        else {
-            window.location.href = "index.html?q=nextquestion";
-        }
+        
     }
     NextAndUpload() {
         // let participantDeviceTask = `${this.participant} - ${this.devicetype} - ${this.task}`;

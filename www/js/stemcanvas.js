@@ -39,10 +39,12 @@ var Stemcanvas = /** @class */ (function () {
             this.taskset = "longitudinal";
             debugger;
             var split = this.participant.charAt(2); //A == Apple W== Wacom
-            if (split == "A") {
+            var last = this.participant.charAt(this.participant.length - 1);
+            var secondlast = this.participant.charAt(this.participant.length - 2);
+            if (secondlast == "A") {
                 this.devicetype = "iPad";
             }
-            else if (split == "W") {
+            else if (secondlast == "W") {
                 this.devicetype = "Wacom";
             }
             else {
@@ -1513,10 +1515,7 @@ var Stemcanvas = /** @class */ (function () {
     Stemcanvas.prototype.uploadData = function () {
         var participantDeviceTask = "".concat(this.participant, " - ").concat(this.devicetype, " - ").concat(this.task);
         this.updateDrawing();
-        // if (this.isios)
-        // SAVE PNG IMAGE FILE (will download as unknown - needs to be sent via email or something)
         var image = this.drawingcanvas.toDataURL("image/png").replace("image/png", "image/octet-stream"); //this is dirty, but it works for now                      
-        //window.open(image);
         // SAVE THE SESSION INFO FILE
         var session = new Sessioninfo();
         session.start = this.starttimeclock;
@@ -1525,7 +1524,6 @@ var Stemcanvas = /** @class */ (function () {
         session.devicetype = this.devicetype;
         session.task = this.task;
         session.participanttoken = this.participant;
-        //let sessionoutputstring = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(session));
         //////////////////// SAVE THE DRAWING DATA FILE
         var packageoutput = new FileOutputPackage(); //we package the session info in so we can buddy up the files later on (just in case right. coz all the files will be named unknown!)
         packageoutput.drawingdata = this.drawingdata;
@@ -1548,16 +1546,11 @@ var Stemcanvas = /** @class */ (function () {
                 if (xhr.responseText == "Success") {
                     //@ts-ignore 
                     M.toast({ html: 'Drawing submitted' });
+                    window.location.href = "index.html?q=nextquestion";
                 }
             }
         };
         xhr.send(dataStr);
-        if (this.observation) {
-            //for now, nothing happens window remains open
-        }
-        else {
-            window.location.href = "index.html?q=nextquestion";
-        }
     };
     Stemcanvas.prototype.NextAndUpload = function () {
         // let participantDeviceTask = `${this.participant} - ${this.devicetype} - ${this.task}`;
