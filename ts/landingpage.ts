@@ -6,6 +6,8 @@ window.onload = function () {
         var devicetype = document.getElementById("devicetype") as HTMLInputElement;
         var btnTaskA = document.getElementById("btnTaskA") as HTMLElement;
         var btnTaskB = document.getElementById("btnTaskB") as HTMLElement;
+        var btnTaskC = document.getElementById("btnTaskC") as HTMLElement;
+        var btnTaskD = document.getElementById("btnTaskD") as HTMLElement;
         var btnSandbox = document.getElementById("btnSandbox");
         btnTaskA.addEventListener("click", function (e) {
             sessionStorage.setItem("token", tokeninput.value);
@@ -19,6 +21,20 @@ window.onload = function () {
             sessionStorage.setItem("devicetype", devicetype.value);
             sessionStorage.setItem("taskset", "b");
             location.href = "q4.html";
+            return false;
+        });
+        btnTaskC.addEventListener("click", function (e) {
+            sessionStorage.setItem("token", tokeninput.value);
+            sessionStorage.setItem("devicetype", devicetype.value);
+            sessionStorage.setItem("taskset", "c");
+            location.href = "q7.html";
+            return false;
+        });
+        btnTaskD.addEventListener("click", function (e) {
+            sessionStorage.setItem("token", tokeninput.value);
+            sessionStorage.setItem("devicetype", devicetype.value);
+            sessionStorage.setItem("taskset", "d");
+            location.href = "q10.html";
             return false;
         });
         btnSandbox.addEventListener("click",()=>{
