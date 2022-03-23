@@ -9,17 +9,9 @@ class Stemcanvas {
     //redoActions: Array<UndoAction>; //holds things that can be redone
 
     canvasbackground: HTMLDivElement;
-    drawingcanvas: HTMLCanvasElement;
-    selectioncanvas: HTMLCanvasElement;
-    cursorcanvas: HTMLCanvasElement;
-    interfacecanvas: HTMLCanvasElement;
-    debugcanvas: HTMLCanvasElement;
+    drawingcanvas: HTMLCanvasElement;    selectioncanvas: HTMLCanvasElement;    cursorcanvas: HTMLCanvasElement;    interfacecanvas: HTMLCanvasElement;    debugcanvas: HTMLCanvasElement;
 
-    contextDrawing: CanvasRenderingContext2D;
-    contextSelection: CanvasRenderingContext2D;
-    contextCursor: CanvasRenderingContext2D;
-    contextInterface: CanvasRenderingContext2D;
-    contextDebug: CanvasRenderingContext2D;
+    contextDrawing: CanvasRenderingContext2D;    contextSelection: CanvasRenderingContext2D;    contextCursor: CanvasRenderingContext2D;    contextInterface: CanvasRenderingContext2D;    contextDebug: CanvasRenderingContext2D;
 
     toolbox: Toolbox //holds all the user controls with management
     pen: Pen
@@ -44,11 +36,8 @@ class Stemcanvas {
     debug: HTMLParagraphElement;
 
     //session info
-    participant: string;
-    taskset: string;
-    task: string;
-    devicetype: string;
-    observation: string = "false";//this will get set if the question starts from the observation page
+    participant: string;    taskset: string;    task: string;    devicetype: string;
+        observation: string = "false";//this will get set if the question starts from the observation page
 
     //session info for file download:
     //session start time clock
@@ -372,7 +361,26 @@ class Stemcanvas {
         this.contextSelection.lineWidth = 1;
         this.contextSelection.setLineDash([5]);
 
-        this.canvascontainer.scrollLeft = ((Canvasconstants.width - this.canvascontainer.clientWidth) / 2);
+        // this.canvascontainer.scrollLeft = ((Canvasconstants.width - this.canvascontainer.clientWidth) / 2);
+        this.canvascontainer.scrollLeft = ((Canvasconstants.width - this.canvascontainer.clientWidth));
+
+        let questiontext = document.getElementById("questiontext") as HTMLElement;
+        let questioncontainer = document.getElementById("questioncontainer") as HTMLElement;
+        let viewportheight = window.innerHeight;
+        let canvascontainer = document.getElementById("canvas-scroll-container");
+        let showmorelabel = document.getElementById("showmore") as HTMLElement;
+
+        
+            
+        //fixup canvas bounds size for height
+        questiontext.classList.remove("line-clamp");
+        let questioncontainerbounds = questioncontainer.getBoundingClientRect();
+        let bottom = questioncontainerbounds.bottom;
+        let remainingspace = viewportheight - bottom;
+        canvascontainer.style.height = "" + (remainingspace - 20) + "px";
+        
+
+        
 
 
 
@@ -2040,16 +2048,13 @@ class Stemcanvas {
         xhr.open("POST", url, true);
         xhr.setRequestHeader("Content-Type", "application/json");
         xhr.onreadystatechange = function () {
-            if (xhr.readyState === 4 && xhr.status === 200) {
-
-                if (xhr.responseText == "Success") {
+            if (xhr.readyState === 4 && xhr.status === 200) {                
                     //@ts-ignore 
-                    M.toast({ html: 'Drawing submitted' });
-                   
+                    M.toast({ html: 'Drawing submitted' });                   
                     
-                        window.location.href = "index.html?q=nextquestion";
-                    
-                }
+                    //window.location.href = "index.html?q=nextquestion";
+                
+                
             }
         };
 

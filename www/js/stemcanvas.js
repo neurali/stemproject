@@ -235,10 +235,10 @@ var Stemcanvas = /** @class */ (function () {
                 // questiontext.classList.remove("truncate");
                 questiontext.classList.remove("line-clamp");
                 //get height of question row
-                var questioncontainerbounds = questioncontainer.getBoundingClientRect();
-                var bottom = questioncontainerbounds.bottom;
-                var remainingspace = viewportheight - bottom;
-                canvascontainer.style.height = "" + (remainingspace - 20) + "px";
+                var questioncontainerbounds_1 = questioncontainer.getBoundingClientRect();
+                var bottom_1 = questioncontainerbounds_1.bottom;
+                var remainingspace_1 = viewportheight - bottom_1;
+                canvascontainer.style.height = "" + (remainingspace_1 - 20) + "px";
                 showmorelabel.innerText = "-";
                 //now set max height of the canvas container to the remaining space on screen
             }
@@ -248,10 +248,10 @@ var Stemcanvas = /** @class */ (function () {
                 //questiontext.classList.add("truncate");
                 questiontext.classList.add("line-clamp");
                 //get height of question row
-                var questioncontainerbounds = questioncontainer.getBoundingClientRect();
-                var bottom = questioncontainerbounds.bottom;
-                var remainingspace = viewportheight - bottom;
-                canvascontainer.style.height = "" + (remainingspace - 20) + "px";
+                var questioncontainerbounds_2 = questioncontainer.getBoundingClientRect();
+                var bottom_2 = questioncontainerbounds_2.bottom;
+                var remainingspace_2 = viewportheight - bottom_2;
+                canvascontainer.style.height = "" + (remainingspace_2 - 20) + "px";
                 showmorelabel.innerText = "+";
             }
         });
@@ -261,7 +261,19 @@ var Stemcanvas = /** @class */ (function () {
         this.contextSelection.strokeStyle = "black";
         this.contextSelection.lineWidth = 1;
         this.contextSelection.setLineDash([5]);
-        this.canvascontainer.scrollLeft = ((Canvasconstants.width - this.canvascontainer.clientWidth) / 2);
+        // this.canvascontainer.scrollLeft = ((Canvasconstants.width - this.canvascontainer.clientWidth) / 2);
+        this.canvascontainer.scrollLeft = ((Canvasconstants.width - this.canvascontainer.clientWidth));
+        var questiontext = document.getElementById("questiontext");
+        var questioncontainer = document.getElementById("questioncontainer");
+        var viewportheight = window.innerHeight;
+        var canvascontainer = document.getElementById("canvas-scroll-container");
+        var showmorelabel = document.getElementById("showmore");
+        //fixup canvas bounds size for height
+        questiontext.classList.remove("line-clamp");
+        var questioncontainerbounds = questioncontainer.getBoundingClientRect();
+        var bottom = questioncontainerbounds.bottom;
+        var remainingspace = viewportheight - bottom;
+        canvascontainer.style.height = "" + (remainingspace - 20) + "px";
     };
     Stemcanvas.prototype.canvasBackgroundSwitch = function (s) {
         var canvasbackground = document.getElementById("canvasbackground");
@@ -1543,11 +1555,9 @@ var Stemcanvas = /** @class */ (function () {
         xhr.setRequestHeader("Content-Type", "application/json");
         xhr.onreadystatechange = function () {
             if (xhr.readyState === 4 && xhr.status === 200) {
-                if (xhr.responseText == "Success") {
-                    //@ts-ignore 
-                    M.toast({ html: 'Drawing submitted' });
-                    window.location.href = "index.html?q=nextquestion";
-                }
+                //@ts-ignore 
+                M.toast({ html: 'Drawing submitted' });
+                //window.location.href = "index.html?q=nextquestion";
             }
         };
         xhr.send(dataStr);
