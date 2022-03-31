@@ -80,8 +80,7 @@ class Stemcanvas {
         this.participant = sessionStorage.getItem("token");
         if (regex.test(this.participant)) {
             //get values from the participant token
-            this.taskset = "longitudinal";
-            debugger;
+            //this.taskset = "longitudinal";     removed as this is what hides the next button       
             let split = this.participant.charAt(2); //A == Apple W== Wacom
 
             let last = this.participant.charAt(this.participant.length - 1);
@@ -118,6 +117,7 @@ class Stemcanvas {
         let sessioninfo = document.getElementById("sessioninfo") as HTMLElement;
         let attTasknumber = sessioninfo.attributes.getNamedItem("data-tasknumber");
         this.task = attTasknumber.value;
+        console.log(this.task);
 
         if (this.taskset == "a") {
             if (this.task == "q3") {
@@ -127,6 +127,27 @@ class Stemcanvas {
         else if (this.taskset == "b") {
             if (this.task == "q6") {
                 document.getElementById("btnNext").classList.add("hidden");
+            }
+        }
+        else if(this.taskset == "c")
+        {
+            if (this.task == "q9") {
+                document.getElementById("btnNext").classList.add("hidden");
+            }
+        }
+        else if(this.taskset == "d")
+        {
+            console.log(this.task);
+            if (this.task == "q12") {
+                document.getElementById("btnNext").classList.add("hidden");
+            }
+        }
+        else if(this.task.charAt(0)=='p')
+        {
+            if(this.task == "p3")
+            {
+                document.getElementById("btnNext").classList.add("hidden");
+
             }
         }
 
@@ -310,6 +331,12 @@ class Stemcanvas {
             this.uploadData();
         })
         if (this.observation == "true") {
+            document.getElementById("btnNext").addEventListener("click", () => {
+                this.NextAndUpload();
+            })
+        }
+        else if(this.task.charAt(0) == 'p')
+        {
             document.getElementById("btnNext").addEventListener("click", () => {
                 this.NextAndUpload();
             })
@@ -2064,12 +2091,24 @@ class Stemcanvas {
     NextAndUpload() {
         // let participantDeviceTask = `${this.participant} - ${this.devicetype} - ${this.task}`;
 
+        debugger;
+        let nextquestion = "";
+        //p1, p2, p3 are the practice test questions
+        if(this.task.charAt(0) == 'p')
+        {
+            let questionindex = this.task.charAt(1);
+            nextquestion = "p"+(parseInt(questionindex) + 1) + ".html";
+        }
+        else{
+            let currentquestionarray = this.task.split('q');
+            let currentquestion = parseInt(currentquestionarray[1]);
+            nextquestion = "q" + (currentquestion + 1) + ".html";
+        }
+        
 
 
-        let currentquestionarray = this.task.split('q');
-        let currentquestion = parseInt(currentquestionarray[1]);
-        let nextquestion = "q" + (currentquestion + 1) + ".html";
-        //document.location.href = (nextquestion);
+        
+        
         window.open(nextquestion);
 
 

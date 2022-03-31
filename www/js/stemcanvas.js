@@ -36,8 +36,7 @@ var Stemcanvas = /** @class */ (function () {
         this.participant = sessionStorage.getItem("token");
         if (regex.test(this.participant)) {
             //get values from the participant token
-            this.taskset = "longitudinal";
-            debugger;
+            //this.taskset = "longitudinal";     removed as this is what hides the next button       
             var split = this.participant.charAt(2); //A == Apple W== Wacom
             var last = this.participant.charAt(this.participant.length - 1);
             var secondlast = this.participant.charAt(this.participant.length - 2);
@@ -64,6 +63,7 @@ var Stemcanvas = /** @class */ (function () {
         var sessioninfo = document.getElementById("sessioninfo");
         var attTasknumber = sessioninfo.attributes.getNamedItem("data-tasknumber");
         this.task = attTasknumber.value;
+        console.log(this.task);
         if (this.taskset == "a") {
             if (this.task == "q3") {
                 document.getElementById("btnNext").classList.add("hidden");
@@ -71,6 +71,22 @@ var Stemcanvas = /** @class */ (function () {
         }
         else if (this.taskset == "b") {
             if (this.task == "q6") {
+                document.getElementById("btnNext").classList.add("hidden");
+            }
+        }
+        else if (this.taskset == "c") {
+            if (this.task == "q9") {
+                document.getElementById("btnNext").classList.add("hidden");
+            }
+        }
+        else if (this.taskset == "d") {
+            console.log(this.task);
+            if (this.task == "q12") {
+                document.getElementById("btnNext").classList.add("hidden");
+            }
+        }
+        else if (this.task.charAt(0) == 'p') {
+            if (this.task == "p3") {
                 document.getElementById("btnNext").classList.add("hidden");
             }
         }
@@ -218,6 +234,11 @@ var Stemcanvas = /** @class */ (function () {
             _this.uploadData();
         });
         if (this.observation == "true") {
+            document.getElementById("btnNext").addEventListener("click", function () {
+                _this.NextAndUpload();
+            });
+        }
+        else if (this.task.charAt(0) == 'p') {
             document.getElementById("btnNext").addEventListener("click", function () {
                 _this.NextAndUpload();
             });
@@ -1564,10 +1585,18 @@ var Stemcanvas = /** @class */ (function () {
     };
     Stemcanvas.prototype.NextAndUpload = function () {
         // let participantDeviceTask = `${this.participant} - ${this.devicetype} - ${this.task}`;
-        var currentquestionarray = this.task.split('q');
-        var currentquestion = parseInt(currentquestionarray[1]);
-        var nextquestion = "q" + (currentquestion + 1) + ".html";
-        //document.location.href = (nextquestion);
+        debugger;
+        var nextquestion = "";
+        //p1, p2, p3 are the practice test questions
+        if (this.task.charAt(0) == 'p') {
+            var questionindex = this.task.charAt(1);
+            nextquestion = "p" + (parseInt(questionindex) + 1) + ".html";
+        }
+        else {
+            var currentquestionarray = this.task.split('q');
+            var currentquestion = parseInt(currentquestionarray[1]);
+            nextquestion = "q" + (currentquestion + 1) + ".html";
+        }
         window.open(nextquestion);
         this.uploadData();
     };
