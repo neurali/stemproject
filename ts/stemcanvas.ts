@@ -142,6 +142,20 @@ class Stemcanvas {
                 document.getElementById("btnNext").classList.add("hidden");
             }
         }
+        else if(this.taskset == "e")
+        {
+            console.log(this.task);
+            if (this.task == "q15") {
+                document.getElementById("btnNext").classList.add("hidden");
+            }
+        }
+        else if(this.taskset == "f")
+        {
+            console.log(this.task);
+            if (this.task == "q18") {
+                document.getElementById("btnNext").classList.add("hidden");
+            }
+        }
         else if(this.task.charAt(0)=='p')
         {
             if(this.task == "p3")

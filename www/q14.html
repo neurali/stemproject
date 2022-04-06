@@ -5,7 +5,7 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0" />
-    <title>Practice Test - Q2 / 3</title>
+    <title>Q2</title>
     <!-- CSS  -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link href="./css/icofont.css" rel="stylesheet">
@@ -17,14 +17,13 @@
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
-
   gtag('config', 'G-C7L45NLQ44');
 </script>
 </head>
 
 <body>
 
-    <p data-participant="" data-tasknumber="p3" id="sessioninfo" class="hide">temp session info</p>
+    <p data-participant="" data-tasknumber="q14" id="sessioninfo" class="hide">temp session info</p>
 
     <a href="#" class="hide" id="lblParticipant">Participant: </a></li>
 
@@ -40,15 +39,24 @@
 
                     <div class="row notbotmarg" id="questioncontainer">
                         <div class="col s1">
-                            <p id="questionheader"><strong>Q3: </strong> </p>
+                            <p id="questionheader"><strong>Q2: </strong> </p>
                         </div>
 
                         <div class="col s10">
 
-                            <p id="questiontext" class="">
-                                A field is a rectangular shape.  It's length is 30 metres longer than it's width. A fence around the field is 360 m long. 
-                                <br>Find the width, 𝜔, of the field. 
-                            </p>
+                            
+                            <div id="questiontext" class="unclamp">
+
+                                <p class="nomargintop qpad">The diagram shows a square courtyard and square pool in one corner. The courtyard extends 10m on two sides of the pool. The area of the courtyard is 225m². Find ‘x’ the length of the pool. 
+                                </p>
+
+                                
+
+                               
+
+                            </div>
+                            
+
                         </div>
 
                         <div class="col s1 valign-wrapper">
@@ -76,6 +84,7 @@
                 <div class="canvas-container white" id="canvas-scroll-container">
 
                     <div class="canvasbackground" id="canvasbackground" width="1500" height="1000"></div>
+                    <canvas class="aligncanvases" id="diagram" width="1500" height="1000" style="background-image: url(./media/canvasBG/teq2.png)"></canvas>
                     <canvas class="drawingcanvas" id="canvasdrawing" width="444" height="444"></canvas>
                     <canvas class="aligncanvases" id="selectioncanvas" width="444" height="444"></canvas>
                     <canvas class="aligncanvases" id="interfacecanvas" width="444" height="444"></canvas>
@@ -267,8 +276,8 @@
                             <a class="waves-effect waves-dark btn">Save</a>
                         </div>
                         <div id="btnNext" class="col s6">
-                                <a id="nextlink" class="waves-effect waves-light btn">Next</a>
-                            </div>
+                            <a id="nextlink" class="waves-effect waves-light btn">Next</a>
+                        </div>
                     </div>
 
 
