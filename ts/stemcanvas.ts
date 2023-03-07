@@ -1,8 +1,8 @@
 class Stemcanvas {
 
     isios: boolean;
-    drawingdata: Array<Stemstroke>;
 
+    drawingdata: Array<Stemstroke>;
 
     undoredo: StateManager;
     //undoActions: Array<UndoAction>; //holds things that can be undone
@@ -2028,6 +2028,7 @@ class Stemcanvas {
 
         let timertext = document.getElementById("questiontimer") as HTMLHeadingElement;
 
+        
         let startsynctime = performance.now();
         let startClockTime = new Date().getTime();
 
@@ -2970,6 +2971,7 @@ class SelectionManager {
 
 
         }
+
     }
 
     indexAtID(id: string) {
